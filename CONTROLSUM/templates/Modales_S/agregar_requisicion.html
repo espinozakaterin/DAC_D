@@ -1,0 +1,440 @@
+<div class="modal fade" id="modalRequisicion" tabindex="-1" aria-labelledby="modalRequisicionLabel" aria-hidden="true"
+    data-bs-keyboard="false" data-bs-backdrop="static">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: #697a8a; color: white;">
+                <h5 class="modal-title" id="modalRequisicionLabel">
+                    <i class="material-icons me-2">add_shopping_cart</i> AGREGAR REQUISICIÓN
+                </h5>
+            </div>
+            
+            <form id="formRequisicion">
+                <input type="hidden" id="id_requisicion" name="id_requisicion" value="">
+                <input type="hidden" id="costo_total_hidden" name="costo_total" value="0.00">
+                <input type="hidden" id="detalle_articulos" name="detalle_articulos" value="[]">
+
+                <div class="modal-body p-3">
+                    <div class="container-fluid">
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-3">
+                                <label for="nombre_completo" class="form-label">Nombre del Solicitante:</label>
+                                <select id="nombre_completo" class="form-select" name="nombre_completo" required>
+                                    <option value="">Seleccione su nombre</option>
+                                    {% for us in usuarios %}
+                                    <option value="{{ us.PkUsuario }}">{{ us.Nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="grupos" class="form-label">Grupo:</label>
+                                <select id="grupos" class="form-select" name="grupos" required>
+                                    <option value="">Seleccione el grupo</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="acreedor" class="form-label">Acreedor:</label>
+                                <select id="acreedor" class="form-select" name="acreedor" required>
+                                    <option value="">Seleccione el acreedor</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="fecha_pedido" class="form-label">Fecha del Pedido:</label>
+                                <input type="date" class="form-control" id="fecha_pedido" name="fecha_pedido" required>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="fecha_pago" class="form-label">Fecha de Pago:</label>
+                                <input type="date" class="form-control" id="fecha_pago" name="fecha_pago" required>
+                            </div>
+                        </div>
+
+                        <hr class="my-3">
+
+                        <div class="row g-4">
+                            <div class="col-md-5 border-end">
+                                <h6 class="text-center mb-3"><strong>Detalles del Suministro</strong></h6>
+                                <div class="row g-2 mb-2">
+                                    <div class="col-md-6">
+                                        <label for="categoria" class="form-label">Categoría:</label>
+                                        <select id="categoria" class="form-select" name="categoria">
+                                            <option value="">Seleccione:</option>
+                                            {% for cat in categorias %}
+                                            <option value="{{ cat.id_categoria }}">{{ cat.nombre_categoria }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="suministro" class="form-label">Suministro:</label>
+                                        <select id="suministro" class="form-select" name="suministro">
+                                            <option value="">Seleccione:</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row g-2 mb-2">
+                                    <div class="col-md-6">
+                                        <label for="precio_unitario" class="form-label">Precio Unitario:</label>
+                                        <input type="number" class="form-control bg-light" id="precio_unitario" name="precio_unitario" placeholder="0.00" readonly>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="cantidad" class="form-label">Cantidad:</label>
+                                        <input type="number" class="form-control" id="cantidad" name="cantidad" placeholder="0" min="1" oninput="validarCantidad()">
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="justificacion" class="form-label">Justificación:</label>
+                                    <textarea class="form-control" id="justificacion" name="justificacion" rows="2"></textarea>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-muted small">Subtotal: <strong>L. <span id="subtotal-dinamico">0.00</span></strong></span>
+                                    <button type="button" class="btn btn-success px-4" id="agregar-articulo">
+                                        <strong>+ Agregar a la lista</strong>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="col-md-7">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="mb-0"><strong>Artículos en la Requisición</strong></h6>
+                                    <div class="badge bg-primary fs-6" style="white-space: nowrap;">Total: L&nbsp;<span id="costo-total">0.00</span></div>
+                                </div>
+                                <div class="table-responsive" style="max-height: 300px;">
+                                    <table class="table table-sm table-bordered table-hover text-center">
+                                        <thead class="table-dark">
+                                            <tr>
+                                                <th>Suministro</th>
+                                                <th>Cantidad</th>
+                                                <th>Precio</th>
+                                                <th>Total</th>
+                                                <th>Acción</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tabla-articulos"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light">
+                <button type="submit" class="btn btn-success px-4"><strong>Guardar Requisición</strong></button>
+                <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal"><strong>Cerrar</strong></button>
+            </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<script>
+
+/* =============================================
+   AGREGAR ARTÍCULOS + CALCULAR TOTAL (SIN SUBMIT)
+   ============================================= */
+document.addEventListener("DOMContentLoaded", function () {
+
+    const tabla = document.getElementById("tabla-articulos");
+    const agregarArticuloBtn = document.getElementById("agregar-articulo");
+
+    const dollarUSLocale = Intl.NumberFormat("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+
+    const intergerLocale = Intl.NumberFormat("en-US", {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    });
+
+    // Agregar artículo a la tabla
+    agregarArticuloBtn.addEventListener("click", function () {
+
+        const suministroSelect = document.getElementById("suministro");
+        const selectedOption = suministroSelect.options[suministroSelect.selectedIndex];
+
+        const idSuministro = selectedOption ? selectedOption.value : "";
+        const nombreSuministro = selectedOption ? selectedOption.text : "";
+
+        const cantidad = parseFloat(document.getElementById("cantidad").value) || 0;
+        const precio = parseFloat(document.getElementById("precio_unitario").value) || 0;
+        const justificacion = document.getElementById("justificacion").value.trim();
+        const total = cantidad * precio;
+
+        // Validación
+        if (idSuministro !== "" && idSuministro !== "#" && cantidad > 0 && precio >= 0 && justificacion !== "") {
+
+            const row = tabla.insertRow();
+            row.setAttribute('data-id-suministro', idSuministro);
+            row.setAttribute('data-justificacion', justificacion);
+
+            row.insertCell(0).innerText = nombreSuministro;
+            row.insertCell(1).innerText = intergerLocale.format(cantidad);
+            row.insertCell(2).innerText = 'L ' + dollarUSLocale.format(precio);
+            row.insertCell(3).innerText = 'L ' + dollarUSLocale.format(total);
+
+            // Acción eliminar
+            const btnEliminar = document.createElement("button");
+            btnEliminar.className = "btn btn-danger btn-sm";
+            btnEliminar.innerHTML = '<i class="fas fa-trash"></i>';
+
+            btnEliminar.addEventListener("click", function () {
+                row.remove();
+                actualizarCostoTotal();
+            });
+
+            const cellAccion = row.insertCell(4);
+            cellAccion.appendChild(btnEliminar);
+
+            actualizarCostoTotal();
+
+            // Limpiar campos
+            suministroSelect.value = "";
+            document.getElementById("cantidad").value = "";
+            document.getElementById("precio_unitario").value = "";
+            document.getElementById("justificacion").value = "";
+            document.getElementById("subtotal-dinamico").innerText = "0.00";
+
+        } else {
+            Swal.fire("Error", "⚠️ Debes llenar Suministro, Cantidad y Justificación.", "warning");
+        }
+    });
+
+    //  Función total
+    function actualizarCostoTotal() {
+        let total = 0;
+
+        document.querySelectorAll("#tabla-articulos tr").forEach(row => {
+            const valor = row.cells[3]?.innerText?.replace(/,/g, '')?.trim();
+            total += parseFloat(valor) || 0;
+        });
+
+        document.getElementById("costo-total").innerText = total.toFixed(2);
+
+        // hidden inputs para el backend si los ocupas
+        document.getElementById("costo_total_hidden").value = total.toFixed(2);
+        document.getElementById("detalle_articulos").value = JSON.stringify(obtenerDetalleArticulos());
+    }
+
+    //  Obtener detalle
+    function obtenerDetalleArticulos() {
+        const detalles = [];
+
+        document.querySelectorAll("#tabla-articulos tr").forEach(row => {
+            const id = row.getAttribute("data-id-suministro");
+            const justificacion = row.getAttribute("data-justificacion") || "";
+
+            const cantidad = parseFloat(row.cells[1]?.innerText.replace(/,/g, '')) || 0;
+            const precio = parseFloat(row.cells[2]?.innerText.replace(/,/g, '')) || 0;
+
+            if (id && cantidad > 0) {
+                detalles.push({
+                    id_suministros: id,
+                    cantidad: cantidad,
+                    precio_unitario: precio,
+                    justificacion: justificacion
+                });
+            }
+        });
+
+        return detalles;
+    }
+
+});
+
+//  Validación solo números en cantidad
+function validarCantidad() {
+    const cantidadInput = document.getElementById("cantidad");
+    cantidadInput.value = cantidadInput.value.replace(/[^0-9]/g, '');
+}
+
+/* =============================================
+   SELECT2 Y EVENTOS AJAX
+   ============================================= */
+$('#modalRequisicion').on('shown.bs.modal', function () {
+
+    $('#nombre_completo').select2({
+        placeholder: "Seleccione su nombre",
+        width: "100%",
+        allowClear: true,
+        dropdownParent: $('#modalRequisicion')
+    });
+
+    $('#acreedor').select2({
+        placeholder: "Seleccione",
+        width: "100%",
+        allowClear: true,
+        dropdownParent: $('#modalRequisicion')
+    });
+});
+
+
+/* =============================================
+   3) CARGAR GRUPOS POR USUARIO
+   ============================================= */
+
+function cargarGruposPorUsuario(pkUsuario) {
+
+    const $grupos = $('#grupos');
+
+    if (!pkUsuario || pkUsuario === "#") {
+        $grupos.empty().append('<option value="">Seleccione el grupo</option>');
+        return;
+    }
+
+    $grupos.empty().append('<option value="">Cargando grupos...</option>');
+
+    $.ajax({
+        url: "{% url 'grupos_por_usuario_data' %}",
+        type: "GET",
+        dataType: "json",
+        data: {
+            pk_usuario: pkUsuario
+        },
+
+        success: function (response) {
+
+            console.log("Respuesta grupos:", response);
+
+            $grupos.empty();
+
+            if (response.data && response.data.length > 0) {
+
+                $grupos.append('<option value="">Seleccione el grupo</option>');
+
+                response.data.forEach(function (grupo) {
+                    $grupos.append(
+                        `<option value="${grupo.id}">${grupo.nombre}</option>`
+                    );
+                });
+
+            } else {
+
+                $grupos.append('<option value="">No hay grupos asignados</option>');
+
+            }
+
+        },
+
+        error: function (xhr) {
+
+            console.error("Error cargando grupos:", xhr.responseText);
+
+            $grupos.empty().append('<option value="">Error al cargar grupos</option>');
+
+            Swal.fire(
+                "Error",
+                "Ocurrió un error al obtener los grupos.",
+                "error"
+            );
+
+        }
+    });
+}
+
+
+/* =============================================
+   EVENTO CUANDO CAMBIA EL USUARIO
+   ============================================= */
+
+$(document).off('change', '#nombre_completo');
+
+$(document).on('change', '#nombre_completo', function () {
+
+    const usuario = $(this).val();
+
+    console.log("Usuario seleccionado:", usuario);
+
+    cargarGruposPorUsuario(usuario);
+
+});
+
+
+/* =============================================
+   5) EVENTO CAMBIO DE CATEGORÍA
+   ============================================= */
+$(document).on('change', '#categoria', function () {
+    const idCategoria = $(this).val();
+    const $suministro = $('#suministro');
+    const $precio = $('#precio_unitario');
+
+    $suministro.empty().append('<option value="">Cargando...</option>');
+    $precio.val("");
+
+    $.ajax({
+        url: "{% url 'obtener_suministros_por_categoria_data' %}", 
+        type: 'GET',
+        data: { 'id_categoria': idCategoria },
+        success: function (res) {
+            $suministro.empty().append('<option value="">Seleccione el suministro:</option>');
+            (res.data || []).forEach(s => {
+                $suministro.append(`<option value="${s.id}">${s.nombre}</option>`);
+            });
+        },
+        error: function() {
+            $suministro.empty().append('<option value="">Error al cargar</option>');
+        }
+    });
+});
+/* =========================
+   SUBTOTAL (SIEMPRE EN EL MODAL)
+   ========================= */
+function calcularSubtotalModal() {
+    const $modal = $('#modalRequisicion');
+
+    const cantidadRaw = ($modal.find('#cantidad').val() || '').toString().trim();
+    const precioRaw   = ($modal.find('#precio_unitario').val() || '').toString().trim();
+
+    const cantidad = parseFloat(cantidadRaw.replace(',', '.')) || 0;
+    const precio   = parseFloat(precioRaw.replace(',', '.')) || 0;
+
+    const subtotal = cantidad * precio;
+
+    $modal.find('#subtotal-dinamico').text(subtotal.toFixed(2));
+}
+
+/* =============================================
+   6) EVENTO CAMBIO DE SUMINISTRO (CORREGIDO)
+   ============================================= */
+$(document).off('change', '#modalRequisicion #suministro');
+$(document).on('change', '#modalRequisicion #suministro', function () {
+
+    const $modal = $('#modalRequisicion');
+    const idSuministro = ($modal.find('#suministro').val() || '').toString().trim();
+
+    if (!idSuministro || idSuministro === "#" || !/^\d+$/.test(idSuministro)) {
+        $modal.find('#precio_unitario').val('0.00');
+        calcularSubtotalModal();
+        return;
+    }
+
+    $.ajax({
+        url: "{% url 'obtener_precio_suministro_data' %}",
+        type: "GET",
+        dataType: "json",
+        data: { id: idSuministro },
+        success: function (res) {
+            if (res.success) {
+                $modal.find('#precio_unitario').val(parseFloat(res.precio).toFixed(2));
+            } else {
+                $modal.find('#precio_unitario').val('0.00');
+            }
+            calcularSubtotalModal();
+        },
+        error: function () {
+            $modal.find('#precio_unitario').val('0.00');
+            calcularSubtotalModal();
+        }
+    });
+});
+
+/* =============================================
+   7) EVENTO SUBTOTAL CUANDO CAMBIA CANTIDAD/PRECIO
+   ============================================= */
+$(document).off('input keyup change', '#modalRequisicion #cantidad, #modalRequisicion #precio_unitario');
+$(document).on('input keyup change', '#modalRequisicion #cantidad, #modalRequisicion #precio_unitario', function () {
+    calcularSubtotalModal();
+});
+
+$('#modalRequisicion').on('shown.bs.modal', function () {
+    calcularSubtotalModal();
+});
+</script> 

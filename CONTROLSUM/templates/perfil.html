@@ -1,0 +1,52 @@
+{% extends 'menu_control_suministros.html' %}
+{% load static %}
+
+{% block title %}Perfil - Control Suministros{% endblock %}
+
+{% block body %}
+<div class="row mb-5 py-3">
+    <div class="col-12 text-center">
+        <div class="profile-header mb-4">
+             <img src="https://ui-avatars.com/api/?name={{ userName }}&size=128&background=2c4770&color=fff&bold=true" class="rounded-circle shadow-lg p-2 bg-white" alt="Avatar">
+        </div>
+        <h2 class="fw-bold mb-1">{{ fullName|title }}</h2>
+        <span class="badge bg-primary px-3 mb-2">Usuario del Sistema</span>
+        <p class="text-muted"><i class="fas fa-building me-2"></i>{{ empresa|upper }}</p>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="dash-card p-0 overflow-hidden mb-5">
+            <div class="bg-light p-3 border-bottom d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold"><i class="fas fa-id-card me-2"></i>Información Personal</h5>
+                <button class="btn btn-sm btn-outline-primary shadow-sm" onclick="Swal.fire({
+                    title: 'Editar Perfil',
+                    text: 'Funcionalidad de edición estará disponible en la próxima actualización.',
+                    icon: 'info'
+                })">
+                    <i class="fas fa-edit me-1"></i>Editar
+                </button>
+            </div>
+            <div class="p-4">
+                <div class="mb-4">
+                    <label class="text-muted small fw-bold mb-1">Nombre Completo</label>
+                    <div class="mb-0 fw-bold border-bottom pb-2">{{ fullName|title }}</div>
+                </div>
+                <div class="mb-4">
+                    <label class="text-muted small fw-bold mb-1">Usuario de Acceso</label>
+                    <div class="mb-0 fw-bold border-bottom pb-2">{{ userName }}</div>
+                </div>
+                <div class="mb-4">
+                    <label class="text-muted small fw-bold mb-1">Compañía / Empresa</label>
+                    <div class="mb-0 fw-bold border-bottom pb-2">{{ empresa|upper }}</div>
+                </div>
+                 <div class="mb-0">
+                    <label class="text-muted small fw-bold mb-1">Rol Operativo</label>
+                    <div class="mb-0 fw-bold text-success">Control de Suministros - Operación</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

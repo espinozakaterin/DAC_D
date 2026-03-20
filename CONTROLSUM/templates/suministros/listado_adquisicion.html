@@ -1,0 +1,861 @@
+{% extends 'menu_control_suministros.html' %}
+{% load static %}
+
+{% block title %}
+GESTION DE ADQUISICIONES
+{% endblock %}
+
+
+{% block body %}
+
+<div class="row align-items-center">
+    <div class="col d-flex align-items-center">
+        <h3 class="page-title mb-0">
+            <i class="fas fa-box"></i> <strong>LISTADO DE ADQUISICIONES</strong>
+        </h3>
+    </div>
+
+    <div class="col-auto text-end float-end ms-auto download-grp">
+        <button class="btn btn-sm btn-success" style="background-color: #697a8a; text-align: justify;" id="btnNuevo"
+            title="Crear Nuevo"><i class="fas fa-plus me-2"></i>
+            <strong>Nueva Adquisición</strong></button>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-auto">
+        <label for="Filtro" class="form-label"><strong>Filtrar por Estado</strong></label>
+        <select id="Filtro" class="form-select" aria-label="Filtrar por Estado">
+            <option value="0">Todo el listado</option>
+            <option value="1">Listado de Adquisiciones Activas</option>
+            <option value="3">Listado de Adquisiciones Deshabilitadas</option>
+        </select>
+    </div>
+</div>
+
+<div class="row">
+    <div class="bg-white shadow rounded-4 p-3">
+        <table id="Tabla_Adquisicion"
+            class="table table-hover table-bordered table-striped table-sm align-middle mb-0 rounded-4">
+                <thead class="text-white text-center rounded-4" style="background-color: #697a8a; text-align: justify;">
+                    <tr>
+                        <th style="border-radius: 10px 0 0 0;">No.</th>
+                        <th class="text-center">Requisición No.</th>
+                        <th class="text-center">Solicitante</th>
+                        <th class="text-center">Grupo/Área</th>
+                        <th class="text-center">Acreedor</th>
+                        <th class="text-center">Fecha de Adquisición</th>
+                        <th class="text-center">Método de Pago</th>
+                        <th class="text-center">Costo Total</th>
+                        <th class="text-center">Estado</th>
+                        <th style="border-radius: 10px 0 0 0;">Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody class="text-center">
+                </tbody>
+            </table>
+    </div>
+</div>
+
+<hr>
+
+
+{% include 'Modales_S/agregar_adquisicion.html' %}
+{% include 'Modales_S/agregar_devolucion.html' %}
+{% include 'Modales_S/detallesAdquisicion.html' %}
+
+{% endblock %}
+
+
+{% block scripts %}
+
+<script>
+    $(document).ready(function () {
+        var csrfToken = "{{ csrf_token }}";
+        var cambiar_estado_actual = 0;
+
+        var toastMixin = Swal.mixin({
+            toast: true,
+            icon: 'success',
+            title: 'General Title',
+            animation: false,
+            position: 'top-right',
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
+            }
+        });
+
+        let dollarUSLocale = Intl.NumberFormat("en-US", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+
+        let intergerLocale = Intl.NumberFormat("en-US", {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+
+        });
+
+        $('#menu_gestion_adquisicion, #listar_requisicion_submenu').addClass('active');
+
+        id_solicitante_seleccionado = null;
+        id_metodo_pago_seleccionado = null;
+        id_motivo_devolucion_seleccionado = null;
+        id_grupo = null;
+        proveedor_ip = null;
+
+        var global_adquisicion_id = null;
+        var global_nombre_proveedor = null;
+        var global_id_proveedor = null;
+        var global_nombre_suministro = null;
+        var global_id_suministro = null;
+
+        select_estado_adquisicion = 0;
+
+        fillAdquisicion()
+
+        function fillAdquisicion() {
+
+            $("#Tabla_Adquisicion").DataTable().clear().destroy();
+
+            Tabla_Adquisicion = $("#Tabla_Adquisicion").DataTable({
+                autoWidth: false,
+                scrollX: true,
+                scrollY: '350px',
+                scrollCollapse: true,
+                pageLength: 30,
+                dom: 'Brftip',
+                language: {
+                    url: "{% static 'app/th/json/es-ES.json' %}",
+                },
+                ajax: {
+                    url: `{% url 'get_adquisicion_data' %}`,
+                    type: "POST",
+                    dataSrc: 'data',
+                    data: {
+                        varEstado: select_estado_adquisicion,
+                        csrfmiddlewaretoken: csrfToken
+                    },
+                },
+                colReorder: {
+                    realtime: false,
+                },
+                buttons: [
+    {
+        extend: 'excelHtml5',
+        text: '<i class="fas fa-file-excel"></i> Excel',
+        titleAttr: 'Exportar a Excel',
+        className: 'btn btn-success btn-sm',
+        exportOptions: {
+            columns: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+        }
+    },
+    {
+        extend: 'pdfHtml5',
+        text: '<i class="fas fa-file-pdf"></i> PDF',
+        titleAttr: 'Exportar a PDF',
+        className: 'btn btn-danger btn-sm',
+        pageSize: 'A4',
+        orientation: 'portrait',
+        exportOptions: {
+            columns: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+        },
+        customize: function (doc) {
+            doc.content[1].table.widths = Array(doc.content[1].table.body[0].length).fill('*');
+            doc.styles.tableHeader.fillColor = '#2c4770';
+            doc.styles.tableHeader.color = 'white';
+            doc.styles.tableHeader.alignment = 'center';
+            doc.styles.tableHeader.fontSize = 9;
+            doc.defaultStyle.alignment = 'center';
+            doc.defaultStyle.fontSize = 7;
+            doc.pageMargins = [15, 20, 15, 20];
+            doc.content[0].text = "REPORTE DE ADQUISICIONES";
+            doc.content[0].alignment = 'center';
+            doc.content[0].margin = [0, 0, 0, 10];
+        }
+    },
+    {
+        extend: 'print',
+        text: '<i class="fas fa-print"></i> Imprimir',
+        titleAttr: 'Imprimir',
+        className: 'btn btn-secondary btn-sm',
+        exportOptions: {
+            columns: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+        },
+        customize: function (win) {
+            $(win.document.body).find('table').addClass('compact').css('font-size', '8pt');
+            $(win.document.body).find('h1').css('text-align', 'center').text('ADQUISICIONES - CONTROL SUMINISTROS');
+        }
+    }
+],
+                columns: [
+                    {
+                        data: 'id_adquisicion'
+                    },
+                    {
+                        data: 'id_requisicion'
+                    },
+                    {
+                        data: 'Nombre',
+                    },
+                    {
+                        data: 'GrupoNombre'
+                    },
+                    {
+                        data: 'nombre_proveedor'
+                    },
+                    {
+                        data: 'fecha_adquisicion',
+                    },
+                    {
+                        data: 'metodo_pago'
+                    },
+                    {
+                        data: 'costo_total',
+                        className: 'formattMoney',
+                        render: $.fn.dataTable.render.number(',', '.', 2, 'L ')
+                    },
+                    {
+                        data: 'estado',
+                        className: 'text-center',
+                        render: function (data, type, row) {
+                            var badge = "";
+                            if (data == 3) {
+                                badge +=
+                                    '<span class="badge badge-pill custom-red">DESHABILITADO</span>';
+                            } else {
+                                badge +=
+                                    '<span class="badge badge-pill bg-success">ACTIVO</span>';
+                            }
+
+                            return badge;
+                        },
+                    },
+                    {
+                        data: null,
+                        width: '3%',
+                        title: "Acciones",
+                        render: function (data, type, row) {
+                            if (row.estado == 3) {
+                                return `
+                            <div class="text-center">
+                                <div class="btn-group">
+                                    <button class="btn btn-danger btn-sm anularAdquisicion rounded-pill shadow-sm" title="Cambiar estado Adquisicion" data-id="${row.id_adquisicion}" data-estado="${row.estado}">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </button>                                 
+                                </div>
+                            </div>
+                            `;
+                            }
+                            return `
+                            <div class="text-center">
+                                <div class="btn-group">
+                                    <button class="btn btn-primary btn-sm detallesAdquisicion rounded-pill shadow-sm" title="Detalles Adquisicion" data-id="${row.id_adquisicion}" data-id_proveedor="${row.id_proveedor}" data-nombre_proveedor="${row.nombre_proveedor}" data-id_requisicion="${row.id_requisicion}" data-id_detalle_requisicion="${row.id_detalle_requisicion}" data-nombre_suministro="${row.nombre}" data-suministros="${row.id_suministros}" data-estadoD="${row.estado}">
+                                        <i class="fas fa-list"></i>
+                                    </button> 
+                                    <button class="btn btn-warning btn-sm editarAdquisicion rounded-pill shadow-sm" title="Editar Adquisicion" data-id="${row.id_adquisicion}" data-id_requisicion="${row.id_requisicion}" data-solicitante="${row.PKUsuario}" data-metodo_pago="${row.id_metodo_pago}" data-grupo="${row.PKgrupo}" data-proveedor="${row.id_proveedor}" data-suministros="${row.id_suministros}" data-estado="${row.estado}">
+                                        <i class="fas fa-edit"></i>
+                                    </button>  
+                                    <button class="btn btn-danger btn-sm anularAdquisicion rounded-pill shadow-sm" title="Cambiar estado Adquisicion" data-id="${row.id_adquisicion}" data-estado="${row.estado}">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </button>   
+                                </div>
+                            </div>
+                            `;
+                        }
+                    }
+                ],
+            });
+        }
+
+        // AGREGAR NUEVA ADQUISICION
+        $('#btnNuevo').click(function (e) {
+            e.preventDefault();
+
+            $('#formAdquisicion').trigger('reset');
+            $('#modalAdquisicionLabel').text('Crear Nueva Adquisición');
+            $('#modalAdquisicion').modal('show');
+
+            // Establecer valores por defecto para el nuevo suministro
+            opcion = 1;
+            global_adquisicion_id = null;
+
+            // Limpieza del modal al cerrarlo
+            $('#modalAdquisicion').on('hidden.bs.modal', function () {
+                $('#formAdquisicion')[0].reset();
+                $('#tabla-articulos').html('');
+                $('#costo-total').text('0.00');
+            });
+        });
+
+        $(document).on('click', '.editarAdquisicion', function () {
+            $('#formAdquisicion').trigger('reset');
+
+            $('#solicitante').prop('disabled', true);
+
+            opcion = 2;
+            filaAdquisicion = $(this).closest('tr');
+
+            global_adquisicion_id = $(this).data('id');
+            id_requisicion = $(this).data('id_requisicion');
+            id_solicitante_seleccionado = $(this).data('solicitante');
+            PKgrupo = $(this).data('grupo');
+            id_proveedor = $(this).data('proveedor');
+            id_metodo_pago_seleccionado = $(this).data('metodo_pago');
+
+            var fecha_adquisicion = filaAdquisicion.find("td:eq(5)").text();  
+
+            if (fecha_adquisicion) {
+                var fechaConvertida = new Date(fecha_adquisicion);
+                if (!isNaN(fechaConvertida)) {
+                    var fechaFormateada = fechaConvertida.toISOString().split('T')[0];
+                    $('#fecha_adquisicion').val(fechaFormateada);
+                } else {
+                    console.error("La fecha no es válida: " + fecha_adquisicion);
+                }
+            } else {
+                console.error("No se ha encontrado una fecha válida.");
+            }
+
+            $('#id_requisicion').val(id_requisicion);  
+            $('#solicitante').val(id_requisicion).change();
+            $('#proveedor').val(id_proveedor);
+            $('#grupos').val(PKgrupo);
+            $('#metodo_pago').val(id_metodo_pago_seleccionado).change();
+
+            cambiar_estado_actual = 2;
+
+            $.ajax({
+                url: "{% url 'actualizar_estado_adquisicion' %}",  
+                type: "POST",
+                data: {
+                    id_adquisicion: global_adquisicion_id,
+                    estado: cambiar_estado_actual,  
+                    csrfmiddlewaretoken: csrfToken
+                },
+                success: function (response) {
+
+                },
+                error: function (xhr, status, error) {
+                    console.error("Hubo un problema al actualizar el estado:", error);
+                }
+            });
+
+            $('#modalAdquisicionLabel').text(' Editar Adquisicion #' + global_adquisicion_id);
+            $('#modalAdquisicion').modal('show');
+
+            $('#modalAdquisicion').on('hidden.bs.modal', function () {
+                $('#formAdquisicion')[0].reset();
+                $('#tabla-articulos').html('');
+                $('#costo-total').text('0.00');
+                $('#solicitante').prop('disabled', false);
+            });
+        });
+
+        $('#formAdquisicion').submit(function (e) {
+            e.preventDefault();
+
+
+            var id_requisicion = $('#id_requisicion').val();
+            var solicitante = $('#solicitante').val();
+            var grupos = $('#grupos').val();
+            id_grupo = $('#grupos').data('id');
+            var proveedor = $('#proveedor').val();
+            proveedor_ip = $('#proveedor').data('id');
+            var fecha_adquisicion = $('#fecha_adquisicion').val();
+            var metodo_pago = $('#metodo_pago').val();
+            var costo_total = parseFloat($('#costo-total').text().replace(/[^0-9.-]+/g, "")); 
+            var estado = $('#estado').val() || 1;
+
+            if (!id_requisicion || solicitante == '#' || !grupos || !proveedor || !fecha_adquisicion || metodo_pago == '#') {
+                Swal.fire("", "Debes llenar todos los campos!", "warning");
+            } else {
+                $.ajax({
+                    url: "{% url 'insertar_actualizar_adquisicion_data' %}",
+                    type: "POST",
+                    data: {
+                        id_adquisicion: global_adquisicion_id, 
+                        id_requisicion: id_requisicion,
+                        PKgrupo: id_grupo,
+                        id_proveedor: proveedor_ip,
+                        fecha_adquisicion: fecha_adquisicion,
+                        id_metodo_pago: metodo_pago,
+                        costo_total: costo_total,
+                        estado: estado,
+                        csrfmiddlewaretoken: csrfToken 
+                    },
+                    success: function (data) {
+                        if (data.save == 1) {
+                            if (opcion == 1) {  
+                                if (data.existe == 0) {
+                                    $('#modalAdquisicion').modal('hide');
+
+                                    toastMixin.fire({
+                                        animation: true,
+                                        title: 'Adquisición Creada!'
+                                    });
+                                } else {
+                                    Swal.fire("", "Esta adquisición ya existe.", "warning");
+                                }
+                            } else {  // Si es una edición
+                                $('#modalAdquisicion').modal('hide');
+
+                                toastMixin.fire({
+                                    animation: true,
+                                    title: 'Adquisición Editada!'
+                                });
+                            }
+
+                            if (opcion == 1) {
+                                insertarDetallesAdquisicion(data.id_adquisicion);
+                            }
+
+                            Tabla_Adquisicion.ajax.reload(null, false);
+                        } else {
+                            Swal.fire("", "Error D: " + data.error, "error");
+                        }
+                    },
+                    error: function () {
+                        Swal.fire("", "Ocurrió un error al guardar los datos.", "error");
+                    }
+                });
+            }
+        });
+
+        function insertarDetallesAdquisicion(id_adquisicion_creada) {
+            const detalles = [];
+
+            $('#tabla-articulos tr').each(function () {
+                const id_detalle_requisicion = $(this).find('td:eq(0)').text().trim();  
+                const id_suministros = $(this).find('td:eq(1)').text().trim();  
+                const cantidad = $(this).find('td:eq(3)').text().trim();    
+                const precio_unitario = $(this).find('td:eq(4)').text().trim();  
+
+                if (id_detalle_requisicion && id_suministros && cantidad && precio_unitario) {
+                    detalles.push({
+                        id_detalle_requisicion: id_detalle_requisicion, 
+                        id_suministros: id_suministros, 
+                        cantidad: parseFloat(cantidad.replace(/,/g, '')), 
+                        precio_unitario: parseFloat(precio_unitario.replace(/,/g, '')), 
+                    });
+                }
+            });
+
+            if (detalles.length > 0) {
+                $.ajax({
+                    url: "{% url 'insertar_actualizar_detalle_adquisicion_data' %}",
+                    type: "POST",
+                    data: {
+                        id_adquisicion: id_adquisicion_creada,
+                        id_requisicion: global_id_requisicion,
+                        detalles: JSON.stringify(detalles), 
+                        csrfmiddlewaretoken: csrfToken  
+                    },
+                    success: function (data) {
+                        if (data.save == 1) {
+                            toastMixin.fire({
+                                animation: true,
+                                title: '¡Detalles de la adquisición guardados correctamente!'
+                            });
+                            Tabla_Adquisicion.ajax.reload(null, false);
+                        } else {
+                            Swal.fire("", "Error: " + data.error, "error");
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        Swal.fire("", "Error al guardar los detalles. Código: " + xhr.status, "error");
+                    }
+                });
+            } else {
+                Swal.fire("", "No se han encontrado detalles válidos para guardar.", "warning");
+            }
+        }
+
+        // ---------------------------------------------------------------------------------------------------------- //
+
+        $('#Filtro').change(function (e) {
+            e.preventDefault();
+
+
+            select_estado_adquisicion = $("#Filtro").val();
+            fillAdquisicion();
+        });
+
+        // ---------------------------------------------------------------------------------------------------------- //
+
+        $(document).on('click', '.anularAdquisicion', function () {
+            var id_adquisicion = $(this).data('id');
+            var estado_actual = $(this).data('estado');
+
+            var mensaje = estado_actual == 3
+                ? '¿Estás seguro de que quieres activar esta adquisición?'
+                : '¿Estás seguro de que quieres deshabilitar esta adquisición?';
+            var confirmButtonText = estado_actual == 3
+                ? 'Sí, activar'
+                : 'Sí, deshabilitar';
+            var action = estado_actual == 3
+                ? 1  
+                : 3;  
+
+            Swal.fire({
+                title: estado_actual == 3 ? 'Activar Adquisición' : 'Deshabilitar Adquisición',
+                text: mensaje,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: confirmButtonText,
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: "{% url 'actualizar_estado_adquisicion' %}",
+                        type: "POST",
+                        data: {
+                            id_adquisicion: id_adquisicion,
+                            estado: action,  
+                            csrfmiddlewaretoken: csrfToken
+                        },
+                        success: function (data) {
+                            if (data.success) {
+                                var mensajeExito = estado_actual == 3
+                                    ? 'La adquisición ha sido activada.'
+                                    : 'La adquisición ha sido deshabilitada.';
+                                Swal.fire(estado_actual == 3 ? 'Activada!' : 'Deshabilitada!', mensajeExito, 'success');
+
+                                var row = $('tr[data-id="' + id_adquisicion + '"]');
+                                row.find('.estado').html(
+                                    estado_actual == 3
+                                        ? '<span class="badge badge-pill bg-success">ACTIVO</span>'
+                                        : '<span class="badge badge-pill bg-danger">DESHABILITADO</span>'
+                                );
+
+                                Tabla_Adquisicion.ajax.reload(null, false);
+                            } else {
+                                Swal.fire('Error!', data.error || 'No se pudo actualizar el estado de la requisición.', 'error');
+                            }
+                        },
+                        error: function () {
+                            Swal.fire('Error!', 'Ocurrió un error al intentar cambiar el estado de la requisición.', 'error');
+                        }
+                    });
+                }
+            });
+        });
+
+
+        $(document).on('click', '.detallesAdquisicion', function () {
+
+            var id_Dadquisicion = $(this).data('id');
+            var id_Drequisicion = $(this).data('id_requisicion');
+            global_id_proveedor = $(this).data('id_proveedor');
+            global_nombre_proveedor = $(this).data('nombre_proveedor');
+            var estadoD = $(this).data('estadoD');
+
+
+            $.ajax({
+                url: "{% url 'obtener_detalle_adquisicion' %}",  
+                type: 'POST',
+                data: {
+                    id_adquisicion: id_Dadquisicion,
+                    id_requisicion: id_Drequisicion,
+                    estado: estadoD,
+                    csrfmiddlewaretoken: csrfToken
+                },
+                success: function (response) {
+                    if (response.success) {
+                        $('#tabla-detalles').empty();
+
+                        var total_adquisicion = 0;
+                        response.data.forEach(function (detalle) {
+                            var fila = `
+                        <tr>
+                            <td>${detalle.id_adquisicion}</td>
+                            <td>${detalle.id_detalle_requisicion}</td>
+                            <td style="display: none">${detalle.id_suministros}</td>
+                            <td>${detalle.nombre_suministro}</td>
+                            <td>${detalle.cantidad}</td>
+                            <td>L\u00A0${detalle.precio_unitario}</td>
+                            <td>L\u00A0${detalle.precio_total}</td>
+                            <td class="estado">
+                                    <span class="badge badge-pill bg-success">ACTIVO</span>
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-secondary btn-sm DevolucionDetalleAdquisicion" title="Devolución">
+                                    <i class="fas fa-undo"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                            $('#tabla-detalles').append(fila);
+
+                            total_adquisicion += parseFloat(detalle.precio_total);
+                        });
+
+                        $('#total-detalle').text('L\u00A0' + dollarUSLocale.format(total_adquisicion)).css('white-space', 'nowrap');
+
+                        $('#modalDetallesLabel').html('<strong>Detalles de la Adquisicion #' + id_Dadquisicion + '</strong>');
+                        $('#modalDetalles').modal('show');
+                    } else {
+                        alert(response.message);
+                    }
+                },
+                error: function () {
+                    alert('Hubo un error al obtener los detalles.');
+                }
+            });
+        });
+
+        $(document).on('click', '.DevolucionDetalleAdquisicion', function () {
+            var filaDetalleAdquisicion = $(this).closest('tr');
+            var IDAdquisicion = filaDetalleAdquisicion.find("td:eq(0)").text();
+            var IdDetalleRequisicion = filaDetalleAdquisicion.find("td:eq(1)").text();
+            var IDsuministro = filaDetalleAdquisicion.find("td:eq(2)").text();
+            var suministroDetalle = filaDetalleAdquisicion.find("td:eq(3)").text();
+            var cantidad_devuelto = filaDetalleAdquisicion.find("td:eq(4)").text();
+            var precioUnitarioDetalle = filaDetalleAdquisicion.find("td:eq(5)").text();
+
+            $('#id_adquisicion').val(IDAdquisicion);
+            $('#id_detalle_requisicion').val(IdDetalleRequisicion);
+            $('#Proveedor').val(global_nombre_proveedor); 
+            $('#id_suministro').val(IDsuministro);
+            $('#suministro').val(suministroDetalle);
+            $('#cantidad_devuelta').val(cantidad_devuelto);
+            $('#precio_unitario').val(precioUnitarioDetalle);
+
+            $('#tabla-devolucion').empty();
+
+            $('#modalDetalles').modal('hide'); 
+
+            // Mostrar el modal
+            setTimeout(function () {
+                $('#modalDevolucion').modal('show'); 
+            }, 500); 
+
+            // Limpieza del modal al cerrarlo
+            $('#modalDevolucion').on('hidden.bs.modal', function () {
+                $('#formDevolucion')[0].reset();
+                $('#calcular-total').prop('disabled', false);
+                $('#cantidad_devuelta').prop('disabled', false);
+                $('#total_devolucion').text('0.00');
+            });
+
+            // Actualizar la tabla de devolución con los datos de la fila
+            actualizarFilaDevolucion(IDAdquisicion, IdDetalleRequisicion, suministroDetalle, cantidad_devuelto, precioUnitarioDetalle);
+        });
+
+        // Función para actualizar la fila en la tabla
+        function actualizarFilaDevolucion(IDAdquisicion, IdDetalleRequisicion, suministroDetalle, cantidad_devuelto, precioUnitarioDetalle) {
+            // Buscar si la fila ya existe en la tabla
+            const tablaDevolucion = $('#tabla-devolucion');
+            const filaExistente = tablaDevolucion.find(`tr[data-id-adquisicion="${IDAdquisicion}"]`);
+
+            // Si la fila existe, solo la actualizamos
+            if (filaExistente.length > 0) {
+                filaExistente.find('td:eq(3)').text(cantidad_devuelto);  
+                filaExistente.find('td:eq(4)').text(precioUnitarioDetalle);   
+                filaExistente.find('td:eq(5)').text((parseFloat(cantidad_devuelto) * parseFloat(precioUnitarioDetalle)).toFixed(2)); 
+            } else {
+                // Si la fila no existe, la agregamos
+                const totalFila = (parseFloat(cantidad_devuelto) * parseFloat(precioUnitarioDetalle)).toFixed(2);
+                const filaHtml = `
+            <tr data-id-adquisicion="${IDAdquisicion}">
+                <td>${IDAdquisicion}</td>
+                <td>${IdDetalleRequisicion}</td>
+                <td>${suministroDetalle}</td>
+                <td>${cantidad_devuelto}</td>
+                <td>${precioUnitarioDetalle}</td>
+                <td>${totalFila}</td>
+            </tr>
+        `;
+                tablaDevolucion.append(filaHtml);
+            }
+
+            // Recalcular el total de la devolución
+            recalcularTotalDevolucion();
+        }
+
+        // Función para recalcular el total de la devolución
+        function recalcularTotalDevolucion() {
+            let totalDevolucion = 0;
+            $('#tabla-devolucion tr').each(function () {
+                const total = parseFloat($(this).find('td:eq(5)').text()) || 0;
+                totalDevolucion += total;
+            });
+
+            // Mostrar el total actualizado
+            $('#total_devolucion').text(totalDevolucion.toFixed(2));
+        }
+
+        // Al cambiar la cantidad, actualizamos la fila en la tabla
+        $(document).on('input', '#cantidad_devuelta', function () {
+            var cantidadDevuelta = parseFloat($(this).val()) || 0;
+            var precioUnitario = $('#precio_unitario').val();
+            var IDAdquisicion = $('#id_adquisicion').val();
+            var totalFila = (cantidadDevuelta * parseFloat(precioUnitario)).toFixed(2);
+
+            // Actualizamos la fila correspondiente
+            actualizarFilaDevolucion(IDAdquisicion, $('#id_detalle_requisicion').val(), $('#suministro').val(), cantidadDevuelta, precioUnitario);
+        });
+
+
+        // AGREGAR NUEVA DEVOLUCION
+        $(document).off('click', '#guardarDevolucion').on('click', '#guardarDevolucion', function (e) {
+            e.preventDefault();
+
+            // Recoger los valores del formulario
+            var idAdquisicion = $('#id_adquisicion').val();
+            var IDdetalleRequision = $('#id_detalle_requisicion').val();
+            var suministro_devuelto = $('#id_suministro').val();
+            var cantidad_Devuelta = $('#cantidad_devuelta').val();
+            var precio_unitario = $('#precio_unitario').val();
+            var fecha_devolucion = $('#fecha_devolucion').val();
+            var id_motivoD = $('#motivo').val();
+            var motivo_devolucion = $('#descripcion').val();
+            var total_devolucion = $('#total_devolucion').text();
+
+            // Validar los campos requeridos
+            if (!idAdquisicion || !IDdetalleRequision || !suministro_devuelto || !cantidad_Devuelta || !precio_unitario || !fecha_devolucion || !id_motivoD || !motivo_devolucion || !total_devolucion) {
+                alert("Por favor, complete todos los campos requeridos.");
+                return;
+            }
+            // Enviar detalles al servidor
+            $.ajax({
+                url: "{% url 'insertar_actualizar_devolucion_data' %}",
+                type: "POST",
+                data: {
+                    id_devolucion: 0,
+                    id_adquisicion: idAdquisicion,
+                    id_detalle_requisicion: IDdetalleRequision,
+                    id_suministros: suministro_devuelto,
+                    cantidad_devuelta: cantidad_Devuelta,
+                    precio_unitario: precio_unitario,
+                    fecha_devolucion: fecha_devolucion,
+                    id_motivo_devolucion: id_motivoD,
+                    motivo_devolucion: motivo_devolucion,
+                    id_proveedor: global_id_proveedor,
+                    total_devolucion: total_devolucion,
+                    csrfmiddlewaretoken: csrfToken
+                },
+                success: function (data) {
+                    if (data.save == 1) {
+                        if (data.existe == 0) {
+                            $('#modalDevolucion').modal('hide');
+
+                            toastMixin.fire({
+                                animation: true,
+                                title: 'Devolución Creada!'
+                            });
+                        } else {
+                            Swal.fire("", "warning");
+                        }
+
+                        // Recargar la tabla
+                        Tabla_Devoluciones.ajax.reload(null, false);
+                    } else {
+                        Swal.fire("", "Error D: " + data.error, "error");
+                    }
+                },
+                error: function () {
+                    Swal.fire("", "Ocurrió un error al guardar los datos.", "error");
+                }
+            });
+        });
+
+        // ------------------------------------------------------------------------------------------------ //
+
+        $.ajax({
+            url: "{% url 'obtener_requisiciones_usuario' %}",
+            type: "GET",
+            dataType: "json",
+            success: function (response) {
+                if (response.requisiciones && Array.isArray(response.requisiciones)) {
+                    $('#solicitante').empty();
+
+                    $('#solicitante').append('<option value="#">Seleccione un solicitante</option>');
+
+                    $.each(response.requisiciones, function (index, user) {
+                        $('#solicitante').append(
+                            '<option value="' + user.id_requisicion + '" data-PKUsuario="' + user.PKUsuario + '" data-nombre="' + user.Nombre + '" data-PKgrupo="' + user.PKgrupo + '" data-grupoNombre="' + user.GrupoNombre + '">' + user.id_requisicion + ' - ' + user.Nombre + ' - ' + user.GrupoNombre + '</option>'
+                        );
+                    });
+                    if (id_solicitante_seleccionado != null) {
+                        console.log('Seleccionando usuario previamente seleccionado:', id_solicitante_seleccionado);
+                        $('#solicitante').val(id_solicitante_seleccionado).change();
+                    }
+                } else {
+                    console.log('No se encontraron requisiciones para los usuarios');
+                }
+            },
+            error: function (xhr, status, error) {
+                console.log('Error en la solicitud AJAX:', error);
+                alert('Hubo un error al obtener los datos de requisiciones. Intenta nuevamente.');
+            }
+        });
+
+        // ------------------------------------------------------------------------------------------------ //
+
+        $.ajax({
+            url: "{% url 'obtener_metodos_pago' %}",  
+            type: "GET",
+            dataType: "json",
+            success: function (response) {
+                if (response.metodos_pago) {
+                    $('#metodo_pago').empty();
+
+                    $('#metodo_pago').append('<option value="#">Seleccione un método de pago</option>');
+
+                    $.each(response.metodos_pago, function (index, metodo) {
+                        $('#metodo_pago').append(
+                            '<option value="' + metodo.id_metodo_pago + '">' + metodo.metodo_pago + '</option>'
+                        );
+                    });
+                    if (id_metodo_pago_seleccionado != null) {
+                        $('#metodo_pago').val(id_metodo_pago_seleccionado).change();
+                    }
+                } else {
+                    console.log('No se encontraron métodos de pago');
+                }
+            },
+            error: function (xhr, status, error) {
+                console.log('Error en la solicitud AJAX:', error);
+            }
+        });
+
+        $.ajax({
+            url: "{% url 'obtener_motivos_devoluciones_data' %}",  
+            type: "GET",
+            dataType: "json",
+            success: function (response) {
+                if (response.motivoD) {
+             
+                    $('#motivo').empty();
+
+                    $('#motivo').append('<option value="#">Seleccione un motivo</option>');
+
+                    $.each(response.motivoD, function (index, motivo) {
+                        $('#motivo').append(
+                            '<option value="' + motivo.id_motivo_devolucion + '">' + motivo.nombre_motivo + '</option>'
+                        );
+                    });
+                    if (id_motivo_devolucion_seleccionado != null) {
+                        $('#motivo').val(id_motivo_devolucion_seleccionado).change();
+                    }
+                } else {
+                    console.log('No se encontraron motivos para devolución');
+                }
+            },
+            error: function (xhr, status, error) {
+                console.log('Error en la solicitud AJAX:', error);
+            }
+        });
+
+
+    });
+
+
+</script>
+{% endblock %}

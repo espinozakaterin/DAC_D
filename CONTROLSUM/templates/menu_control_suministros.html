@@ -1,0 +1,399 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>{% block title %}{% endblock %}</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"
+        integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous">
+        </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js"
+        integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous">
+        </script>
+
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    
+    <link href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/fixedcolumns/4.3.0/css/fixedColumns.dataTables.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/fixedheader/3.4.0/css/fixedHeader.dataTables.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/searchpanes/2.2.0/css/searchPanes.dataTables.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/select/1.7.0/css/select.dataTables.css" rel="stylesheet">
+
+    <script src="https://kit.fontawesome.com/e716b78aa6.js" crossorigin="anonymous"></script>
+
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.24/jspdf.plugin.autotable.min.js"></script>
+
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.17/dist/sweetalert2.min.css" rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.17/dist/sweetalert2.min.js"></script>
+
+    <meta name="application-name" content="CONTROLSUM" />
+    <meta name="msapplication-TileColor" content="#FFFFFF" />
+
+    <link rel="stylesheet" href="{% static 'app/css/CONTROLS.css' %}?v={% now 'U' %}">
+
+    <link rel="icon" href="{% static 'app/cws/images/favicon.ico' %}" type="image/x-icon">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'app/cws/images/apple-touch-icon.png' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'app/cws/images/favicon-32x32.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'app/cws/images/favicon-16x16.png' %}">
+    <link rel="manifest" href="{% static 'app/cws/images/site.webmanifest' %}">
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+
+
+
+</head>
+
+<body>
+
+    <header class="top-navbar">
+        <div class="top-nav-greeting text-muted" style="font-size: 1rem; font-weight: 500;">
+            <a href="{% url 'panel_controlsuministros' %}" class="text-muted text-decoration-none">
+                <i class="fas fa-home me-2"></i>
+            </a> / 
+            <span class="ms-2 text-dark">
+                {% if request.resolver_match.url_name == 'panel_controlsuministros' %}
+                    Panel de Control
+                {% elif 'adquisicion' in request.resolver_match.url_name %}
+                    Adquisiciones
+                {% elif 'requisicion' in request.resolver_match.url_name %}
+                    Requisiciones
+                {% elif 'suministro' in request.resolver_match.url_name %}
+                    Inventario
+                {% elif 'devolucion' in request.resolver_match.url_name %}
+                    Devoluciones
+                {% elif 'asignacion' in request.resolver_match.url_name %}
+                    Asignaciones
+                {% elif 'almacen' in request.resolver_match.url_name %}
+                    Almacenes
+                {% elif 'movimientos_suministros' in request.resolver_match.url_name or 'historial' in request.resolver_match.url_name %}
+                    Kardex
+                {% elif request.resolver_match.url_name == 'configuracion_view' %}
+                    Configuración
+                {% elif request.resolver_match.url_name == 'perfil_view' %}
+                    Perfil
+                {% else %}
+                    Control Sum
+                {% endif %}
+            </span>
+        </div>
+        
+        {% if request.resolver_match.url_name == 'panel_controlsuministros' %}
+        <div class="top-nav-actions">
+            <div class="dropdown">
+                <a class="action-icon position-relative text-decoration-none" href="javascript:void(0)" id="notificationDropdown" title="Notificaciones" style="cursor: pointer;">
+                    <i class="far fa-bell" id="notificationIcon"></i>
+                    <span class="position-absolute translate-middle badge rounded-pill bg-danger" id="notificationCount" style="display: none; top: 10px; right: -5px;">0</span>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0 p-0" aria-labelledby="notificationDropdown" id="notificationList" style="width: 300px; max-height: 400px; overflow-y: auto; z-index: 1100 !important;">
+                    <li class="dropdown-header bg-light p-3 border-bottom">
+                        <h6 class="mb-0 fw-bold">Notificaciones del Sistema</h6>
+                    </li>
+                    <div id="notificationItemsContainer">
+                        <li class="p-4 text-center text-muted small">Cargando notificaciones...</li>
+                    </div>
+                    <li class="border-top">
+                        <a href="{% url 'panel_controlsuministros' %}" class="dropdown-item text-center small py-2 text-primary fw-bold">Ver Panel de Control</a>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="dropdown">
+                <div class="user-dropdown-top" id="userDropdown" data-bs-toggle="dropdown" style="cursor: pointer;">
+                    <img src="https://ui-avatars.com/api/?name={{ userName|default:'U' }}&background=2c4770&color=fff" alt="User">
+                    <span>{{ userName|default:'Usuario'|title }} <i class="fas fa-chevron-down ms-1" style="font-size: 0.7rem;"></i></span>
+                </div>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="userDropdown">
+                    <li class="px-3 py-2 border-bottom">
+                        <div class="fw-bold small text-dark">{{ request.session.fullName|default:userName|title }}</div>
+                        <div class="text-muted" style="font-size: 0.7rem;">{{ request.session.empresa|default:'Control Suministros' }}</div>
+                    </li>
+                    <li><a class="dropdown-item py-2" href="{% url 'perfil_view' %}"><i class="fas fa-user-circle me-2 text-primary"></i> Mi Perfil</a></li>
+                    <li><a class="dropdown-item py-2" href="{% url 'configuracion_view' %}"><i class="fas fa-cog me-2 text-primary"></i> Configuración</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item py-2 text-danger" href="{% url 'logoutRequest' %}"><i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión</a></li>
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+    </header>
+
+    <!-- Sidebar (Image 2 Style) -->
+    <nav id="menuDiv" class="sidebar d-flex flex-column">
+        
+        <div class="sidebar-header">
+            <div class="brand-box">
+                <i class="fas fa-cube brand-icon text-info"></i>
+                <div class="brand-text">
+                    <span class="brand-main">CONTROL</span>
+                    <span class="brand-sub">SUMINISTROS</span>
+                </div>
+            </div>
+        </div>
+
+        <ul class="sidebar-menu">
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'panel_controlsuministros' %}" title="Dashboard">
+                    <i class="fas fa-chart-bar"></i>
+                    <span class="submenu-text">Panel de Control</span>
+                </a>
+            </li>
+
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="menu_requisicones" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-file-alt"></i>
+                    <span class="submenu-text">Requisiciones</span>
+                </a>
+                <ul class="dropdown-menu shadow-sm" aria-labelledby="menu_requisicones">
+                    <li><a href="{% url 'listado_requisicion_data' %}" class="dropdown-item"> Requisiciones</a></li>
+                </ul>
+            </li>
+
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="menu_adquisiciones" data-bs-toggle="dropdown">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="submenu-text">Adquisiciones</span>
+                </a>
+                <ul class="dropdown-menu shadow-sm">
+                    <li><a href="{% url 'listado_adquisicion_data' %}" class="dropdown-item"> Adquisiciones</a></li>
+                </ul>
+            </li>
+
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="menu_devoluciones" data-bs-toggle="dropdown">
+                    <i class="fas fa-history"></i>
+                    <span class="submenu-text">Devoluciones</span>
+                </a>
+                <ul class="dropdown-menu shadow-sm">
+                    <li><a href="{% url 'listado_devoluciones_data' %}" class="dropdown-item"> Devoluciones</a></li>
+                </ul>
+            </li>
+
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="menu_suministros" data-bs-toggle="dropdown">
+                    <i class="fas fa-boxes"></i>
+                    <span class="submenu-text">Inventario</span>
+                </a>
+                <ul class="dropdown-menu shadow-sm">
+                    <li><a href="{% url 'listado_suministro_data' %}" class="dropdown-item"> Suministro</a></li>
+                    <li><a href="{% url 'listado_asignaciones_data' %}" class="dropdown-item">Asignaciones</a></li>
+                </ul>
+            </li>
+
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="menu_settings" data-bs-toggle="dropdown">
+                    <i class="fas fa-cog"></i>
+                    <span class="submenu-text">Gestión</span>
+                </a>
+                <ul class="dropdown-menu shadow-sm">
+                    <li><a href="{% url 'listado_almacenes_data' %}" class="dropdown-item">Almacenes</a></li>
+                    <li><a href="{% url 'movimientos_suministros_data' %}" class="dropdown-item">Kardex</a></li>
+                </ul>
+            </li>
+        </ul>
+
+        <div class="sidebar-user-card mt-auto">
+            <div class="user-info-row">
+                <img src="https://ui-avatars.com/api/?name={{ request.session.fullName|default:userName }}&background=3b82f6&color=fff" alt="User">
+                <div class="user-details">
+                    <span class="user-name">{{ request.session.fullName|default:userName|title }}</span>
+                    <span class="user-role">{{ request.session.empresa|default:'Control Suministros'|upper }}</span>
+                </div>
+            </div>
+            
+            <a href="{% url 'logoutRequest' %}" class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i> <span>Cerrar Sesión</span>
+            </a>
+        </div>
+    </nav>
+
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.js"></script>
+    <script src="https://cdn.datatables.net/fixedcolumns/4.3.0/js/dataTables.fixedColumns.js"></script>
+    <script src="https://cdn.datatables.net/fixedheader/3.4.0/js/dataTables.fixedHeader.js"></script>
+    <script src="https://cdn.datatables.net/searchpanes/2.2.0/js/dataTables.searchPanes.js"></script>
+    <script src="https://cdn.datatables.net/select/1.7.0/js/dataTables.select.js"></script>
+
+    <script src="https://cdn.datatables.net/plug-ins/1.13.1/api/sum().js"></script>
+    <script src="https://cdn.datatables.net/plug-ins/1.12.1/sorting/currency.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/TableExport/5.2.0/js/tableexport.min.js"></script>
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/autonumeric@4.6.0/dist/autoNumeric.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.6/jquery.inputmask.min.js"></script>
+
+    <div class="page-wrapper">
+        <div class="content container-fluid">
+            {% block body %}
+
+            {% endblock %}
+
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            $('#menuDiv').addClass('show'); 
+
+            $('#toggle-sidebar').hide(); 
+
+            document.querySelectorAll('.submenu > a').forEach(menu => {
+                menu.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const parent = this.parentElement;
+                    parent.classList.toggle('active');
+                });
+            });
+
+
+            $.ajaxSetup({
+                headers: {
+                    'API-Token': '2e078366ee3366544e4132ebb24eb2948270bbce69aa8ff22a30a2422cc12a7e'
+                }
+            });
+
+            // --- GLOBAL NOTIFICATIONS LOGIC ---
+            let currentNotificationIds = [];
+
+            function checkGlobalNotifications() {
+                $.ajax({
+                    url: '{% url "obtener_notificaciones_sistema" %}',
+                    method: 'GET',
+                    success: function(data) {
+                        const notifications = data.notifications || [];
+                        const newNotifications = notifications.filter(n => n.is_new);
+                        const count = newNotifications.length;
+                        
+                        const badge = $('#notificationCount');
+                        const icon = $('#notificationIcon');
+                        const container = $('#notificationItemsContainer');
+
+                        currentNotificationIds = notifications.map(n => n.id);
+
+                        if (notifications.length > 0) {
+                            if (count > 0) {
+                                badge.text(count).show();
+                                icon.addClass('shake');
+                            } else {
+                                badge.hide();
+                                icon.removeClass('shake');
+                            }
+                            
+                            container.empty();
+                            notifications.slice(0, 10).forEach(notif => {
+                                let dotColor = 'bg-info';
+                                if (notif.severity === 'danger') dotColor = 'bg-danger';
+                                else if (notif.severity === 'warning') dotColor = 'bg-warning';
+
+                                const opacity = notif.is_new ? '1' : '0.6';
+                                container.append(`
+                                    <li style="opacity: ${opacity}">
+                                        <a class="dropdown-item p-3 border-bottom d-flex align-items-start gap-3" href="${notif.url}">
+                                            <div class="rounded-circle ${dotColor} mt-1" style="width: 10px; height: 10px; flex-shrink: 0;"></div>
+                                            <div>
+                                                <div class="fw-bold small text-dark">${notif.title}</div>
+                                                <div class="text-muted" style="font-size: 0.7rem;">${notif.message}</div>
+                                            </div>
+                                        </a>
+                                    </li>
+                                `);
+                            });
+                        } else {
+                            badge.hide();
+                            icon.removeClass('shake');
+                            container.html('<li class="p-4 text-center text-muted small"><i class="fas fa-bell-slash me-2"></i>No hay notificaciones</li>');
+                        }
+                    },
+                    error: function(err) {
+                        console.error('Error fetching global notifications:', err);
+                    }
+                });
+            }
+
+            function marcarNotificacionesVistas() {
+                if (currentNotificationIds.length === 0) return;
+                
+                $.ajax({
+                    url: '{% url "marcar_notificaciones_vistas" %}',
+                    method: 'POST',
+                    data: JSON.stringify({ ids: currentNotificationIds }),
+                    contentType: 'application/json',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    success: function() {
+                        // Opcionalmente refrescar o simplemente ocultar el badge
+                        $('#notificationCount').hide();
+                        $('#notificationIcon').removeClass('shake');
+                    }
+                });
+            }
+
+            // Robust Manual Toggle
+            $('#notificationDropdown').on('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const menu = $('#notificationList');
+                const isVisible = menu.hasClass('show');
+                
+                // Cerrar otros dropdowns si existen
+                $('.dropdown-menu').removeClass('show');
+                
+                if (!isVisible) {
+                    menu.addClass('show');
+                    checkGlobalNotifications();
+                    marcarNotificacionesVistas();
+                } else {
+                    menu.removeClass('show');
+                }
+            });
+
+            // Cerrar al hacer clic fuera
+            $(document).on('click', function (e) {
+                if (!$(e.target).closest('.dropdown').length) {
+                    $('#notificationList').removeClass('show');
+                }
+            });
+
+            checkGlobalNotifications();
+            setInterval(checkGlobalNotifications, 300000); 
+        });
+
+
+    </script>
+
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>
