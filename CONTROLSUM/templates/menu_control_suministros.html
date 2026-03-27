@@ -109,53 +109,41 @@
             </span>
         </div>
         
-        <div class="top-nav-actions">
-            <div class="header-action-item">
-                <a class="action-icon position-relative text-decoration-none" href="{% url 'notificaciones_page_view' %}" title="Notificaciones" style="cursor: pointer;">
-                    <i class="fas fa-bell" id="notificationIcon"></i>
-                    <span class="position-absolute translate-middle badge rounded-pill bg-danger" id="notificationCount" style="display: none; top: 10px; right: -5px;">0</span>
-                </a>
+       <div class="top-nav-actions">
+    <div class="header-action-item">
+        <a class="action-icon position-relative text-decoration-none" href="{% url 'notificaciones_page_view' %}" title="Notificaciones" style="cursor: pointer;">
+            <i class="fas fa-bell" id="notificationIcon"></i>
+            <span class="position-absolute translate-middle badge rounded-pill bg-danger" id="notificationCount" style="display: none; top: 10px; right: -5px;">0</span>
+        </a>
+    </div>
+    
+    <div class="dropdown">
+        <div class="user-dropdown-top d-flex align-items-center" id="userDropdown" data-bs-toggle="dropdown" style="cursor: pointer; gap: 8px;">
+            <div class="rounded-circle overflow-hidden position-relative" style="width: 38px; height: 38px; flex-shrink: 0;">
+                <img src="{% if request.session.avatar_url %}{{ request.session.avatar_url }}{% else %}https://ui-avatars.com/api/?name={{ request.session.fullName|default:userName }}&background=2c4770&color=fff&bold=true{% endif %}" 
+                     alt="Avatar" 
+                     class="w-100 h-100 rounded-circle" 
+                     style="object-fit: cover;" 
+                     onerror="this.src='https://ui-avatars.com/api/?name={{ request.session.fullName|default:userName }}&background=2c4770&color=fff&bold=true'">
             </div>
-            
-            <div class="dropdown">
-
-                <div class="user-dropdown-top d-flex align-items-center" id="userDropdown" data-bs-toggle="dropdown" style="cursor: pointer; gap: 8px;">
-                    <div class="rounded-circle overflow-hidden position-relative" style="width: 38px; height: 38px;">
-                        <img src="{% if request.session.avatar_url %}{{ request.session.avatar_url }}{% else %}https://ui-avatars.com/api/?name={{ request.session.fullName|default:userName }}&background=2c4770&color=fff&bold=true{% endif %}" 
-                             alt="Avatar" 
-                             class="w-100 h-100 rounded-circle" 
-                             style="object-fit: cover;" 
-                             onerror="this.src='https://ui-avatars.com/api/?name={{ request.session.fullName|default:userName }}&background=2c4770&color=fff&bold=true'">
-                    </div>
-                    <div style="display: flex; flex-direction: column; text-align: left;">
-                        <span class="fw-bold text-dark" style="font-size: 0.9rem; line-height: 1.1;">{{ request.session.fullName|default:userName }}</span>
-                        <span class="text-muted" style="font-size: 0.7rem; line-height: 1.1;">{{ request.session.empresa|default:'Control Suministros' }}</span>
-                    </div>
-                    <i class="fas fa-chevron-down text-muted ms-1" style="font-size: 0.7rem;"></i>
-
-                <div class="user-dropdown-top shadow-sm" id="userDropdown" data-bs-toggle="dropdown" style="cursor: pointer;">
-                    {% if request.session.avatar_url %}
-                    <img src="{{ request.session.avatar_url }}" alt="Profile Avatar" class="user-avatar">
-                    {% else %}
-                    <img src="https://ui-avatars.com/api/?name={{ request.session.fullName|default:userName }}&background=2c4770&color=fff" alt="User" class="user-avatar">
-                    {% endif %}
-                    <span class="user-info text-uppercase">
-                        {{ request.session.fullName|default:userName }} 
-                        <i class="fas fa-chevron-down shadow-none" style="font-size: 0.75rem; opacity: 0.7;"></i>
-                    </span>
-
-                </div>
-                <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="userDropdown">
-                    <li class="px-3 py-2 border-bottom">
-                        <div class="fw-bold small text-dark text-uppercase">{{ request.session.fullName|default:userName }}</div>
-                        <div class="text-muted" style="font-size: 0.7rem;">{{ request.session.empresa|default:'Control Suministros' }}</div>
-                    </li>
-                    <li><a class="dropdown-item py-2" href="{% url 'perfil_view' %}"><i class="fas fa-user-circle me-2 text-primary"></i> Mi Perfil</a></li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item py-2 text-danger" href="{% url 'logoutRequest' %}"><i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión</a></li>
-                </ul>
+            <div style="display: flex; flex-direction: column; text-align: left;">
+                <span class="fw-bold text-dark" style="font-size: 0.9rem; line-height: 1.1;">{{ request.session.fullName|default:userName }}</span>
+                <span class="text-muted" style="font-size: 0.7rem; line-height: 1.1;">{{ request.session.empresa|default:'Control Suministros' }}</span>
             </div>
+            <i class="fas fa-chevron-down text-muted ms-1" style="font-size: 0.7rem;"></i>
         </div>
+
+        <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="userDropdown">
+            <li class="px-3 py-2 border-bottom">
+                <div class="fw-bold small text-dark text-uppercase">{{ request.session.fullName|default:userName }}</div>
+                <div class="text-muted" style="font-size: 0.7rem;">{{ request.session.empresa|default:'Control Suministros' }}</div>
+            </li>
+            <li><a class="dropdown-item py-2" href="{% url 'perfil_view' %}"><i class="fas fa-user-circle me-2 text-primary"></i> Mi Perfil</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item py-2 text-danger" href="{% url 'logoutRequest' %}"><i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión</a></li>
+        </ul>
+    </div>
+</div>
     </header>
 
     <!-- Sidebar (Image 2 Style) -->
