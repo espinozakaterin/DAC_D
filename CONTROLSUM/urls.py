@@ -92,7 +92,10 @@ urlpatterns = [
     path('configuracion', ControlSumView.configuracion_view, name='configuracion_view'),
     path('obtener/notificaciones/sistema', ControlSumView.obtener_notificaciones_sistema, name='obtener_notificaciones_sistema'),
     path('obtener/notificaciones/marcar_vistas', ControlSumView.marcar_notificaciones_vistas, name='marcar_notificaciones_vistas'),
+    path('notificaciones/sistema', ControlSumView.notificaciones_page_view, name='notificaciones_page_view'),
     path('perfil', ControlSumView.perfil_view, name='perfil_view'),
+    path('perfil/actualizar', ControlSumView.actualizar_perfil, name='actualizar_perfil'),
+    path('perfil/subir-foto', ControlSumView.subir_foto_perfil, name='subir_foto_perfil'),
 ]
 
 if settings.DEBUG:

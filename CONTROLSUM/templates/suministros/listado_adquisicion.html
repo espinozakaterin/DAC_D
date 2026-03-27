@@ -163,7 +163,7 @@ GESTION DE ADQUISICIONES
         pageSize: 'A4',
         orientation: 'portrait',
         exportOptions: {
-            columns: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+            columns: [ 1, 2, 3, 4, 5, 6, 7, 8]
         },
         customize: function (doc) {
             doc.content[1].table.widths = Array(doc.content[1].table.body[0].length).fill('*');
@@ -180,17 +180,45 @@ GESTION DE ADQUISICIONES
         }
     },
     {
-        extend: 'print',
-        text: '<i class="fas fa-print"></i> Imprimir',
-        titleAttr: 'Imprimir',
-        className: 'btn btn-secondary btn-sm',
-        exportOptions: {
-            columns: [0, 1, 2, 3, 4, 5, 6, 7, 8]
-        },
-        customize: function (win) {
-            $(win.document.body).find('table').addClass('compact').css('font-size', '8pt');
-            $(win.document.body).find('h1').css('text-align', 'center').text('ADQUISICIONES - CONTROL SUMINISTROS');
-        }
+                        extend: 'pdfHtml5', // Changed from 'print'
+                        text: '<i class="fas fa-print"></i> Imprimir',
+                        titleAttr: 'Imprimir',
+                        className: 'btn btn-secondary btn-sm',
+                        pageSize: 'A4',
+                        orientation: 'portrait',
+                        exportOptions: {
+                            columns: [ 1, 2, 3, 4, 5, 6, 7, 8]
+                        },
+                        action: function ( e, dt, button, config ) {
+                            var oldPdfMake = window.pdfMake.createPdf;
+                            try {
+                                window.pdfMake.createPdf = function(doc) {
+                                    var pdf = oldPdfMake(doc);
+                                    return {
+                                        download: function() { pdf.print(); },
+                                        open: function() { pdf.print(); },
+                                        print: function() { pdf.print(); }
+                                    };
+                                };
+                                $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
+                            } finally {
+                                window.pdfMake.createPdf = oldPdfMake;
+                            }
+                        },
+                        customize: function (doc) {
+                            // Mismas reglas exactas del PDF
+                            doc.content[1].table.widths = Array(doc.content[1].table.body[0].length).fill('*');
+                            doc.styles.tableHeader.fillColor = '#2c4770';
+                            doc.styles.tableHeader.color = 'white';
+                            doc.styles.tableHeader.alignment = 'center';
+                            doc.styles.tableHeader.fontSize = 9;
+                            doc.defaultStyle.alignment = 'center';
+                            doc.defaultStyle.fontSize = 7;
+                            doc.pageMargins = [15, 20, 15, 20];
+                            doc.content[0].text = "REPORTE DE ADQUISICIONES";
+                            doc.content[0].alignment = 'center';
+                            doc.content[0].margin = [0, 0, 0, 10];
+                        }
     }
 ],
                 columns: [
@@ -289,15 +317,12 @@ GESTION DE ADQUISICIONES
             $('#modalAdquisicion').on('hidden.bs.modal', function () {
                 $('#formAdquisicion')[0].reset();
                 $('#tabla-articulos').html('');
-                $('#costo-total').text('0.00');
             });
         });
 
         $(document).on('click', '.editarAdquisicion', function () {
             $('#formAdquisicion').trigger('reset');
-
             $('#solicitante').prop('disabled', true);
-
             opcion = 2;
             filaAdquisicion = $(this).closest('tr');
 
@@ -318,31 +343,34 @@ GESTION DE ADQUISICIONES
                 } else {
                     console.error("La fecha no es válida: " + fecha_adquisicion);
                 }
-            } else {
-                console.error("No se ha encontrado una fecha válida.");
             }
 
+            // Establecer valores iniciales sin disparar .change()
             $('#id_requisicion').val(id_requisicion);  
-            $('#solicitante').val(id_requisicion).change();
+            $('#solicitante').val(id_requisicion); // Sin .change() para evitar el error de "usuario"
             $('#proveedor').val(id_proveedor);
             $('#grupos').val(PKgrupo);
-            $('#metodo_pago').val(id_metodo_pago_seleccionado).change();
+            $('#metodo_pago').val(id_metodo_pago_seleccionado);
 
-            cambiar_estado_actual = 2;
-
+            // Cargar los detalles específicos de la ADQUISICIÓN, no la requisición original
             $.ajax({
-                url: "{% url 'actualizar_estado_adquisicion' %}",  
-                type: "POST",
-                data: {
-                    id_adquisicion: global_adquisicion_id,
-                    estado: cambiar_estado_actual,  
-                    csrfmiddlewaretoken: csrfToken
+                url: "{% url 'obtener_adquisicion_y_detalle_data' %}",
+                type: "GET",
+                data: { id_adquisicion: global_adquisicion_id },
+                success: function(response) {
+                    if (response.adquisicion) {
+                        // Llamar a la función en el modal para cargar detalles
+                        if (typeof CargarDetallesAdquisicion === 'function') {
+                            CargarDetallesAdquisicion(response);
+                        } else {
+                            console.error("La función CargarDetallesAdquisicion no está definida en el modal.");
+                        }
+                    } else {
+                        Swal.fire("Error", "No se pudieron cargar los detalles de la adquisición.", "error");
+                    }
                 },
-                success: function (response) {
-
-                },
-                error: function (xhr, status, error) {
-                    console.error("Hubo un problema al actualizar el estado:", error);
+                error: function(xhr, status, error) {
+                    console.error("Error al obtener detalles de la adquisición:", error);
                 }
             });
 
@@ -411,7 +439,7 @@ GESTION DE ADQUISICIONES
                                 });
                             }
 
-                            if (opcion == 1) {
+                            if (opcion == 1 || opcion == 2) {
                                 insertarDetallesAdquisicion(data.id_adquisicion);
                             }
 
@@ -431,20 +459,29 @@ GESTION DE ADQUISICIONES
             const detalles = [];
 
             $('#tabla-articulos tr').each(function () {
-                const id_detalle_requisicion = $(this).find('td:eq(0)').text().trim();  
-                const id_suministros = $(this).find('td:eq(1)').text().trim();  
-                const cantidad = $(this).find('td:eq(3)').text().trim();    
-                const precio_unitario = $(this).find('td:eq(4)').text().trim();  
+                const id_da = $(this).data('id-da') || 0;
+                const id_dr = $(this).data('id-dr') || $(this).find('td:eq(0)').text().trim();
+                const id_sum = $(this).data('id-sum') || $(this).find('td:eq(1)').text().trim();
+                const cantidadText = $(this).find('td:eq(3)').text().trim();
+                const precioUnitarioText = $(this).find('td:eq(4)').text().trim();
 
-                if (id_detalle_requisicion && id_suministros && cantidad && precio_unitario) {
+                const cantidad = parseFloat(cantidadText.replace(/,/g, '')) || 0;
+                const precioUnitario = parseFloat(precioUnitarioText.replace(/[^0-9.-]+/g, "")) || 0;
+
+                console.log("Processing row:", { id_da, id_dr, id_sum, cantidad, precioUnitario });
+
+                if (id_dr && id_sum) {
                     detalles.push({
-                        id_detalle_requisicion: id_detalle_requisicion, 
-                        id_suministros: id_suministros, 
-                        cantidad: parseFloat(cantidad.replace(/,/g, '')), 
-                        precio_unitario: parseFloat(precio_unitario.replace(/,/g, '')), 
+                        id_detalle_adquisicion: id_da,
+                        id_detalle_requisicion: id_dr,
+                        id_suministros: id_sum,
+                        cantidad: cantidad,
+                        precio_unitario: precioUnitario
                     });
                 }
             });
+
+            console.log("Array detalles final construido:", detalles);
 
             if (detalles.length > 0) {
                 $.ajax({
@@ -611,12 +648,12 @@ GESTION DE ADQUISICIONES
 
         $(document).on('click', '.DevolucionDetalleAdquisicion', function () {
             var filaDetalleAdquisicion = $(this).closest('tr');
-            var IDAdquisicion = filaDetalleAdquisicion.find("td:eq(0)").text();
-            var IdDetalleRequisicion = filaDetalleAdquisicion.find("td:eq(1)").text();
-            var IDsuministro = filaDetalleAdquisicion.find("td:eq(2)").text();
-            var suministroDetalle = filaDetalleAdquisicion.find("td:eq(3)").text();
-            var cantidad_devuelto = filaDetalleAdquisicion.find("td:eq(4)").text();
-            var precioUnitarioDetalle = filaDetalleAdquisicion.find("td:eq(5)").text();
+            var IDAdquisicion = filaDetalleAdquisicion.find("td:eq(0)").text().trim();
+            var IdDetalleRequisicion = filaDetalleAdquisicion.find("td:eq(1)").text().trim();
+            var IDsuministro = filaDetalleAdquisicion.find("td:eq(2)").text().trim();
+            var suministroDetalle = filaDetalleAdquisicion.find("td:eq(3)").text().trim();
+            var cantidad_devuelto = filaDetalleAdquisicion.find("td:eq(4)").text().trim().replace(/,/g, '');
+            var precioUnitarioDetalle = filaDetalleAdquisicion.find("td:eq(5)").text().trim().replace(/[^0-9.-]+/g, "");
 
             $('#id_adquisicion').val(IDAdquisicion);
             $('#id_detalle_requisicion').val(IdDetalleRequisicion);

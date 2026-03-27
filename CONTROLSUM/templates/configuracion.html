@@ -51,9 +51,58 @@
 
 <div class="row">
     <div class="col-12 text-end">
-        <button class="btn btn-primary px-4 shadow-sm" onclick="Swal.fire('Éxito', 'Configuración guardada correctamente', 'success')">
+        <button class="btn btn-primary px-4 shadow-sm" onclick="saveSettings()">
              <i class="fas fa-save me-2"></i><strong>Guardar Cambios</strong>
         </button>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Load settings from localStorage
+        const darkMode = localStorage.getItem('ctrlSum_darkMode') === 'true';
+        const compactTables = localStorage.getItem('ctrlSum_compactTables') === 'true';
+        const showNotifications = localStorage.getItem('ctrlSum_showNotifications') !== 'false'; // Default true
+
+        document.getElementById('darkMode').checked = darkMode;
+        document.getElementById('compactTable').checked = compactTables;
+        document.getElementById('showNotifications').checked = showNotifications;
+    });
+
+    function saveSettings() {
+        const darkMode = document.getElementById('darkMode').checked;
+        const compactTables = document.getElementById('compactTable').checked;
+        const showNotifications = document.getElementById('showNotifications').checked;
+
+        // Save to localStorage
+        localStorage.setItem('ctrlSum_darkMode', darkMode);
+        localStorage.setItem('ctrlSum_compactTables', compactTables);
+        localStorage.setItem('ctrlSum_showNotifications', showNotifications);
+
+        // Apply immediately where possible
+        if (darkMode) {
+            document.documentElement.classList.add('dark-mode');
+        } else {
+            document.documentElement.classList.remove('dark-mode');
+        }
+
+        if (compactTables) {
+            document.documentElement.classList.add('compact-tables');
+        } else {
+            document.documentElement.classList.remove('compact-tables');
+        }
+
+        Swal.fire({
+            title: '¡Éxito!',
+            text: 'Configuración guardada correctamente. Algunos cambios pueden requerir recargar la página.',
+            icon: 'success',
+            confirmButtonColor: '#3b82f6'
+        }).then(() => {
+            // Optional: refresh to ensure all components (like DataTables) react to theme changes
+            if (darkMode !== (localStorage.getItem('ctrlSum_darkMode_old') === 'true')) {
+                // location.reload(); 
+            }
+        });
+    }
+</script>
 {% endblock %}

@@ -1,0 +1,151 @@
+--- SCHEMA ---
+('id_suministros', 'int(11)', 'NO', 'PRI', None, 'auto_increment')
+('nombre', 'varchar(50)', 'NO', '', None, '')
+('descripcion', 'varchar(50)', 'NO', '', None, '')
+('id_categoria', 'int(11)', 'NO', 'MUL', None, '')
+('cantidad_inicial', 'int(11)', 'NO', '', None, '')
+('cantidad_stock', 'int(11)', 'NO', '', None, '')
+('cantidad_minima', 'int(11)', 'NO', '', None, '')
+('precio_unitario', 'int(11)', 'NO', '', None, '')
+('fecha_adquisicion', 'date', 'NO', '', None, '')
+('id_almacen', 'int(11)', 'NO', 'MUL', None, '')
+('imagen_url', 'varchar(255)', 'YES', '', None, '')
+('fkgrupo', 'int(11)', 'NO', '', None, '')
+('id_proveedor', 'int(11)', 'NO', '', None, '')
+('estado', 'int(11)', 'NO', '', '1', '')
+('creado_por', 'varchar(30)', 'NO', '', None, '')
+('fecha_hora_creacion', 'datetime', 'NO', '', 'CURRENT_TIMESTAMP', '')
+('modificado_por', 'varchar(30)', 'NO', '', None, '')
+('fecha_modificacion', 'datetime', 'NO', '', '0000-00-00 00:00:00', 'on update CURRENT_TIMESTAMP')
+
+--- DATA ---
+['id_suministros', 'nombre', 'descripcion', 'id_categoria', 'cantidad_inicial', 'cantidad_stock', 'cantidad_minima', 'precio_unitario', 'fecha_adquisicion', 'id_almacen', 'imagen_url', 'fkgrupo', 'id_proveedor', 'estado', 'creado_por', 'fecha_hora_creacion', 'modificado_por', 'fecha_modificacion']
+(1, 'Boligrafos', 'Boligrafos de color Azul y Negro', 1, 100, 1530, 10, 60, datetime.date(2025, 2, 19), 2, '/media/suministros/Boligrafos.jpg', 236, 248, 2, '', datetime.datetime(2025, 3, 11, 12, 25, 26), 'SOPORTE', datetime.datetime(2026, 3, 16, 10, 25, 38))
+(7, 'fhghkjlik', 'FVRDG', 1, 120, 72, 20, 324, datetime.date(2025, 2, 20), 2, '', 236, 248, 2, '', datetime.datetime(2025, 3, 11, 12, 25, 26), 'SOPORTE', datetime.datetime(2026, 3, 17, 9, 47, 47))
+(8, 'iyujgvjugj', 'Prueba', 1, 50, 284, 5, 76, datetime.date(2025, 2, 20), 2, '', 236, 248, 2, '', datetime.datetime(2025, 3, 11, 12, 25, 26), 'SOPORTE', datetime.datetime(2026, 3, 16, 10, 25))
+(9, 'iyub', 'jjlk', 1, 200, 450, 10, 10, datetime.date(2025, 2, 21), 1, '', 236, 248, 3, '', datetime.datetime(2025, 3, 11, 12, 25, 26), '', datetime.datetime(2026, 3, 13, 13, 38, 55))
+(10, 'FFF', '123', 2, 100, 25, 5, 20, datetime.date(2025, 2, 20), 1, '', 236, 248, 3, '', datetime.datetime(2025, 3, 11, 12, 25, 26), 'SOPORTE', datetime.datetime(2025, 4, 7, 12, 6, 37))
+(11, 'Papel Bond', 'Papel tamaño Carta', 1, 200, 156, 10, 120, datetime.date(2025, 3, 5), 13, '', 236, 248, 2, '', datetime.datetime(2025, 3, 11, 12, 25, 26), 'SOPORTE', datetime.datetime(2026, 3, 22, 13, 23, 46))
+(12, 'Marcadores Permanentes', 'Marcadores marca Sharpy negros', 1, 100, 40, 10, 35, datetime.date(2025, 3, 11), 5, '', 237, 342, 2, 'SOPORTE', datetime.datetime(2025, 3, 11, 13, 0, 10), 'SOPORTE', datetime.datetime(2026, 3, 13, 13, 48, 29))
+(13, 'Teclado', 'Teclado Marca Cualquiera', 2, 15, 11, 5, 360, datetime.date(2025, 3, 24), 12, '', 237, 248, 1, 'SOPORTE', datetime.datetime(2025, 3, 24, 10, 31, 54), 'SOPORTE', datetime.datetime(2025, 5, 6, 15, 26, 15))
+(14, 'Monitor', 'Marca Cualquiera', 2, 20, 11, 5, 1200, datetime.date(2025, 3, 24), 2, '/media/suministros/Monitor_Vorttex_Zzto3Yy.jpg', 237, 248, 3, 'SOPORTE', datetime.datetime(2025, 3, 24, 11, 11, 30), 'SOPORTE', datetime.datetime(2026, 3, 9, 9, 4, 54))
+(15, 'Plantilla para Mouse', 'Marca Cualquiera, cómoda y suave', 4, 30, 35, 10, 120, datetime.date(2025, 3, 24), 2, '', 237, 248, 2, '', datetime.datetime(2025, 3, 24, 15, 26, 19), '', datetime.datetime(2025, 4, 7, 12, 6, 51))
+(16, 'Monitor', 'Marca Cualquiera', 2, 20, 44, 5, 1200, datetime.date(2025, 3, 24), 1, '/media/suministros/Monitor_Vorttex_Zzto3Yy.jpg', 237, 248, 2, '', datetime.datetime(2025, 4, 1, 14, 49, 45), 'SOPORTE', datetime.datetime(2026, 2, 27, 7, 32, 39))
+(17, 'Boligrafos', 'Boligrafos de color Azul y Negro', 1, 100, 80, 10, 60, datetime.date(2025, 2, 19), 2, '/media/suministros/Boligrafos.jpg', 237, 248, 2, '', datetime.datetime(2025, 4, 1, 16, 27, 51), '', datetime.datetime(2025, 4, 7, 12, 6, 56))
+(18, 'Mouse Marvo', 'Marca Marvo', 1, 100, 50, 5, 380, datetime.date(2025, 4, 3), 13, '/media/suministros/Mouse.jpg', 237, 248, 2, 'SOPORTE', datetime.datetime(2025, 4, 3, 14, 0, 14), '', datetime.datetime(2025, 4, 7, 12, 6, 59))
+(19, 'Papel Legal', 'Tamaño LEGAL', 1, 50, 30, 5, 110, datetime.date(2025, 4, 3), 13, None, 237, 248, 3, 'SOPORTE', datetime.datetime(2025, 4, 3, 14, 44), '', datetime.datetime(2025, 4, 7, 12, 7, 2))
+(29, 'Mouse Marvo', 'Marca Marvo', 1, 100, 50, 5, 380, datetime.date(2025, 4, 3), 13, '/media/suministros/Mouse_yVNIMdl.jpg', 237, 248, 3, 'SOPORTE', datetime.datetime(2025, 4, 4, 15, 52, 47), '', datetime.datetime(2025, 4, 7, 12, 7, 4))
+(33, 'Mouse Marvo', 'Marca Marvo', 1, 100, 50, 5, 380, datetime.date(2025, 4, 3), 13, '/media/suministros/Mouse_HXileOK.jpg', 237, 248, 3, 'SOPORTE', datetime.datetime(2025, 4, 4, 16, 8, 51), '', datetime.datetime(2025, 4, 7, 12, 7, 8))
+(34, 'Papel Legal', 'Tamaño LEGAL', 1, 50, 33, 5, 110, datetime.date(2025, 4, 3), 13, '/media/suministros/wallhaven-m3zjx1_1920x1080.png', 237, 248, 2, 'SOPORTE', datetime.datetime(2025, 4, 4, 16, 10, 46), '', datetime.datetime(2026, 2, 27, 7, 28, 42))
+(35, 'Prueba123', 'sdsdfjdkjf', 3, 100, 90, 10, 26, datetime.date(2025, 4, 7), 14, '/media/suministros/carbajal_l6oPNVV.PNG', 237, 342, 2, 'SOPORTE', datetime.datetime(2025, 4, 7, 15, 48, 25), '', datetime.datetime(2025, 4, 29, 9, 14, 4))
+(36, 'Prueba12', 'Hola', 3, 100, 95, 10, 26, datetime.date(2025, 4, 7), 14, None, 237, 342, 3, 'SOPORTE', datetime.datetime(2025, 4, 7, 15, 53, 31), '', datetime.datetime(2025, 4, 7, 15, 53, 39))
+(37, 'PruebaFinal', 'PRUEBA, PRUEBA, PRUEBA', 3, 50, 40, 5, 1200, datetime.date(2025, 4, 25), 1, '/media/suministros/PruebaMobiliario_tYVeXCq.jpg', 237, 58, 1, 'SOPORTE', datetime.datetime(2025, 4, 25, 10, 56, 48), 'SOPORTE', datetime.datetime(2025, 5, 7, 13, 42, 17))
+(38, 'Mouse', 'Mouse en color negro', 2, 5, 15, 10, 250, datetime.date(2026, 3, 3), 13, '/media/suministros/mouse_yYBEjAj.jpg', 237, 272, 1, 'PASANTEIT', datetime.datetime(2026, 3, 3, 7, 37, 2), '', datetime.datetime(2026, 3, 4, 17, 3, 29))
+(39, 'Mouse', 'Mouse en color negro', 2, 5, 15, 10, 250, datetime.date(2026, 3, 3), 13, '/media/suministros/mouse_GpqOYpR.jpg', 237, 272, 1, 'PASANTEIT', datetime.datetime(2026, 3, 3, 7, 37, 15), '', datetime.datetime(2026, 3, 4, 17, 3, 29))
+(40, 'Papel Bond', 'Papel Bond', 1, 20, 50, 5, 80, datetime.date(2026, 3, 3), 3, '/media/suministros/papelbond.jpg', 237, 263, 1, 'PASANTEIT', datetime.datetime(2026, 3, 3, 7, 44, 33), '', datetime.datetime(2026, 3, 4, 17, 3, 29))
+(41, 'Papel Legal', 'Papel Legal', 1, 10, 50, 5, 250, datetime.date(2026, 3, 3), 3, '/media/suministros/legal_L4cV0m0.jpg', 237, 263, 1, 'PASANTEIT', datetime.datetime(2026, 3, 3, 8, 6, 8), '', datetime.datetime(2026, 3, 4, 17, 3, 29))
+(42, 'Mouse', 'Mouse', 1, 4, 6, 2, 200, datetime.date(2026, 3, 5), 2, '/media/suministros/papelbond_cmajQjh.jpg', 236, 272, 1, 'PASANTEIT', datetime.datetime(2026, 3, 6, 5, 47, 40), '', None)
+(43, 'Mouse', 'Mouse', 1, 4, 10, 4, 200, datetime.date(2026, 3, 8), 2, '/media/suministros/mouse_4bJieaJ.jpg', 236, 248, 1, '', datetime.datetime(2026, 3, 8, 20, 48, 54), '', None)
+(44, 'Lapiz', 'Lapiz', 1, 5, 15, 10, 50, datetime.date(2026, 3, 9), 3, '/media/suministros/mouse_UOqlNpA.jpg', 236, 42, 1, 'PASANTEIT', datetime.datetime(2026, 3, 9, 9, 1, 32), '', None)
+(45, 'FFF', 'FFF', 1, 5, 10, 15, 200, datetime.date(2026, 3, 10), 1, '/media/suministros/papelbond_82CAAcr.jpg', 236, 42, 2, 'PASANTEIT', datetime.datetime(2026, 3, 10, 8, 13, 13), '', datetime.datetime(2026, 3, 22, 13, 1, 29))
+(46, 'Engrapadora', 'Engrapadora metálica oficina', 1, 50, 10, 5, 150, datetime.date(2026, 3, 10), 1, '/media/suministros/papelbond_ffNyfi6.jpg', 236, 42, 1, 'PASANTEIT', datetime.datetime(2026, 3, 10, 8, 24, 32), '', None)
+(47, 'Mouse', 'Mouse', 1, 10, 15, 5, 200, datetime.date(2026, 3, 10), 1, '/media/suministros/legal_RRYG9Tt.jpg', 236, 42, 1, 'PASANTEIT', datetime.datetime(2026, 3, 10, 9, 10, 54), '', None)
+(48, 'Boligrafos', 'Boligrafos dr color Azul y Negro ', 1, 100, 1050, 10, 60, datetime.date(2025, 2, 19), 2, '/media/suministros/mouse_nHu6tTc.jpg', 236, 248, 1, 'PASANTEIT', datetime.datetime(2026, 3, 10, 10, 0, 4), '', None)
+(49, 'Mouse', 'Mouse', 1, 10, 15, 5, 200, datetime.date(2026, 3, 10), 3, '/media/suministros/legal_zYNDIrf.jpg', 236, 42, 2, 'PASANTEIT', datetime.datetime(2026, 3, 10, 11, 0, 59), '', datetime.datetime(2026, 3, 20, 12, 49, 25))
+(50, 'Cinta Adhesiva Transparente', 'Cinta adhesiva para uso de oficina', 1, 80, 30, 8, 25, datetime.date(2026, 3, 10), 6, '/media/suministros/cinta.jpg', 237, 589, 1, 'PASANTEIT', datetime.datetime(2026, 3, 10, 11, 28, 48), '', None)
+(51, 'Mouse', 'Mouse color negro', 1, 50, 20, 10, 100, datetime.date(2026, 3, 13), 2, '/media/suministros/mouse_DeVZ1dY.jpg', 236, 263, 1, '', datetime.datetime(2026, 3, 13, 13, 53, 59), '', None)
+(52, 'Mouse', 'Mouse color negro', 1, 50, 20, 10, 100, datetime.date(2026, 3, 13), 2, '/media/suministros/mouse_GaWPcbo.jpg', 236, 263, 1, '', datetime.datetime(2026, 3, 13, 13, 54, 5), '', None)
+(53, 'Mouse', 'Mouse color negro', 1, 50, 20, 10, 100, datetime.date(2026, 3, 13), 2, '/media/suministros/mouse_y8R3Gk3.jpg', 236, 263, 1, '', datetime.datetime(2026, 3, 13, 13, 54, 6), '', None)
+(54, 'Mouse', 'Mouse color negro', 1, 50, 20, 10, 100, datetime.date(2026, 3, 13), 2, '/media/suministros/mouse_eBeUDvG.jpg', 236, 263, 1, '', datetime.datetime(2026, 3, 13, 13, 54, 7), '', None)
+(55, 'Mouse', 'Mouse color negro', 1, 50, 20, 10, 100, datetime.date(2026, 3, 13), 2, '/media/suministros/mouse_GbijI1l.jpg', 236, 263, 1, '', datetime.datetime(2026, 3, 13, 13, 54, 8), '', None)
+(56, 'Mouse', 'Mouse color negro', 1, 50, 20, 10, 100, datetime.date(2026, 3, 13), 2, '/media/suministros/mouse_jGAhlsK.jpg', 236, 263, 1, '', datetime.datetime(2026, 3, 13, 13, 54, 21), '', None)
+(57, 'Lapiz', 'Lapiz', 2, 30, 20, 10, 200, datetime.date(2026, 3, 13), 7, '/media/suministros/marcador_YSPiSao.jpg', 236, 362, 1, '', datetime.datetime(2026, 3, 13, 14, 15, 19), '', None)
+(58, 'Disco duro', 'Disco duro', 2, 30, 15, 10, 100, datetime.date(2026, 3, 13), 14, '/media/suministros/marcador_kyXNcoH.jpg', 236, 272, 1, '', datetime.datetime(2026, 3, 13, 15, 9, 17), '', datetime.datetime(2026, 3, 13, 15, 14, 45))
+(59, 'Impresora', 'Impresora', 2, 30, 20, 10, 100, datetime.date(2026, 3, 16), 13, '/media/suministros/impresora.jpg', 236, 342, 1, 'PASANTEIT', datetime.datetime(2026, 3, 16, 10, 30, 38), '', None)
+(60, 'Detergente', 'Detergente liquido para limpieza', 5, 20, 20, 5, 50, datetime.date(2026, 3, 17), 1, None, 236, 248, 1, 'SOPORTE', datetime.datetime(2026, 3, 17, 11, 59, 50), 'SOPORTE', None)
+
+--- PROCEDURES ---
+
+PROCEDURE: SUM_GET_SUMINISTROS
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SUM_GET_SUMINISTROS`(IN varEstado int, IN varUsuarioGrupo int)
+BEGIN
+  SELECT
+    s.id_suministros,
+    s.nombre,
+    s.descripcion,
+    s.id_categoria,
+    c.nombre_categoria,
+    s.cantidad_inicial,
+    s.cantidad_stock,
+    s.cantidad_minima,
+    s.precio_unitario,
+    s.fecha_adquisicion,
+    cp.id_proveedor,
+    cp.nombre_proveedor,
+    s.id_almacen,
+    a.nombre_almacen,
+    s.imagen_url,
+    g.PKgrupo,
+    g.Nombre AS nombre_grupo,
+    s.estado
+
+  FROM suministros s
+    INNER JOIN categorias c
+      ON s.id_categoria = c.id_categoria
+    INNER JOIN ct_proveedores cp
+      ON s.id_proveedor = cp.id_proveedor
+    INNER JOIN almacen a
+      ON s.id_almacen = a.id_almacen
+    INNER JOIN global_security.grupos g
+      ON s.fkgrupo = g.PKgrupo
+    INNER JOIN global_security.usuarios_grupo ug
+      ON g.PKgrupo = ug.fkGrupo
+  WHERE (
+  (varEstado = 0)
+  OR (varEstado = 3
+  AND s.estado = 3)
+  OR (varEstado = 1
+  AND s.estado != 3)
+  )
+  AND IF(varUsuarioGrupo = 0, 1 = 1, ug.fkUsuario = varUsuarioGrupo)
+  GROUP BY s.id_suministros;
+END
+
+PROCEDURE: SUM_GET_CATEGORIAS
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SUM_GET_CATEGORIAS`()
+BEGIN
+  SELECT
+    c.id_categoria,
+    c.nombre_categoria,
+    c.fecha_hora_creacion,
+    c.fecha_modificacion
+  FROM universal_data_core.categorias c;
+END
+
+PROCEDURE: SUM_GET_ALMACENES
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SUM_GET_ALMACENES`(IN varEstado int, IN varUsuarioGrupo int)
+BEGIN
+  SELECT
+    a.id_almacen,
+    a.nombre_almacen,
+    a.ubicacion_almacen,
+    g.PKgrupo,
+    g.Nombre AS GrupoNombre,
+    a.estado,
+    a.fecha_hora_creacion,
+    a.fecha_hora_modificado
+  FROM universal_data_core.almacen a
+    INNER JOIN global_security.grupos g
+      ON a.fkgrupo = g.PKgrupo
+    INNER JOIN global_security.usuarios_grupo ug
+      ON g.PKgrupo = ug.fkGrupo
+  WHERE (
+  (varEstado = 0)
+  OR (varEstado = 3
+  AND a.estado = 3)
+  OR (varEstado = 1
+  AND a.estado != 3)
+  )
+  AND IF(varUsuarioGrupo = 0, 1 = 1, ug.fkUsuario = varUsuarioGrupo)
+  GROUP BY a.id_almacen;
+END

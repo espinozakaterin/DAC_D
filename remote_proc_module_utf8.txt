@@ -1,0 +1,8 @@
+﻿Procedure	sql_mode	Create Procedure	character_set_client	collation_connection	Database Collation
+SDK_GET_USER_MODULE_ACCESS	NO_AUTO_VALUE_ON_ZERO	CREATE DEFINER=`root`@`%` PROCEDURE `SDK_GET_USER_MODULE_ACCESS`(IN varModulo int, IN varUser int)\nBEGIN
+\n  SELECT
+\n    *
+\n  FROM usuarios_modulo um
+\n  WHERE um.fkModulo = varModulo
+\n  AND um.fkUsuario = varUser;
+\nEND	utf8	utf8_general_ci	utf8_general_ci

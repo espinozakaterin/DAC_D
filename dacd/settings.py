@@ -149,13 +149,13 @@ DATABASES = {
         'PORT': os.getenv("DATABASE_PORT"),
     }, 
 
-    'global_nube': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.getenv("DATABASE_GLOBAL"),
-        'USER': os.getenv("DATABASE_GLOBAL_USER"),
-        'PASSWORD': os.getenv("DATABASE_GLOBAL_PASSWORD"),
-        'HOST': os.getenv("DATABASE_GLOBAL_HOST"),
-        'PORT': os.getenv("DATABASE_GLOBAL_PORT"),
+   'global_nube': {
+    'ENGINE': 'django.db.backends.mysql',
+    'NAME': 'global_security',
+    'USER': 'root',
+    'PASSWORD': 'hola123',
+    'HOST': 'localhost',
+    'PORT': '3306',
     },
     'bankConn': {
         'ENGINE': "django.db.backends.mysql",
@@ -266,7 +266,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/Tegucigalpa'
 
 USE_I18N = True
 

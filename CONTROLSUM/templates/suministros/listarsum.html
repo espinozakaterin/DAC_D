@@ -43,7 +43,7 @@ GESTION DE SUMINISTROS
                     <th class="text-center">Nombre</th>
                     <th class="text-center">Descripción</th>
                     <th class="text-center">Categoría</th>
-                    <th class="text-center">Cant. Max</th>
+                    <th class="text-center">Cant. Inicial</th>
                     <th class="text-center">Cant. Stock</th>
                     <th class="text-center">Cant. Min</th>
                     <th class="text-center">Precio Unitario</th>
@@ -78,6 +78,12 @@ GESTION DE SUMINISTROS
     $(document).ready(function () {
         var csrfToken = "{{ csrf_token }}";
         var cambiar_estado_actual = 0;
+
+        // Cambiar título si es filtro de stock bajo
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('alert_title') === '1' || urlParams.get('stock_bajo') === '1') {
+            $('.page-title strong').text('ALERTAS DE STOCK BAJO');
+        }
 
         var toastMixin = Swal.mixin({
             toast: true,
@@ -143,7 +149,9 @@ GESTION DE SUMINISTROS
         type: "POST",
         dataSrc: 'data',
         data: function (d) {
+            const urlParams = new URLSearchParams(window.location.search);
             d.varEstado = $("#Filtro").val() || 0;
+            d.stock_bajo = urlParams.get('stock_bajo') || 0;
             d.csrfmiddlewaretoken = csrfToken;
         },
         error: function (xhr) {
@@ -207,9 +215,9 @@ buttons: [
         { data: 'nombre', defaultContent: "" },
         { data: 'descripcion', defaultContent: "" },
         { data: 'nombre_categoria', defaultContent: "" },
-        { data: 'cantidad_max', className: 'formattAverages', defaultContent: 0 },
+        { data: 'cantidad_inicial', className: 'formattAverages', defaultContent: 0 },
         { data: 'cantidad_stock', className: 'formattAverages', defaultContent: 0 },
-        { data: 'cantidad_min', className: 'formattAverages', defaultContent: 0 },
+        { data: 'cantidad_minima', className: 'formattAverages', defaultContent: 0 },
         {
             data: 'precio_unitario',
             className: 'formattMoney',
@@ -225,8 +233,8 @@ buttons: [
             data: 'cantidad_stock',
             className: 'text-center',
             render: function (data, type, row) {
-                let cantidadMinima = parseInt(row.cantidad_min || 0);
-                let cantidadMaxima = parseInt(row.cantidad_max || 0);
+                let cantidadMinima = parseInt(row.cantidad_minima || 0);
+                let cantidadMaxima = parseInt(row.cantidad_inicial || 0);
                 let stock = parseInt(data || 0);
 
                 if (stock <= cantidadMinima) {
@@ -261,7 +269,7 @@ buttons: [
                         <div class="btn-group">
                             <button class="btn btn-danger btn-sm anularSuministro rounded-pill shadow-sm"
                                 title="Cambiar estado Suministro"
-                                data-id="${row.id_suministros}" data-name="${row.nombre}" data-estado="${row.estado}">
+                                data-id="${row.id}" data-name="${row.nombre}" data-estado="${row.estado}">
                                 <i class="fas fa-sync-alt"></i>
                             </button>
                         </div>
@@ -273,7 +281,7 @@ buttons: [
                 <div class="d-flex flex-row justify-content-center align-items-center gap-1">
                     <button class="btn btn-warning btn-sm editarSuministro rounded-pill shadow-sm"
                             title="Editar Suministro"
-                            data-id="${row.id_suministros}"
+                            data-id="${row.id}"
                             data-almacenes="${row.id_almacen}"
                             data-categoria="${row.id_categoria}"
                             data-imagen_suministro="${row.imagen_url}"
@@ -291,7 +299,7 @@ buttons: [
                     <button class="btn btn-primary btn-sm verImagenSuministro rounded-pill shadow-sm"
                             title="Ver Imagen del Suministro" 
                             data-nombre="${row.nombre}"
-                            data-imagen="${row.imagen ? row.imagen : (row.foto ? row.foto : '')}">
+                            data-imagen="${row.imagen_url ? row.imagen_url : ''}">
                         <i class="fas fa-image"></i>
                     </button>
 
@@ -313,8 +321,8 @@ buttons: [
 
             if (rowData) {
                 var cantidadStock = parseInt(rowData.cantidad_stock || 0);
-                var cantidadMinima = parseInt(rowData.cantidad_min || 0);
-                var cantidadMaxima = parseInt(rowData.cantidad_max || 0);
+                var cantidadMinima = parseInt(rowData.cantidad_minima || 0);
+                var cantidadMaxima = parseInt(rowData.cantidad_inicial || 0);
                 var estado = parseInt(rowData.estado || 0);
 
                 if (estado !== 3 && (cantidadStock <= cantidadMinima || cantidadStock > cantidadMaxima)) {
@@ -324,6 +332,49 @@ buttons: [
                 }
             }
         });
+
+        // --- DEEP LINKING LOGIC ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('id');
+        const productName = urlParams.get('name');
+        const skipModal = urlParams.get('skip_modal');
+        if (productId || productName) {
+            console.log("Deep link detected:", { productId, productName });
+            
+            // Si tenemos nombre, filtramos la tabla de inmediato
+            if (productName) {
+                console.log("Filtering table by name:", productName);
+                Tabla_Suministros.search(productName).draw();
+            }
+
+            // Esperar a que la tabla se dibuje y los datos estén listos
+            setTimeout(function() {
+                let editBtn = productId ? $(`.editarSuministro[data-id="${productId}"]`) : [];
+                
+                // Si no se encuentra por ID exacto (tal vez cambió), pero tenemos el nombre filtrado, 
+                // podemos intentar con el primer resultado de la tabla.
+                if ((!editBtn || !editBtn.length) && productName) {
+                    editBtn = $('#Tabla_Suministros tbody tr:first .editarSuministro');
+                }
+
+                if (editBtn && editBtn.length && !skipModal) {
+                    console.log("Triggering edit for deep link...");
+                    editBtn.click();
+                    
+                    // Asegurar que sea visible
+                    setTimeout(() => {
+                        editBtn[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        // Resaltar la fila temporalmente
+                        editBtn.closest('tr').css('background-color', '#fff3cd');
+                        setTimeout(() => {
+                            editBtn.closest('tr').css('background-color', '');
+                        }, 3000);
+                    }, 500);
+                } else {
+                    console.warn("Could not find product for deep link");
+                }
+            }, 1200); 
+        }
     }
 }); 
 
@@ -504,6 +555,8 @@ $('#Tabla_Suministros tbody').on('click', '.verImagenSuministro', function () {
             // Validación básica de campos
             if (!nombre_sum || id_categoria == '#' || acreedor == '#' || almacen == '#' || grupo == '#') {
                 Swal.fire("", "Debes llenar todos los campos!", "warning");
+            } else if (!cantidad_minima || parseInt(cantidad_minima) <= 0) {
+                Swal.fire("", "La cantidad mínima debe ser mayor a 0!", "warning");
             } else {
                 var formData = new FormData();
                 formData.append('nombre_sum', nombre_sum);

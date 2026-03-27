@@ -53,7 +53,6 @@ GESTION DE REQUISICIONES
                 </tr>
             </thead>
             <tbody class="text-center">
-                <!-- Contenido dinámico -->
             </tbody>
         </table>
     </div>
@@ -68,8 +67,18 @@ GESTION DE REQUISICIONES
 {% block scripts %}
 
 <script>
+    var id_suministro_seleccionado = null;
+    var id_acreedor_seleccionado = null;
+    var id_grupo_seleccionado = null;
+    var id_categoria_seleccionada = null;
+    var select_estado_requisicion = 0;
+    var requisicion_id = null;
+    var Tabla_Requisiciones = null;
+    var filaRequisicion = null;
+    var csrfToken = "{{ csrf_token }}";
+    var xhrSuministroMain = null;
+
     $(document).ready(function () {
-        var csrfToken = "{{ csrf_token }}";
 $("#nombre_completo").on('change', function () {
 
     const usuario_id_raw = $(this).val();
@@ -110,9 +119,7 @@ $("#nombre_completo").on('change', function () {
     });
 });
 
-        var cambiar_estado_actual = 0;
-
-        var toastMixin = Swal.mixin({
+        window.toastMixin = Swal.mixin({
             toast: true,
             icon: 'success',
             title: 'General Title',
@@ -127,15 +134,14 @@ $("#nombre_completo").on('change', function () {
             }
         });
 
-        let dollarUSLocale = Intl.NumberFormat("en-US", {
+        window.dollarUSLocale = Intl.NumberFormat("en-US", {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
         });
 
-        let intergerLocale = Intl.NumberFormat("en-US", {
+        window.intergerLocale = Intl.NumberFormat("en-US", {
             minimumFractionDigits: 0,
             maximumFractionDigits: 0
-
         });
 
         $('#menu_gestion_requisiciones, #listar_requisicion_submenu').addClass('active');
@@ -210,16 +216,44 @@ $("#nombre_completo").on('change', function () {
                         }
                     },
                     {
-                        extend: 'print',
+                        extend: 'pdfHtml5', // Changed from 'print'
                         text: '<i class="fas fa-print"></i> Imprimir',
                         titleAttr: 'Imprimir',
                         className: 'btn btn-secondary btn-sm',
+                        pageSize: 'A4',
+                        orientation: 'portrait',
                         exportOptions: {
                             columns: [0, 1, 2, 3, 4, 5, 6, 7, 8]
                         },
-                        customize: function (win) {
-                            $(win.document.body).find('table').addClass('compact').css('font-size', '8pt');
-                            $(win.document.body).find('h1').css('text-align', 'center').text('REQUISICIONES - CONTROL SUMINISTROS');
+                        action: function ( e, dt, button, config ) {
+                            var oldPdfMake = window.pdfMake.createPdf;
+                            try {
+                                window.pdfMake.createPdf = function(doc) {
+                                    var pdf = oldPdfMake(doc);
+                                    return {
+                                        download: function() { pdf.print(); },
+                                        open: function() { pdf.print(); },
+                                        print: function() { pdf.print(); }
+                                    };
+                                };
+                                $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
+                            } finally {
+                                window.pdfMake.createPdf = oldPdfMake;
+                            }
+                        },
+                        customize: function (doc) {
+                            // Mismas reglas exactas del PDF
+                            doc.content[1].table.widths = Array(doc.content[1].table.body[0].length).fill('*');
+                            doc.styles.tableHeader.fillColor = '#2c4770';
+                            doc.styles.tableHeader.color = 'white';
+                            doc.styles.tableHeader.alignment = 'center';
+                            doc.styles.tableHeader.fontSize = 9;
+                            doc.defaultStyle.alignment = 'center';
+                            doc.defaultStyle.fontSize = 7;
+                            doc.pageMargins = [15, 20, 15, 20];
+                            doc.content[0].text = "REPORTE DE REQUISICIONES";
+                            doc.content[0].alignment = 'center';
+                            doc.content[0].margin = [0, 0, 0, 10];
                         }
                     }
                 ],
@@ -328,6 +362,32 @@ $("#nombre_completo").on('change', function () {
                         }
                     }
                 ],
+                initComplete: function () {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const requisitionId = urlParams.get('id');
+                    
+                    if (requisitionId) {
+                        console.log("Deep link detected for Requisition ID:", requisitionId);
+                        
+                        Tabla_Requisiciones.search(requisitionId).draw();
+
+                        setTimeout(function() {
+                            const detailsBtn = $(`.verDetalles[data-id="${requisitionId}"]`);
+                            if (detailsBtn.length) {
+                                console.log("Found requisition details button, triggering click...");
+                                detailsBtn.click();
+                                
+                                detailsBtn[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                detailsBtn.closest('tr').css('background-color', '#fff3cd');
+                                setTimeout(() => {
+                                    detailsBtn.closest('tr').css('background-color', '');
+                                }, 3000);
+                            } else {
+                                console.warn("Requisition ID not found in table:", requisitionId);
+                            }
+                        }, 1200);
+                    }
+                }
             });
         
         }
@@ -349,16 +409,19 @@ $("#nombre_completo").on('change', function () {
         });
 
 
-        // ========================= GUARDAR REQUISICIÓN =========================
+    // ========================= GUARDAR REQUISICIÓN =========================
     $(document).off('submit', '#formRequisicion');
     $(document).on('submit', '#formRequisicion', function (e) {
     e.preventDefault();
+    console.log("Submit prevenido. Entrando a validación...");
 
     // 1) Validar que haya artículos
     if ($('#tabla-articulos tr').length === 0) {
+        console.log("No hay artículos, mostrando alerta...");
         Swal.fire("", "Debes agregar al menos un artículo a la requisición.", "warning");
         return;
     }
+    console.log("Sí hay artículos, tomando datos...");
 
     // 2) Tomar datos encabezado
     const PKUsuario   = $('#nombre_completo').val();
@@ -366,7 +429,7 @@ $("#nombre_completo").on('change', function () {
     const id_proveedor= $('#acreedor').val();
     const fecha_pedido= $('#fecha_pedido').val();
     const fecha_pago  = $('#fecha_pago').val();
-    const costo_total = ($('#costo-total').text() || "0").replace(/,/g, '').trim();
+    const costo_total = ($('#costo-total').text() || "0").replace(/[^\d.-]/g, '').trim();
 
     // 3) Validar campos obligatorios
     if (!PKUsuario || !PKgrupo || PKgrupo === "#" || !id_proveedor || id_proveedor === "#" || !fecha_pedido || !fecha_pago) {
@@ -474,7 +537,7 @@ $(document).on('click', '.editarRequisicion', function () {
                             <td>${precio.toFixed(2)}</td>
                             <td>${subtotal.toFixed(2)}</td>
                             <td>
-                                <button class="btn btn-danger btn-sm eliminarFila">
+                                <button type="button" class="btn btn-danger btn-sm eliminarFila">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </td>
@@ -488,28 +551,88 @@ $(document).on('click', '.editarRequisicion', function () {
 
             $('#modalRequisicionLabel').html('<strong>Editar Requisición #' + requisicion_id + '</strong>');
             $('#modalRequisicion').modal('show');
-        },
-
-        error: function (xhr) {
-            Swal.fire("Error", "No se pudo cargar la requisición.", "error");
-            console.log(xhr.responseText);
         }
     });
 
-});
+    // Evento para eliminar fila generada en la edición y recalcular total
+    $(document).off('click', '.eliminarFila');
+    $(document).on('click', '.eliminarFila', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Remove row
+        $(this).closest('tr').remove();
+        
+        // Recalculate total
+        let total = 0;
+        $('#tabla-articulos tr').each(function () {
+            const valor = $(this).find('td:eq(3)').text().replace(/[^\d.-]/g, '').trim();
+            total += parseFloat(valor) || 0;
+        });
+        
+        // Update total display
+        $('#costo-total').text(total.toFixed(2));
+        $('#costo_total_hidden').val(total.toFixed(2));
+    });
 
-    // ========================= INSERTAR DETALLES =========================
+    $('#categoria').off('change');
+        $('#categoria').change(function () {
+            var categoria_id = $(this).val();  
+            var $suministro = $('#suministro');
+
+            if (xhrSuministroMain) xhrSuministroMain.abort();
+
+            $suministro.empty().append('<option value="">Cargando suministros...</option>');
+
+            if (!categoria_id || categoria_id === "") {
+                $suministro.empty().append('<option value="">Seleccione el suministro:</option>');
+                return;
+            }
+
+            xhrSuministroMain = $.ajax({
+                url: '{% url "obtener_suministros_por_categoria_data" %}', 
+                type: "POST",
+                data: {
+                    'categoria_id': categoria_id, 
+                    csrfmiddlewaretoken: csrfToken  
+                },
+                dataType: 'json',
+                success: function (response) {
+                    console.log("Respuesta suministros (Main):", response);
+                    $suministro.empty();
+                    var suministros = response.suministros || [];
+                    if (suministros.length > 0) {
+                        $suministro.append('<option value="">Seleccione el suministro:</option>');
+                        $.each(suministros, function (index, suministro) {
+                            $suministro.append('<option value="' + suministro.id_suministros + '">' + suministro.nombre + '</option>');
+                        });
+                    } else {
+                        $suministro.append('<option value="">No hay suministros disponibles</option>');
+                    }
+                    $suministro.trigger('change');
+                },
+                error: function (xhr) {
+                    if (xhr.statusText !== 'abort') {
+                        $suministro.empty().append('<option value="">Error al cargar suministros</option>');
+                    }
+                }
+            });
+        });
+
+        });
+
+}); 
 function insertarDetallesRequisicion(id_requisicion) {
 
     const detalles = [];
 
     $('#tabla-articulos tr').each(function () {
 
-        const idSuministro = ($(this).attr('data-id-suministro') || '').toString().trim();
+        const idSuministro = ($(this).data('id-suministro') || '').toString().trim();
         const justificacion = ($(this).attr('data-justificacion') || '').toString().trim();
 
-        const cantidadTxt = ($(this).find('td:eq(1)').text() || '0').replace(/,/g, '').trim();
-        const precioTxt   = ($(this).find('td:eq(2)').text() || '0').replace(/,/g, '').trim();
+        const cantidadTxt = ($(this).find('td:eq(1)').text() || '0').replace(/[^\d.-]/g, '').trim();
+        const precioTxt   = ($(this).find('td:eq(2)').text() || '0').replace(/[^\d.-]/g, '').trim();
 
         const cantidad = parseFloat(cantidadTxt) || 0;
         const precio_unitario = parseFloat(precioTxt) || 0;
@@ -523,6 +646,8 @@ function insertarDetallesRequisicion(id_requisicion) {
             justificacion: justificacion
         });
     });
+
+    console.log("Detalles finales a enviar:", detalles);
 
     if (detalles.length === 0) {
         Swal.fire("", "No se detectaron artículos válidos (revisa que cada fila tenga justificación).", "warning");
@@ -645,7 +770,7 @@ function insertarDetallesRequisicion(id_requisicion) {
         $(document).on('click', '.anularRequisicion', function () {
             var id_requisicion = $(this).data('id');
             var estado_actual = $(this).data('estado'); 
-l
+
             var mensaje = estado_actual == 3
                 ? '¿Estás seguro de que quieres activar esta requisición?'
                 : '¿Estás seguro de que quieres deshabilitar esta requisición?';
@@ -778,14 +903,14 @@ l
                             <td>${cantidad}</td>
                             <td>L\u00A0${dollarUSLocale.format(precioUnitario)}</td>
                             <td>L\u00A0${dollarUSLocale.format(precioTotal)}</td>
-                            <td>${articulo.justificacion || ''}</td>
+                            <td></td>
                         </tr>
                     `;
                             costoTotal += precioTotal;
                         });
 
                         $('#tabla-articulos').html(tablaArticulos);
-                        $('#costo-total').text('L\u00A0' + dollarUSLocale.format(costoTotal));  // Actualiza el costo total y lo formatea
+                        $('#costo-total').text('L\u00A0' + dollarUSLocale.format(costoTotal));  
                     } else {
                         Swal.fire("", "No se encontraron artículos para esta requisición.", "warning");
                     }
@@ -826,48 +951,67 @@ l
                             .then(blob => {
                                 const imageUrl = URL.createObjectURL(blob);
                                 const pageWidth = doc.internal.pageSize.width; 
-                                const logoWidth = 70; 
-                                const xPos = pageWidth - logoWidth - 10; 
-                                doc.addImage(imageUrl, 'PNG', xPos, 10, logoWidth, 30);
-                                doc.setFont("Arial", "normal");
-                                doc.setFont("Arial", "bold");
-                                doc.setFontSize(12);
-                                doc.text(`Solicitud de Requisición #${requisicionId}`, 20, 20);
-                                doc.setFont("Arial", "bold");
+                                
+                                // Logo en esquina superior derecha
+                                const logoWidth = 45; 
+                                const logoHeight = 18; 
+                                const xPos = pageWidth - logoWidth - 15; 
+                                doc.addImage(imageUrl, 'PNG', xPos, 12, logoWidth, logoHeight);
+
+                                // Título principal
+                                doc.setFont("helvetica", "bold");
+                                doc.setFontSize(14);
+                                doc.setTextColor(44, 71, 112); // #2c4770
+                                doc.text(`SOLICITUD DE REQUISICIÓN #${requisicionId}`, 15, 22);
+                                
+                                // Línea separadora
+                                doc.setDrawColor(200, 200, 200);
+                                doc.line(15, 28, pageWidth - 15, 28);
+
+                                // Distribución a dos columnas para encabezado
+                                doc.setFontSize(9);
+                                doc.setTextColor(60, 60, 60);
+                                
+                                let startY = 38;
+                                let lh = 8; // Altura de línea
+                                
+                                // Columna Izquierda
+                                doc.setFont("helvetica", "bold");
+                                doc.text("Solicitante:", 15, startY);
+                                doc.setFont("helvetica", "normal");
+                                doc.text(requisicion.nombre_completo || '', 40, startY);
+                                
+                                doc.setFont("helvetica", "bold");
+                                doc.text("Grupo/Área:", 15, startY + lh);
+                                doc.setFont("helvetica", "normal");
+                                doc.text(requisicion.GrupoNombre || '', 40, startY + lh);
+                                
+                                doc.setFont("helvetica", "bold");
+                                doc.text("Proveedor:", 15, startY + lh*2);
+                                doc.setFont("helvetica", "normal");
+                                doc.text(requisicion.nombre_proveedor || '', 40, startY + lh*2);
+                                
+                                // Columna Derecha
+                                doc.setFont("helvetica", "bold");
+                                doc.text("Fecha Pedido:", 120, startY);
+                                doc.setFont("helvetica", "normal");
+                                doc.text(requisicion.fecha_pedido || '', 145, startY);
+                                
+                                doc.setFont("helvetica", "bold");
+                                doc.text("Fecha Pago:", 120, startY + lh);
+                                doc.setFont("helvetica", "normal");
+                                doc.text(requisicion.fecha_pago || '', 145, startY + lh);
+                                
+                                // Total resaltado
+                                doc.setFont("helvetica", "bold");
                                 doc.setFontSize(10);
-                                doc.text("Solicitante:", 20, 30);
-                                doc.setFont("Arial", "normal");
-                                doc.text(requisicion.nombre_completo, 55, 30);
+                                doc.setTextColor(44, 71, 112);
+                                doc.text("Costo Total:", 120, startY + lh*2);
+                                doc.text('L ' + dollarUSLocale.format(totalCalc), 145, startY + lh*2);
 
-                                doc.setFont("Arial", "bold");
-                                doc.setFontSize(10);
-                                doc.text("Grupo/Área:", 20, 40);
-                                doc.setFont("Arial", "normal");
-                                doc.text(requisicion.GrupoNombre, 55, 40);
-
-                                doc.setFont("Arial", "bold");
-                                doc.text("Proveedor:", 20, 50);
-                                doc.setFont("Arial", "normal");
-                                doc.text(requisicion.nombre_proveedor, 55, 50);
-
-                                doc.setFont("Arial", "bold");
-                                doc.text("Fecha de Pedido:", 20, 60);
-                                doc.setFont("Arial", "normal");
-                                doc.text(requisicion.fecha_pedido, 55, 60);
-
-                                doc.setFont("Arial", "bold");
-                                doc.text("Fecha de Pago:", 20, 70);
-                                doc.setFont("Arial", "normal");
-                                doc.text(requisicion.fecha_pago, 55, 70);
-
-                                doc.setFont("Arial", "bold");
-                                doc.text("Costo Total:", 20, 80);
-                                doc.setFont("Arial", "bold");
-                                doc.setFontSize(10);
-
-                                doc.text('L ' + dollarUSLocale.format(totalCalc), 55, 80);
+                                // Tabla de detalles
                                 doc.autoTable({
-                                    startY: 90, 
+                                    startY: 65, 
                                     head: [['Suministro', 'Cantidad', 'Precio Unitario', 'Precio Total']],
                                     body: detalles.map(detalle => [
                                         detalle.nombre_suministro,
@@ -875,13 +1019,31 @@ l
                                         'L ' + dollarUSLocale.format(detalle.precio_unitario),
                                         'L ' + dollarUSLocale.format(detalle.cantidad * detalle.precio_unitario),
                                     ]),
-                                    margin: { top: 10, left: 20, right: 20 },
+                                    margin: { top: 15, left: 15, right: 15 },
+                                    theme: 'grid',
                                     styles: {
-                                        font: 'Arial',
-                                        fontSize: 10,
-                                        cellPadding: 5,
-                                        halign: 'center',
+                                        font: 'helvetica',
+                                        fontSize: 9,
+                                        cellPadding: 4,
+                                        textColor: [50, 50, 50],
+                                        lineColor: [220, 220, 220],
+                                        lineWidth: 0.1,
                                     },
+                                    headStyles: {
+                                        fillColor: [44, 71, 112],
+                                        textColor: 255,
+                                        fontStyle: 'bold',
+                                        halign: 'center'
+                                    },
+                                    columnStyles: {
+                                        0: { halign: 'left' },
+                                        1: { halign: 'center', cellWidth: 25 },
+                                        2: { halign: 'right', cellWidth: 35 },
+                                        3: { halign: 'right', cellWidth: 35 }
+                                    },
+                                    alternateRowStyles: {
+                                        fillColor: [248, 250, 252]
+                                    }
                                 });
 
                                 doc.save(`Solicitud_de_Requisicion_#${requisicionId}.pdf`);
@@ -1044,45 +1206,48 @@ l
             }
         });
 
+        var xhrSuministroMain = null;
+        $('#categoria').off('change');
         $('#categoria').change(function () {
-            var categoria_id = $('#categoria').val();  
-            console.log("Categoria ID seleccionada:", categoria_id); 
+            var categoria_id = $(this).val();  
+            var $suministro = $('#suministro');
 
-            if (categoria_id && categoria_id !== "") {  
-                $.ajax({
-                    url: '{% url "obtener_suministros_por_categoria_data" %}', 
-                    type: "POST",
-                    data: {
-                        'categoria_id': categoria_id, 
-                        csrfmiddlewaretoken: csrfToken  
-                    },
-                    dataType: 'json',
-                    success: function (response) {
-                        console.log("Suministros obtenidos:", response);
-                        if (response.suministros && response.suministros.length > 0) {
-                            $('#suministro').empty();
-                            $('#suministro').append('<option value="">Seleccione el suministro:</option>');
+            if (xhrSuministroMain) xhrSuministroMain.abort();
 
-                            $.each(response.suministros, function (index, suministro) {
-                                $('#suministro').append('<option value="' + suministro.id_suministros + '">' + suministro.nombre + '</option>');
-                            });
-                            if (id_suministro_seleccionado != null) {
-                                $('#suministro').val(id_suministro_seleccionado).change();
-                            }
+            $suministro.empty().append('<option value="">Cargando suministros...</option>');
 
-                        } else {
-                            $('#suministro').empty();
-                            $('#suministro').append('<option value="">No hay suministros disponibles</option>');
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        console.error("Error al obtener los suministros: ", error);
-                        Swal.fire("", "Ocurrió un error al obtener los suministros.", "error");
-                    }
-                });
-            } else {
-                console.log("No se ha seleccionado una categoría válida.");
+            if (!categoria_id || categoria_id === "") {
+                $suministro.empty().append('<option value="">Seleccione el suministro:</option>');
+                return;
             }
+
+            xhrSuministroMain = $.ajax({
+                url: '{% url "obtener_suministros_por_categoria_data" %}', 
+                type: "POST",
+                data: {
+                    'categoria_id': categoria_id, 
+                    csrfmiddlewaretoken: csrfToken  
+                },
+                dataType: 'json',
+                success: function (response) {
+                    $suministro.empty();
+                    var suministros = response.suministros || [];
+                    if (suministros.length > 0) {
+                        $suministro.append('<option value="">Seleccione el suministro:</option>');
+                        $.each(suministros, function (index, suministro) {
+                            $suministro.append('<option value="' + suministro.id_suministros + '">' + suministro.nombre + '</option>');
+                        });
+                    } else {
+                        $suministro.append('<option value="">No hay suministros disponibles</option>');
+                    }
+                    $suministro.trigger('change');
+                },
+                error: function (xhr) {
+                    if (xhr.statusText !== 'abort') {
+                        $suministro.empty().append('<option value="">Error al cargar suministros</option>');
+                    }
+                }
+            });
         });
 
     // ================= PRECIO UNITARIO (MODAL SEGURO) =================
@@ -1119,8 +1284,6 @@ $(document).on('change', '#suministro', function () {
         }
     });
 });
-
-    });
 
 </script>
 {% endblock %}
