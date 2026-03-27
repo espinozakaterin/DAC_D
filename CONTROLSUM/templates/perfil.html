@@ -9,16 +9,13 @@
         <div class="profile-header mb-4 d-flex justify-content-center">
             <div class="avatar-wrapper position-relative" style="width: 128px; height: 128px; cursor: pointer;" onclick="document.getElementById('avatarUploadInput').click()">
                 <!-- Imagen de perfil -->
-                <div class="rounded-circle shadow-lg p-1 bg-white overflow-hidden w-100 h-100 position-relative">
-                    <div class="d-flex align-items-center justify-content-center w-100 h-100 rounded-circle" 
-                         style="background-color: #2c4770; color: white; font-size: 3rem; font-weight: bold;">
-                        <img src="https://ui-avatars.com/api/?name={{ fullName }}&size=128&background=2c4770&color=fff&bold=true" class="w-100 h-100 rounded-circle" alt="Avatar">
-                    </div>
-                    {% if request.session.avatar_url %}
-                    <img src="{{ request.session.avatar_url }}" class="w-100 h-100 rounded-circle position-absolute top-0 start-0 p-1" 
-                         style="object-fit: cover;" alt="Avatar" id="profileAvatarImg"
-                         onerror="this.style.display='none'">
-                    {% endif %}
+                <div class="rounded-circle shadow-lg p-1 bg-white overflow-hidden w-100 h-100">
+                    <img src="{% if request.session.avatar_url %}{{ request.session.avatar_url }}{% else %}https://ui-avatars.com/api/?name={{ fullName }}&size=128&background=2c4770&color=fff&bold=true{% endif %}" 
+                         class="w-100 h-100 rounded-circle" 
+                         style="object-fit: cover;" 
+                         alt="Avatar" 
+                         id="profileAvatarImg"
+                         onerror="this.src='https://ui-avatars.com/api/?name={{ fullName }}&size=128&background=2c4770&color=fff&bold=true'">
                 </div>
                 
                 <!-- Ícono de cámara estilo Google (inferior derecha) -->
