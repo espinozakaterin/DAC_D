@@ -24,53 +24,68 @@ def login(request):
     empresas = obtener_empresas()
     return render(request, 'login.html',  {'empresas': empresas})
 
-
-
 def loginRequest(request):
     request.session.flush()
 
-    token = ''
-    
-    php_script_path = './DAC/views/md5.php'
-
-    username = request.POST.get('username')
-    password = request.POST.get('password')
+    username = request.POST.get('username', '').strip().upper()
+    password = request.POST.get('password', '')
     empresa = request.POST.get('empresa')
 
-    result = subprocess.run(['php', php_script_path, password], stdout=subprocess.PIPE)
-
-    crypted_pass = result.stdout.decode('utf-8').strip()
+    crypted_pass = hashlib.md5(password.encode('utf-8')).hexdigest().upper()
 
     account = 0
     module = 0
     token = ''
-
     user_id = 0
     fullName = ''
     userName = ''
-
     section = 0
 
     try:
         with connections['global_nube'].cursor() as cursor:
-            cursor.callproc("SDK_GET_USER_ACCESS", [username, crypted_pass])
-            accountQuery = cursor.fetchall()
-            
-            if accountQuery:
+            cursor.execute("""
+                SELECT 
+                    PKUsuario,
+                    CONCAT(Nombre, ' ', IFNULL(Apellido, '')) AS FullName,
+                    Usuario
+                FROM usuarios
+                WHERE UPPER(Usuario) = %s
+                  AND UPPER(Contrasena) = %s
+                  AND Estado = 1
+                LIMIT 1
+            """, [username, crypted_pass])
+
+            row = cursor.fetchone()
+
+            if row:
                 account = 1
-                user_id = accountQuery[0][0]
-                fullName = accountQuery[0][1]
-                userName = accountQuery[0][2]
+                user_id = row[0]
+                fullName = row[1].strip()
+                userName = row[2]
+
+        if account == 0:
+            return JsonResponse({
+                'save': 1,
+                'account': 0,
+                'module': 0,
+                'token': '',
+                'section': 0
+            })
 
         with connections['global_nube'].cursor() as cursor:
-            cursor.callproc("SDK_GET_USER_MODULE_ACCESS", [17, user_id])
-            moduleQuery = cursor.fetchall()
-            
-            if moduleQuery:
+            cursor.execute("""
+                SELECT 1
+                FROM usuarios_modulo
+                WHERE fkUsuario = %s AND fkModulo = %s
+                LIMIT 1
+            """, [user_id, 17])
+
+            module_row = cursor.fetchone()
+
+            if module_row:
                 module = 1
 
                 request.session.cycle_key()
-
                 request.session['user_id'] = user_id
                 request.session['fullName'] = fullName
                 request.session['userName'] = userName
@@ -82,20 +97,26 @@ def loginRequest(request):
                     'username': userName,
                     'exp': expiration
                 }
+
                 token = jwt.encode(token_payload, SECRET_KEY, algorithm='HS256')
-                request.session['token'] = token.decode('utf-8') if isinstance(token, bytes) else token
                 if isinstance(token, bytes):
                     token = token.decode('utf-8')
 
                 request.session['token'] = token
 
+        return JsonResponse({
+            'save': 1,
+            'account': account,
+            'module': module,
+            'token': token,
+            'section': section
+        })
 
-        datos = {'save': 1, 'account': account, 'module': module, 'token': token, 'section': section}
     except Exception as e:
-        datos = {'save': 0, 'error': str(e)}
-
-    return JsonResponse(datos)
-
+        return JsonResponse({
+            'save': 0,
+            'error': str(e)
+        })
 
 
 def logoutRequest(request):
@@ -116,18 +137,21 @@ def modulos(request):
     else:
         return render(request, 'modulos.html')
 
-
-
 def moduleRequest(request):
     user_id = request.POST.get('user_id')
-    username = request.POST.get('username')
     modulo = request.POST.get('modulo')
-    module =0
-    
+    module = 0
+
     try:
         with connections['global_nube'].cursor() as cursor:
-            cursor.callproc("SDK_GET_USER_MODULE_ACCESS", [modulo, user_id])
-            moduleQuery = cursor.fetchall()
+            cursor.execute("""
+                SELECT 1
+                FROM usuarios_modulo
+                WHERE fkUsuario = %s AND fkModulo = %s
+                LIMIT 1
+            """, [user_id, modulo])
+
+            moduleQuery = cursor.fetchone()
 
             if moduleQuery:
                 module = 1
@@ -137,7 +161,6 @@ def moduleRequest(request):
         datos = {'save': 0, 'error': str(e)}
 
     return JsonResponse(datos)
-
 
 
 def obtener_empresas():

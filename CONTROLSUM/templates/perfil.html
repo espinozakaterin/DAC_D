@@ -6,8 +6,26 @@
 {% block body %}
 <div class="row mb-5 py-3">
     <div class="col-12 text-center">
-        <div class="profile-header mb-4">
-             <img src="https://ui-avatars.com/api/?name={{ userName }}&size=128&background=2c4770&color=fff&bold=true" class="rounded-circle shadow-lg p-2 bg-white" alt="Avatar">
+        <div class="profile-header mb-4 d-flex justify-content-center">
+            <div class="avatar-wrapper position-relative" style="width: 128px; height: 128px; cursor: pointer;" onclick="document.getElementById('avatarUploadInput').click()">
+                <!-- Imagen de perfil -->
+                <div class="rounded-circle shadow-lg p-1 bg-white overflow-hidden w-100 h-100">
+                    {% if request.session.avatar_url %}
+                    <img src="{{ request.session.avatar_url }}" class="w-100 h-100 rounded-circle" style="object-fit: cover;" alt="Avatar" id="profileAvatarImg">
+                    {% else %}
+                    <img src="https://ui-avatars.com/api/?name={{ fullName }}&size=128&background=2c4770&color=fff&bold=true" class="w-100 h-100 rounded-circle" alt="Avatar" id="profileAvatarImg">
+                    {% endif %}
+                </div>
+                
+                <!-- Ícono de cámara estilo Google (inferior derecha) -->
+                <div class="position-absolute d-flex align-items-center justify-content-center bg-white rounded-circle shadow" 
+                     style="width: 36px; height: 36px; bottom: 0; right: 0; z-index: 10; border: 1px solid #e0e0e0; transition: background-color 0.2s;"
+                     onmouseover="this.style.backgroundColor='#f8f9fa'" onmouseout="this.style.backgroundColor='#ffffff'">
+                    <i class="fas fa-camera text-dark" style="font-size: 1.1rem;"></i>
+                </div>
+            </div>
+            <!-- Input oculto para archivo -->
+            <input type="file" id="avatarUploadInput" accept="image/png, image/jpeg, image/jpg" style="display: none;" onchange="uploadAvatar(this)">
         </div>
         <h2 class="fw-bold mb-1">{{ fullName|title }}</h2>
         <span class="badge bg-primary px-3 mb-2">Usuario del Sistema</span>
@@ -20,26 +38,22 @@
         <div class="dash-card p-0 overflow-hidden mb-5">
             <div class="bg-light p-3 border-bottom d-flex justify-content-between align-items-center">
                 <h5 class="mb-0 fw-bold"><i class="fas fa-id-card me-2"></i>Información Personal</h5>
-                <button class="btn btn-sm btn-outline-primary shadow-sm" onclick="Swal.fire({
-                    title: 'Editar Perfil',
-                    text: 'Funcionalidad de edición estará disponible en la próxima actualización.',
-                    icon: 'info'
-                })">
+                <button class="btn btn-sm btn-outline-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#editProfileModal">
                     <i class="fas fa-edit me-1"></i>Editar
                 </button>
             </div>
             <div class="p-4">
                 <div class="mb-4">
                     <label class="text-muted small fw-bold mb-1">Nombre Completo</label>
-                    <div class="mb-0 fw-bold border-bottom pb-2">{{ fullName|title }}</div>
+                    <div class="mb-0 fw-bold border-bottom pb-2" id="displayFullName">{{ fullName|title }}</div>
                 </div>
                 <div class="mb-4">
                     <label class="text-muted small fw-bold mb-1">Usuario de Acceso</label>
-                    <div class="mb-0 fw-bold border-bottom pb-2">{{ userName }}</div>
+                    <div class="mb-0 fw-bold border-bottom pb-2" id="displayUserName">{{ userName }}</div>
                 </div>
                 <div class="mb-4">
                     <label class="text-muted small fw-bold mb-1">Compañía / Empresa</label>
-                    <div class="mb-0 fw-bold border-bottom pb-2">{{ empresa|upper }}</div>
+                    <div class="mb-0 fw-bold border-bottom pb-2" id="displayEmpresa" style="text-transform: uppercase;">{{ empresa }}</div>
                 </div>
                  <div class="mb-0">
                     <label class="text-muted small fw-bold mb-1">Rol Operativo</label>
@@ -49,4 +63,171 @@
         </div>
     </div>
 </div>
+
+<!-- Edit Profile Modal -->
+<div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header bg-light border-bottom-0 pb-0">
+        <h5 class="modal-title fw-bold text-dark" id="editProfileModalLabel"><i class="fas fa-user-edit me-2 text-primary"></i>Editar Perfil</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <form id="formEditProfile">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label fw-bold small text-muted">Nombre Completo</label>
+                <input type="text" class="form-control" name="fullName" id="inputFullName" value="{{ fullName }}" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold small text-muted">Usuario de Acceso</label>
+                <input type="text" class="form-control" name="userName" id="inputUserName" value="{{ userName }}" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold small text-muted">Compañía / Empresa</label>
+                <input type="text" class="form-control" name="empresa" id="inputEmpresa" value="{% if empresa and empresa != 'NONE' and empresa != 'None' and empresa != 'Compañía' %}{{ empresa }}{% endif %}">
+            </div>
+        </form>
+      </div>
+      <div class="modal-footer border-top-0 pt-0">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-primary px-4" id="btnGuardarPerfil">Guardar Cambios</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const btnGuardar = document.getElementById('btnGuardarPerfil');
+    
+    btnGuardar.addEventListener('click', function() {
+        const form = document.getElementById('formEditProfile');
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        const formData = new FormData(form);
+        const url = "{% url 'actualizar_perfil' %}";
+
+        // Show loading state
+        btnGuardar.disabled = true;
+        btnGuardar.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Guardando...';
+
+        fetch(url, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire({
+                    title: '¡Actualizado!',
+                    text: 'Los cambios han sido guardados correctamente.',
+                    icon: 'success',
+                    confirmButtonColor: '#2c4770'
+                }).then(() => {
+                    // Cargar los nuevos datos en el DOM o recargar
+                    window.location.reload();
+                });
+            } else {
+                Swal.fire('Error', data.message || 'Error al guardar los datos.', 'error');
+                btnGuardar.disabled = false;
+                btnGuardar.innerHTML = 'Guardar Cambios';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire('Error', 'No se pudo conectar con el servidor.', 'error');
+            btnGuardar.disabled = false;
+            btnGuardar.innerHTML = 'Guardar Cambios';
+        });
+    });
+});
+
+function uploadAvatar(input) {
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        
+        // Validaciones pre-subida
+        if (file.size > 2 * 1024 * 1024) {
+            Swal.fire('Error', 'La imagen excede el límite de 2MB.', 'error');
+            return;
+        }
+        
+        const validTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+        if (!validTypes.includes(file.type)) {
+            Swal.fire('Error', 'Formato no válido. Solo JPG y PNG permitidos.', 'error');
+            return;
+        }
+
+        // Preview local de inmediato (UX)
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('profileAvatarImg').src = e.target.result;
+            // También se podría actualizar en el header superior
+            const topHeaderAvatar = document.querySelector('.user-dropdown-top img');
+            if (topHeaderAvatar) topHeaderAvatar.src = e.target.result;
+            const sidebarAvatar = document.querySelector('.sidebar-user-card img');
+            if (sidebarAvatar) sidebarAvatar.src = e.target.result;
+        }
+        reader.readAsDataURL(file);
+
+        // Envío AJAX
+        const csrfTokenNode = document.querySelector('[name=csrfmiddlewaretoken]');
+        const csrfToken = csrfTokenNode ? csrfTokenNode.value : '';
+
+        const formData = new FormData();
+        formData.append('avatar', file);
+        formData.append('csrfmiddlewaretoken', csrfToken);
+
+        Swal.fire({
+            title: 'Subiendo...',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading()
+        });
+
+        fetch("{% url 'subir_foto_perfil' %}", {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrfToken
+            }
+        })
+        .then(async response => {
+            if (!response.ok) {
+                const errorHtml = await response.text();
+                // Extraer un pedazo del error de Django si existe
+                console.error("Server HTML Error:", errorHtml);
+                const titleMatch = errorHtml.match(/<title>(.*?)<\/title>/i);
+                const exceptionDetail = titleMatch ? titleMatch[1] : errorHtml.substring(0, 150);
+                throw new Error(exceptionDetail);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                Swal.fire({
+                    title: 'Foto Actualizada',
+                    text: 'Tu foto de perfil ha sido cambiada con éxito.',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            } else {
+                Swal.fire('Error', data.message || 'Error al guardar la foto.', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire('Error JS/Red', `Fallo al subir: ${error.message}`, 'error');
+        });
+    }
+}
+</script>
 {% endblock %}

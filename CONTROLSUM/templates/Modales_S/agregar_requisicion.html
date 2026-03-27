@@ -18,7 +18,7 @@
                         <div class="row g-3 mb-3">
                             <div class="col-md-3">
                                 <label for="nombre_completo" class="form-label">Nombre del Solicitante:</label>
-                                <select id="nombre_completo" class="form-select" name="nombre_completo" required>
+                                <select id="nombre_completo" class="form-select" name="nombre_completo">
                                     <option value="">Seleccione su nombre</option>
                                     {% for us in usuarios %}
                                     <option value="{{ us.PkUsuario }}">{{ us.Nombre }}</option>
@@ -27,23 +27,23 @@
                             </div>
                             <div class="col-md-3">
                                 <label for="grupos" class="form-label">Grupo:</label>
-                                <select id="grupos" class="form-select" name="grupos" required>
+                                <select id="grupos" class="form-select" name="grupos">
                                     <option value="">Seleccione el grupo</option>
                                 </select>
                             </div>
                             <div class="col-md-2">
                                 <label for="acreedor" class="form-label">Acreedor:</label>
-                                <select id="acreedor" class="form-select" name="acreedor" required>
+                                <select id="acreedor" class="form-select" name="acreedor">
                                     <option value="">Seleccione el acreedor</option>
                                 </select>
                             </div>
                             <div class="col-md-2">
                                 <label for="fecha_pedido" class="form-label">Fecha del Pedido:</label>
-                                <input type="date" class="form-control" id="fecha_pedido" name="fecha_pedido" required>
+                                <input type="date" class="form-control" id="fecha_pedido" name="fecha_pedido">
                             </div>
                             <div class="col-md-2">
                                 <label for="fecha_pago" class="form-label">Fecha de Pago:</label>
-                                <input type="date" class="form-control" id="fecha_pago" name="fecha_pago" required>
+                                <input type="date" class="form-control" id="fecha_pago" name="fecha_pago">
                             </div>
                         </div>
 
@@ -126,6 +126,7 @@
 
 
 <script>
+let xhrSuministros = null;
 
 /* =============================================
    AGREGAR ARTÍCULOS + CALCULAR TOTAL (SIN SUBMIT)
@@ -153,6 +154,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const idSuministro = selectedOption ? selectedOption.value : "";
         const nombreSuministro = selectedOption ? selectedOption.text : "";
+
+        console.log("Agregando suministro ID:", idSuministro);
 
         const cantidad = parseFloat(document.getElementById("cantidad").value) || 0;
         const precio = parseFloat(document.getElementById("precio_unitario").value) || 0;
@@ -192,6 +195,7 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("precio_unitario").value = "";
             document.getElementById("justificacion").value = "";
             document.getElementById("subtotal-dinamico").innerText = "0.00";
+            $('#suministro').val('').trigger('change');
 
         } else {
             Swal.fire("Error", "⚠️ Debes llenar Suministro, Cantidad y Justificación.", "warning");
@@ -203,7 +207,7 @@ document.addEventListener("DOMContentLoaded", function () {
         let total = 0;
 
         document.querySelectorAll("#tabla-articulos tr").forEach(row => {
-            const valor = row.cells[3]?.innerText?.replace(/,/g, '')?.trim();
+            const valor = row.cells[3]?.innerText?.replace(/[^\d.-]/g, '')?.trim();
             total += parseFloat(valor) || 0;
         });
 
@@ -223,7 +227,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const justificacion = row.getAttribute("data-justificacion") || "";
 
             const cantidad = parseFloat(row.cells[1]?.innerText.replace(/,/g, '')) || 0;
-            const precio = parseFloat(row.cells[2]?.innerText.replace(/,/g, '')) || 0;
+            const precio = parseFloat(row.cells[2]?.innerText.replace(/[^\d.-]/g, '')) || 0;
 
             if (id && cantidad > 0) {
                 detalles.push({
@@ -347,30 +351,50 @@ $(document).on('change', '#nombre_completo', function () {
 
 });
 
-
 /* =============================================
    5) EVENTO CAMBIO DE CATEGORÍA
    ============================================= */
+$(document).off('change', '#categoria');
 $(document).on('change', '#categoria', function () {
     const idCategoria = $(this).val();
     const $suministro = $('#suministro');
     const $precio = $('#precio_unitario');
 
-    $suministro.empty().append('<option value="">Cargando...</option>');
+    if (xhrSuministros) xhrSuministros.abort();
+
+    $suministro.empty().append('<option value="">Cargando suministros...</option>');
     $precio.val("");
 
-    $.ajax({
+    if (!idCategoria || idCategoria === "") {
+        $suministro.empty().append('<option value="">Seleccione el suministro:</option>');
+        return;
+    }
+
+    xhrSuministros = $.ajax({
         url: "{% url 'obtener_suministros_por_categoria_data' %}", 
-        type: 'GET',
-        data: { 'id_categoria': idCategoria },
-        success: function (res) {
-            $suministro.empty().append('<option value="">Seleccione el suministro:</option>');
-            (res.data || []).forEach(s => {
-                $suministro.append(`<option value="${s.id}">${s.nombre}</option>`);
-            });
+        type: 'POST',
+        data: { 
+            'categoria_id': idCategoria,
+            'csrfmiddlewaretoken': '{{ csrf_token }}'
         },
-        error: function() {
-            $suministro.empty().append('<option value="">Error al cargar</option>');
+        success: function (res) {
+            console.log("Respuesta suministros:", res);
+            $suministro.empty();
+            const data = res.suministros || [];
+            if (data.length > 0) {
+                $suministro.append('<option value="">Seleccione el suministro:</option>');
+                data.forEach(s => {
+                    $suministro.append(`<option value="${s.id_suministros}">${s.nombre}</option>`);
+                });
+            } else {
+                $suministro.append('<option value="">No hay suministros disponibles</option>');
+            }
+            $suministro.trigger('change');
+        },
+        error: function(xhr) {
+            if (xhr.statusText !== 'abort') {
+                $suministro.empty().append('<option value="">Error al cargar suministros</option>');
+            }
         }
     });
 });

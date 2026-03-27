@@ -6,144 +6,345 @@ PANTALLA PRINCIPAL
 {% endblock %}
 
 {% block body %}
+<style>
+    .interactive-card {
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+    }
+    .interactive-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        border-color: rgba(59, 130, 246, 0.3) !important;
+    }
+    .cal-day:not(.other-month) {
+        cursor: pointer;
+        transition: background 0.2s, transform 0.1s;
+    }
+    .cal-day:not(.other-month):hover {
+        background-color: rgba(59, 130, 246, 0.1);
+        transform: scale(1.1);
+    }
+    .cal-day.selected {
+        background-color: #3b82f6;
+        color: white;
+        font-weight: bold;
+        box-shadow: 0 2px 4px rgba(59,130,246,0.4);
+    }
+    .list-interactive-item {
+        cursor: pointer;
+        transition: background 0.2s ease;
+        border-radius: 4px;
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+    .list-interactive-item:hover {
+        background-color: #f8fafc;
+    }
+    .sun-icon-decorative {
+        color: #FFC107;
+        filter: drop-shadow(0 0 15px rgba(255, 193, 7, 0.5));
+        animation: sun-pulse 4s infinite alternate ease-in-out;
+        transition: transform 0.3s ease, filter 0.3s ease;
+        cursor: default;
+        display: inline-block;
+    }
+    .sun-icon-decorative:hover {
+        transform: scale(1.15) rotate(15deg);
+        filter: drop-shadow(0 0 25px rgba(255, 193, 7, 0.9));
+    }
+    @keyframes sun-pulse {
+        0% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 10px rgba(255, 193, 7, 0.3)); }
+        100% { transform: scale(1.05) rotate(5deg); filter: drop-shadow(0 0 20px rgba(255, 193, 7, 0.7)); }
+    }
+    .banner-weather {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: #fff;
+        margin-right: 10px;
+        text-align: right;
+    }
+    .banner-weather .weather-icon-wrap {
+        font-size: 3.5rem;
+        line-height: 1;
+        filter: drop-shadow(0 2px 8px rgba(0,0,0,0.2));
+        transition: transform 0.3s ease;
+        cursor: default;
+    }
+    .banner-weather .weather-icon-wrap:hover {
+        transform: scale(1.12);
+    }
+    .banner-weather .weather-info {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    .banner-weather .weather-temp {
+        font-size: 1.7rem;
+        font-weight: 700;
+        line-height: 1.1;
+        text-shadow: 1px 1px 4px rgba(0,0,0,0.2);
+    }
+    .banner-weather .weather-desc {
+        font-size: 0.8rem;
+        opacity: 0.9;
+        font-weight: 500;
+        text-transform: capitalize;
+    }
+    .banner-weather .weather-clock {
+        font-size: 1.05rem;
+        font-weight: 600;
+        opacity: 0.95;
+        font-variant-numeric: tabular-nums;
+    }
+    .banner-weather .weather-city {
+        font-size: 0.7rem;
+        opacity: 0.7;
+        font-weight: 400;
+    }
+</style>
 
 <div class="dash-layout">
-    <!-- LEFT MAIN COLUMN -->
+    
     <div class="dash-left-col">
-        <!-- Banner Card -->
-        <div class="banner-card d-flex justify-content-between align-items-center">
-            <div>
-                <h2 class="fw-bold mb-2" style="font-size: 1.8rem;">Bienvenio, {{ userName }}</h2>
-                <p class="mb-3" style="font-size: 0.95rem; opacity: 0.9;">Gestión general del control de suministros y estados.</p>
-                <span class="badge bg-white text-primary px-3 py-2 fw-semibold border rounded-pill shadow-sm">
-                    <i class="far fa-calendar-alt me-1"></i> Hoy, {% now "d M Y" %}
-                </span>
+        
+        <div class="banner-card d-flex justify-content-between align-items-center" style="padding: 1.5rem 2rem;">
+            <div class="d-flex flex-column justify-content-center align-items-start">
+                <h1 class="fw-bold mb-1 text-white" style="font-size: 2.2rem; text-shadow: 1px 1px 3px rgba(0,0,0,0.2);">Bienvenido, {{ userName }}</h1>
+                <p class="mb-4" style="font-size: 1rem; color: rgba(255, 255, 255, 0.85); font-weight: 500;">Resumen general del inventario y suministros.</p>
+                <div class="position-relative d-inline-block header-date-wrapper" style="transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
+                    <button id="headerDateBtn" class="btn btn-light bg-white text-primary px-3 py-2 fw-semibold border rounded-pill shadow-sm d-flex align-items-center gap-2" style="font-size: 0.95rem;">
+                        <i class="far fa-calendar-alt fs-5"></i>
+                        <span id="headerDateText" class="text-capitalize" style="min-width: 140px; text-align: center;">{% now "j \d\e F \d\e Y" %}</span>
+                        <i class="fas fa-chevron-down ms-1" style="font-size: 0.75rem; opacity: 0.6;"></i>
+                    </button>
+                    
+                    <input type="text" id="headerDatePicker" style="position: absolute; top: 100%; left: 10%; opacity: 0; pointer-events: none; width: 1px; height: 1px;" value="{% now 'Y-m-d' %}">
+                </div>
+                
+                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+                <style>
+                    .flatpickr-calendar { box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important; border-radius: 12px !important; border: none !important; margin-top: 5px; }
+                    .flatpickr-day.selected { background-color: #3b82f6 !important; border-color: #3b82f6 !important; }
+                </style>
+                <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+                <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const headerDate = new Date();
+                        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+                        document.getElementById('headerDateText').textContent = headerDate.toLocaleDateString('es-ES', options);
+
+                        const fp = flatpickr("#headerDatePicker", {
+                            locale: "es",
+                            defaultDate: "today",
+                            onChange: function(selectedDates, dateStr) {
+                                if(dateStr) {
+                                    window.location.href = '{% url "movimientos_suministros_data" %}?fecha=' + dateStr;
+                                }
+                            }
+                        });
+
+                        document.getElementById('headerDateBtn').addEventListener('click', function() {
+                            fp.open();
+                        });
+                    });
+                </script>
             </div>
-            <div style="font-size: 4rem; opacity: 0.9; text-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-                <i class="fas fa-sun text-warning"></i>
+
+            <div class="banner-weather" id="bannerWeather">
+                <div class="weather-info">
+                    <span class="weather-clock" id="weatherClock">--:--</span>
+                    <span class="weather-temp" id="weatherTemp">--°C</span>
+                    <span class="weather-desc" id="weatherDesc">Cargando...</span>
+                    <span class="weather-city" id="weatherCity"></span>
+                </div>
+                <div class="weather-icon-wrap" id="weatherIconWrap">
+                    <span id="weatherIcon">☀️</span>
+                </div>
             </div>
+            <script>
+            (function() {
+                const ciudadClima = "Choluteca";
+
+                // --- Reloj en tiempo real ---
+                function updateClock() {
+                    const now = new Date();
+                    const h = now.getHours().toString().padStart(2, '0');
+                    const m = now.getMinutes().toString().padStart(2, '0');
+                    const s = now.getSeconds().toString().padStart(2, '0');
+                    const el = document.getElementById('weatherClock');
+                    if (el) el.textContent = h + ':' + m + ':' + s;
+                }
+                updateClock();
+                setInterval(updateClock, 1000);
+
+                // --- Mapeo de códigos WMO a emojis ---
+                function weatherCodeToIcon(code) {
+                    if (code === 0) return '☀️';
+                    if (code === 1) return '🌤️';
+                    if (code === 2) return '⛅';
+                    if (code === 3) return '☁️';
+                    if (code >= 45 && code <= 48) return '🌫️';
+                    if (code >= 51 && code <= 57) return '🌦️';
+                    if (code >= 61 && code <= 67) return '🌧️';
+                    if (code >= 71 && code <= 77) return '❄️';
+                    if (code >= 80 && code <= 82) return '🌧️';
+                    if (code >= 95) return '⛈️';
+                    return '🌤️';
+                }
+                function weatherCodeToDesc(code) {
+                    if (code === 0) return 'Despejado';
+                    if (code === 1) return 'Poco nublado';
+                    if (code === 2) return 'Parcialmente nublado';
+                    if (code === 3) return 'Nublado';
+                    if (code >= 45 && code <= 48) return 'Neblina';
+                    if (code >= 51 && code <= 57) return 'Llovizna';
+                    if (code >= 61 && code <= 67) return 'Lluvia';
+                    if (code >= 71 && code <= 77) return 'Nieve';
+                    if (code >= 80 && code <= 82) return 'Aguacero';
+                    if (code >= 95) return 'Tormenta';
+                    return 'Variable';
+                }
+
+                const coords = { 'Choluteca': { lat: 13.30, lon: -87.19 }, 'San Pedro Sula': { lat: 15.5, lon: -88.03 }, 'Tegucigalpa': { lat: 14.07, lon: -87.19 } };
+                const c = coords[ciudadClima] || { lat: 15.5, lon: -88.03 };
+
+                fetch('https://api.open-meteo.com/v1/forecast?latitude=' + c.lat + '&longitude=' + c.lon + '&current_weather=true&timezone=America%2FTegucigalpa')
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        if (data && data.current_weather) {
+                            var w = data.current_weather;
+                            document.getElementById('weatherTemp').textContent = Math.round(w.temperature) + '°C';
+                            document.getElementById('weatherDesc').textContent = weatherCodeToDesc(w.weathercode);
+                            document.getElementById('weatherCity').textContent = ciudadClima;
+                            var icon = document.getElementById('weatherIcon');
+                            icon.textContent = weatherCodeToIcon(w.weathercode);
+                        }
+                    })
+                    .catch(function() {
+                        document.getElementById('weatherTemp').textContent = '';
+                        document.getElementById('weatherDesc').textContent = 'Clima no disponible';
+                        document.getElementById('weatherCity').textContent = ciudadClima;
+                    });
+            })();
+            </script>
         </div>
 
-        <!-- 4 Stats Grid -->
         <div class="dash-stats-grid">
-            <div class="dash-card p-4">
+            <div class="dash-card p-4 interactive-card" onclick="window.location.href=URL_INVENTARIO" title="Ir al Inventario">
                 <div class="text-muted mb-3 d-flex align-items-center" style="font-size: 0.85rem; font-weight: 600;">
-                    <i class="fas fa-box text-primary me-2 fs-5"></i> Total de Productos
+                    <span style="font-size: 1.4rem;">📦</span> Total de Productos
                 </div>
-                <div class="fw-bold text-dark" style="font-size: 1.8rem;" id="totalSuministros">...</div>
+                <div class="fw-bold text-dark count-up" style="font-size: 1.8rem;" id="totalSuministros">0</div>
             </div>
-            <div class="dash-card p-4">
+            <div class="dash-card p-4 interactive-card" onclick="window.location.href=URL_INVENTARIO" title="Ir al Inventario">
                 <div class="text-muted mb-3 d-flex align-items-center" style="font-size: 0.85rem; font-weight: 600;">
-                    <i class="fas fa-layer-group text-success me-2 fs-5"></i> Categorías Registradas
+                    <span style="font-size: 1.4rem;">🗂️</span> Categorías Registradas
                 </div>
-                <div class="fw-bold text-dark" style="font-size: 1.8rem;" id="totalCategoriasCounter">...</div>
+                <div class="fw-bold text-dark count-up" style="font-size: 1.8rem;" id="totalCategoriasCounter">0</div>
             </div>
-            <div class="dash-card p-4">
+            <div class="dash-card p-4 interactive-card" onclick="window.location.href=URL_INVENTARIO" title="Ir al Inventario">
                 <div class="text-muted mb-3 d-flex align-items-center" style="font-size: 0.85rem; font-weight: 600;">
-                    <i class="fas fa-chart-line text-warning me-2 fs-5"></i> Valor del Inventario
+                     <span style="font-size: 1.4rem;">💰</span> Valor del Inventario
                 </div>
-                <div class="fw-bold text-dark" style="font-size: 1.8rem; white-space: nowrap;" id="totalStock">TBD</div>
+                <div class="fw-bold text-dark" style="font-size: 1.5rem; white-space: nowrap;" id="totalStock">
+                    <div class="dash-loading" style="padding: 0;"><div class="spinner"></div></div>
+                </div>
             </div>
-            <div class="dash-card p-4">
+            <div class="dash-card p-4 interactive-card" onclick="window.location.href=URL_ALERTA_STOCK" title="Ir al inventario filtrado por stock bajo">
                 <div class="text-muted mb-3 d-flex align-items-center" style="font-size: 0.85rem; font-weight: 600;">
-                    <i class="fas fa-exclamation-triangle text-danger me-2 fs-5"></i> Alertas de Stock Bajo
+                   <span style="font-size: 1.4rem;">⚠️</span> Alertas de Stock Bajo
                 </div>
-                <div class="fw-bold text-danger" style="font-size: 1.8rem;" id="totalAlertas">0</div>
+                <div class="fw-bold text-danger count-up" style="font-size: 1.8rem;" id="totalAlertas">0</div>
             </div>
         </div>
 
-        <!-- Lower Split Lists -->
-        <div class="dash-split-grid">
-            <!-- Top Categorías (Quick Tasks Eq.) -->
-            <div class="dash-card">
-                <h6 class="section-title border-0 mb-3">Resumen de Inventario</h6>
-                <div id="totalCategoriasList" style="max-height: 250px; overflow-y: auto; padding-right: 5px;">
-                    <!-- Dinámico -->
-                </div>
-            </div>
-
-            <!-- Calendario -->
-            <div class="dash-card">
-                <h6 class="section-title border-0 mb-3 ms-2">Calendario </h6>
-                <div class="text-center text-muted small">
-                    <div class="d-flex justify-content-between align-items-center mb-3 px-3">
-                        <i class="fas fa-chevron-left py-1 px-2 border rounded shadow-sm" style="cursor: pointer;"></i>
-                        <strong class="text-dark fs-6">Marzo 2026</strong>
-                        <i class="fas fa-chevron-right py-1 px-2 border rounded shadow-sm" style="cursor: pointer;"></i>
-                    </div>
-                    <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; font-size: 0.85rem; padding: 0 10px;">
-                        <span class="fw-bold text-dark">L</span><span class="fw-bold text-dark">M</span><span class="fw-bold text-dark">M</span><span class="fw-bold text-dark">J</span><span class="fw-bold text-dark">V</span><span class="fw-bold text-dark">S</span><span class="fw-bold text-dark">D</span>
-                        <span class="text-muted opacity-25">23</span><span class="text-muted opacity-25">24</span><span class="text-muted opacity-25">25</span><span class="text-muted opacity-25">26</span><span class="text-muted opacity-25">27</span><span class="text-muted opacity-25">28</span><span class="text-muted opacity-25">1</span>
-                        <span>2</span><span class="bg-primary text-white rounded-circle shadow fw-bold d-flex flex-column justify-content-center align-items-center" style="width:28px;height:28px;margin:auto;">3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span>
-                        <span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span>
-                        <span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span>
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="dash-card p-3 h-100">
+                    <h6 class="section-title border-0 mb-3 text-dark fw-bold">📊 Inventario por Categoría</h6>
+                    <div id="totalCategoriasList" class="category-scroll-list" style="min-height: 200px; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px;">
+                        <div class="dash-loading"><div class="spinner"></div> Cargando categorías...</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Analysis Indicators Grid -->
-        <div class="dash-analysis-grid">
-            <!-- Top Used Products -->
-            <div class="dash-card">
-                <h6 class="section-title border-0 mb-3"><i class="fas fa-fire-alt text-danger me-2"></i>Top Más Usados</h6>
-                <div id="topProductosList" style="max-height: 200px; overflow-y: auto;">
-                    <div class="text-muted small p-2">Cargando datos...</div>
+        <div class="row g-3 mt-1">
+            <div class="col-lg-4">
+                <div class="dash-card p-3 h-100 d-flex flex-column">
+                    <h6 class="section-title border-0 mb-3 text-dark fw-bold"><i class="fas fa-fire-alt text-danger me-2"></i>Productos más usados</h6>
+                    <div id="topProductosList" style="height: 250px; overflow-y: auto; padding-right: 5px;">
+                        <div class="dash-loading"><div class="spinner"></div></div>
+                    </div>
                 </div>
             </div>
 
-            <!-- No Movement Products -->
-            <div class="dash-card">
-                <h6 class="section-title border-0 mb-3"><i class="fas fa-history text-muted me-2"></i>Sin Movimiento</h6>
-                <div id="sinMovimientoList" style="max-height: 200px; overflow-y: auto;">
-                    <div class="text-muted small p-2">Cargando datos...</div>
+            <div class="col-lg-4">
+                <div class="dash-card p-3 h-100 d-flex flex-column">
+                    <h6 class="section-title border-0 mb-3 text-dark fw-bold"><i class="fas fa-pause-circle text-muted me-2"></i>Suministros poco usados</h6>
+                    <div id="sinMovimientoList" style="height: 250px; overflow-y: auto; padding-right: 5px;">
+                        <div class="dash-loading"><div class="spinner"></div></div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Inventory Rotation -->
-            <div class="dash-card">
-                <h6 class="section-title border-0 mb-3"><i class="fas fa-sync-alt text-primary me-2"></i>Rotación</h6>
-                <div id="rotacionList" style="max-height: 200px; overflow-y: auto;">
-                    <div class="text-muted small p-2">Cargando datos...</div>
+            <div class="col-lg-4">
+                <div class="dash-card p-3 h-100 d-flex flex-column">
+                    <h6 class="section-title border-0 mb-3 text-dark fw-bold"><i class="fas fa-sync-alt text-primary me-2"></i>Nivel de uso de productos</h6>
+                    <div id="rotacionList" style="height: 250px; overflow-y: auto; padding-right: 5px;">
+                        <div class="dash-loading"><div class="spinner"></div></div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- RIGHT MAIN COLUMN -->
     <div class="dash-right-col">
-        <!-- Insights Component (Doughnut + Lists) -->
-        <div class="dash-card d-flex flex-column h-100">
+        <div class="dash-card p-3">
             <div class="d-flex justify-content-between align-items-center mb-2">
-                <h6 class="section-title border-0 mb-0">Distribución del Inventario</h6>
-                <i class="fas fa-ellipsis-h text-muted" style="cursor: pointer;"></i>
+                <h6 class="section-title border-0 mb-0 text-dark fw-bold">📦 Distribución por Categoría</h6>
+                <i class="fas fa-chart-pie text-muted"></i>
             </div>
-            
-            <!-- Circular Chart -->
-            <div style="height: 160px; position: relative;" class="my-3">
+            <div style="height: 180px; position: relative;" class="my-3">
                 <canvas id="inventoryValuesChart"></canvas>
-            </div>
-            
-            <hr class="my-3 text-muted opacity-25">
-            
-            <!-- Real Alerts List inside Insights Card -->
-            <h6 class="fw-bold mb-3 text-dark" style="font-size: 0.9rem;">Últimas Alertas</h6>
-            <div id="alertasListRight" class="flex-grow-1" style="max-height: 200px; overflow-y: auto;">
-                <div class="text-muted small px-2">Cargando avisos...</div>
             </div>
         </div>
 
-        <!-- Revenue Analytics Eq. (Line Chart Bottom) -->
-        <div class="dash-card">
-            <h6 class="section-title border-0 mb-3 d-flex justify-content-between align-items-center">
-               Movimientos de Suministros
-                <span class="badge bg-light text-dark shadow-sm border p-2">Este Año <i class="fas fa-chevron-down ms-1"></i></span>
+        <div class="dash-card p-3 mt-3" style="width: 100%; overflow: hidden;">
+            <h6 class="section-title border-0 mb-3 d-flex justify-content-between align-items-center text-dark fw-bold">
+               📈 Movimientos del Año
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-light border shadow-sm dropdown-toggle fw-bold" type="button" id="chartRangeDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        Este Año
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" aria-labelledby="chartRangeDropdown">
+                        <li><a class="dropdown-item active" href="#" onclick="updateChartRange('this_year', 'Este Año', this)">Este Año</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="updateChartRange('last_year', 'Año Anterior', this)">Año Anterior</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="updateChartRange('last_6_months', 'Últimos 6 Meses', this)">Últimos 6 Meses</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#" onclick="updateChartRange('all', 'Todos', this)">Todos</a></li>
+                    </ul>
+                </div>
             </h6>
-            <div style="height: 180px;">
+            <div style="height: 220px; width: 100%;">
                 <canvas id="suministrosChartBar"></canvas>
             </div>
         </div>
+
+        <div class="dash-card p-3 mt-3">
+            <h6 class="fw-bold mb-3 text-dark d-flex justify-content-between align-items-center" style="font-size: 0.9rem;">
+                ⚠️ Listado de alertas
+                <span class="badge bg-danger rounded-pill" id="badgeAlertasRight" style="display:none;">0</span>
+            </h6>
+            <div id="alertasListRight" style="height: 250px; overflow-y: auto; padding-right: 8px; scrollbar-width: thin;">
+                <div class="dash-loading"><div class="spinner"></div></div>
+            </div>
+        </div>
     </div>
+</div>
+</div>
 </div>
 
 {% endblock %}
@@ -152,42 +353,70 @@ PANTALLA PRINCIPAL
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 
 <script>
+    const URL_INVENTARIO = "{% url 'listado_suministro_data' %}";
+    const URL_ALERTA_STOCK = URL_INVENTARIO + "?stock_bajo=1&skip_modal=1";
+    const URL_KARDEX = "{% url 'movimientos_suministros_data' %}";
+
+    function abrirDetalleSuministro(nombre, isStockBajo = false, showAlertTitle = false) {
+        let url = URL_INVENTARIO + "?name=" + encodeURIComponent(nombre) + "&skip_modal=1";
+        if (isStockBajo) {
+            url += "&stock_bajo=1";
+        }
+        if (showAlertTitle) {
+            url += "&alert_title=1";
+        }
+        window.location.href = url;
+    }
+
     $(document).ready(function () {
-        // ----------------------------
-        //  DASHBOARD DATA FETCHING
-        // ----------------------------
-        fetch(`{% url 'dashboard' %}`)
-            .then(response => response.json())
-            .then(data => {
-                // Main Stats
-                // --- Stats Highlights ---
-                $('#totalSuministros').text(data.total_suministros).hide().fadeIn(1000);
-                $('#totalCategoriasCounter').text(data.categorias.length).hide().fadeIn(1000);
+        window.myMovementChart = null;
 
-                // Real Inventory Value
-                const valorFormat = 'L\u00A0' + data.valor_inventario.toLocaleString('en-US', { 
-                    minimumFractionDigits: 2, 
-                    maximumFractionDigits: 2 
+        function updateChartRange(range, label, element) {
+            $('#chartRangeDropdown').text(label);
+            $('.dropdown-item').removeClass('active');
+            if(element) $(element).addClass('active');
+
+          
+            const chartContainer = $('#suministrosChartBar').parent();
+            if ($('#emptyChartMsg').length) {
+                chartContainer.html('<canvas id="suministrosChartBar"></canvas>');
+            }
+         
+
+            fetch(`{% url 'dashboard' %}?range=${range}`)
+                .then(response => response.json())
+                .then(data => {
+                    renderMovementsChart(data);
                 });
-                $('#totalStock').text(valorFormat).hide().fadeIn(1000);
+        }
 
-                // --- Chart 1: Expense vs Profit (Supply Inflow over 12 months) ---
-                const nombresMeses = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        function renderMovementsChart(data) {
+            const nombresMesesCrt = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+            let datosMeses = new Array(12).fill(0);
+            let hasMovimientos = false;
+            
+            if (data.suministros_mes && data.suministros_mes.length > 0) {
+                data.suministros_mes.forEach(item => {
+                    datosMeses[item.mes - 1] = item.cantidad;
+                    if(item.cantidad > 0) hasMovimientos = true;
+                });
+            }
+            
+            const chartCanvas = document.getElementById('suministrosChartBar');
+            if(!chartCanvas) return; 
+            const ctxBar = chartCanvas.getContext('2d');
+            
+            if (window.myMovementChart) {
+                window.myMovementChart.destroy();
+            }
 
-                let datosMeses = new Array(12).fill(0);
-                if (data.suministros_mes && data.suministros_mes.length > 0) {
-                    data.suministros_mes.forEach(item => {
-                        datosMeses[item.mes - 1] = item.cantidad;
-                    });
-                }
-
-                const ctxBar = document.getElementById('suministrosChartBar').getContext('2d');
-                new Chart(ctxBar, {
+            if(hasMovimientos) {
+                window.myMovementChart = new Chart(ctxBar, {
                     type: 'line',
                     data: {
-                        labels: nombresMeses,
+                        labels: nombresMesesCrt,
                         datasets: [{
-                            label: 'Ingreso Suministros',
+                            label: 'Ingresos',
                             data: datosMeses,
                             borderColor: '#3b82f6',
                             backgroundColor: 'rgba(59, 130, 246, 0.1)',
@@ -195,23 +424,38 @@ PANTALLA PRINCIPAL
                             tension: 0.4,
                             fill: true,
                             pointBackgroundColor: '#3b82f6',
-                            pointRadius: 4
+                            pointRadius: 4,
+                            pointHoverRadius: 6
                         }]
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
+                        onClick: (e, activeElements) => {
+                            if (activeElements.length > 0) {
+                                const dataIndex = activeElements[0].index;
+                                const mes = nombresMesesCrt[dataIndex];
+                                const cantidad = datosMeses[dataIndex];
+                                if(cantidad > 0) {
+                                    const mesNumero = dataIndex + 1;
+                                    window.location.href = URL_KARDEX + "?mes=" + mesNumero;
+                                }
+                            }
+                        },
                         plugins: {
-                            legend: { display: false }
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) { return context.parsed.y + ' movimientos'; }
+                                }
+                            }
                         },
                         scales: {
                             y: {
                                 beginAtZero: true,
-                                grid: {
-                                    borderDash: [5, 5],
-                                    color: '#e2e8f0'
-                                },
-                                ticks: { color: '#64748b' }
+                                grid: { borderDash: [5, 5], color: '#e2e8f0' },
+                                ticks: { stepSize: 1, color: '#64748b' },
+                                title: { display: true, text: 'Cantidad', font: {size: 11}, color: '#94a3b8' }
                             },
                             x: {
                                 grid: { display: false },
@@ -220,158 +464,331 @@ PANTALLA PRINCIPAL
                         }
                     }
                 });
+            } else {
+                $('#suministrosChartBar').parent().html('<div class="dash-empty" id="emptyChartMsg"><i class="fas fa-chart-line"></i><span>No hay movimientos registrados en este periodo.</span></div>');
+            }
+        }
 
-                // --- Chart 2: Inventory Value Distribution (Real Categories Doughnut) ---
-                const pieColors = ['#152238', '#2c4770', '#3498db', '#2ecc71', '#f1c40f', '#e74c3c'];
-                const totalItems = data.categorias.reduce((sum, c) => sum + c.count, 0);
-                const catLabels = data.categorias.slice(0, 5).map(c => {
-                    const pct = totalItems > 0 ? ((c.count / totalItems) * 100).toFixed(0) : 0;
-                    return `${c.categoria || 'Sin Categoría'} (${pct}%)`;
+        window.updateChartRange = updateChartRange;
+
+        // Animación simple para contadores
+        function animateValue(obj, start, end, duration) {
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                obj.innerHTML = Math.floor(progress * (end - start) + start);
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                } else {
+                    obj.innerHTML = end; 
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        // ----------------------------
+        //  2. OBTENER DATOS DASHBOARD
+        // ----------------------------
+        fetch(`{% url 'dashboard' %}`)
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
+            .then(data => {
+                
+                const tSum = document.getElementById('totalSuministros');
+                animateValue(tSum, 0, data.total_suministros || 0, 1500);
+                
+                const tCat = document.getElementById('totalCategoriasCounter');
+                animateValue(tCat, 0, (data.categorias && data.categorias.length) || 0, 1500);
+
+                // Formato Valor Inventario
+                const valorFormat = 'L\u00A0' + (data.valor_inventario || 0).toLocaleString('en-US', { 
+                    minimumFractionDigits: 2, 
+                    maximumFractionDigits: 2 
                 });
-                const catData = data.categorias.slice(0, 5).map(c => c.count);
+                $('#totalStock').html(valorFormat).hide().fadeIn(800);
 
-                const ctxPie = document.getElementById('inventoryValuesChart').getContext('2d');
-                new Chart(ctxPie, {
-                    type: 'doughnut',
-                    data: {
-                        labels: catLabels,
-                        datasets: [{
-                            data: catData,
-                            backgroundColor: pieColors,
-                            borderWidth: 0,
-                            hoverOffset: 4
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        cutout: '70%',
-                        plugins: {
-                            legend: {
-                                position: 'right',
-                                labels: {
-                                    usePointStyle: true,
-                                    boxWidth: 8,
-                                    padding: 15,
-                                    font: { size: 11 },
-                                    color: '#64748b'
+                // --- Gráfica 1: Movimientos por Mes ---
+                const nombresMesesCrt = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+                let datosMeses = new Array(12).fill(0);
+                let hasMovimientos = false;
+                
+                if (data.suministros_mes && data.suministros_mes.length > 0) {
+                    data.suministros_mes.forEach(item => {
+                        datosMeses[item.mes - 1] = item.cantidad;
+                        if(item.cantidad > 0) hasMovimientos = true;
+                    });
+                }
+                
+                const ctxBar = document.getElementById('suministrosChartBar').getContext('2d');
+                
+                if (window.myMovementChart) {
+                    window.myMovementChart.destroy();
+                }
+
+                if(hasMovimientos) {
+                    window.myMovementChart = new Chart(ctxBar, {
+                        type: 'line',
+                        data: {
+                            labels: nombresMesesCrt,
+                            datasets: [{
+                                label: 'Ingresos',
+                                data: datosMeses,
+                                borderColor: '#3b82f6',
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                borderWidth: 2,
+                                tension: 0.4,
+                                fill: true,
+                                pointBackgroundColor: '#3b82f6',
+                                pointRadius: 4,
+                                pointHoverRadius: 6
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            onClick: (e, activeElements) => {
+                                if (activeElements.length > 0) {
+                                    const dataIndex = activeElements[0].index;
+                                    const mes = nombresMesesCrt[dataIndex];
+                                    const cantidad = datosMeses[dataIndex];
+                                    if(cantidad > 0) {
+                                        const mesNumero = dataIndex + 1;
+                                        window.location.href = URL_KARDEX + "?mes=" + mesNumero;
+                                    }
+                                }
+                            },
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) { return context.parsed.y + ' movimientos'; }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    grid: { borderDash: [5, 5], color: '#e2e8f0' },
+                                    ticks: { stepSize: 1, color: '#64748b' },
+                                    title: { display: true, text: 'Cantidad', font: {size: 11}, color: '#94a3b8' }
+                                },
+                                x: {
+                                    grid: { display: false },
+                                    ticks: { color: '#64748b' }
                                 }
                             }
                         }
-                    }
-                });
+                    });
+                } else {
+                    $('#suministrosChartBar').parent().html('<div class="dash-empty" id="emptyChartMsg"><i class="fas fa-chart-line"></i><span>No hay movimientos registrados en este periodo.</span></div>');
+                }
 
-                // --- Top Categories by Volume (Horizontal Bars) ---
+                // --- Gráfica 2: Dona de Distribución ---
+                const pieColors = ['#1e3a8a', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+                const totalItems = data.categorias ? data.categorias.reduce((sum, c) => sum + c.count, 0) : 0;
+                
+                if (totalItems > 0) {
+                    const sortedCatsChart = [...data.categorias].sort((a,b) => b.count - a.count);
+                    const catLabels = sortedCatsChart.slice(0, 5).map(c => c.categoria || 'Sin Categoría');
+                    const catData = sortedCatsChart.slice(0, 5).map(c => c.count);
+
+                    const ctxPie = document.getElementById('inventoryValuesChart').getContext('2d');
+                    new Chart(ctxPie, {
+                        type: 'doughnut',
+                        data: {
+                            labels: catLabels,
+                            datasets: [{
+                                data: catData,
+                                backgroundColor: pieColors,
+                                borderWidth: 2,
+                                borderColor: '#ffffff',
+                                hoverOffset: 6
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            cutout: '72%',
+                            onClick: (e, activeElements) => {
+                                if (activeElements.length > 0) {
+                                    const dataIndex = activeElements[0].index;
+                                    const rawLabel = catLabels[dataIndex];
+                                    const cleanLabel = rawLabel.split(' (')[0].trim();
+                                    window.location.href = URL_INVENTARIO + "?name=" + encodeURIComponent(cleanLabel) + "&skip_modal=1";
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    position: 'right',
+                                    labels: { usePointStyle: true, boxWidth: 8, padding: 12, font: { size: 11 }, color: '#475569' }
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) { return ` ${context.parsed} und.`; }
+                                    }
+                                }
+                            }
+                        },
+                        plugins: [{
+                            id: 'centerText',
+                            afterDraw: function(chart) {
+                                const active = chart.getActiveElements();
+                                if (active.length > 0) {
+                                    const value = chart.data.datasets[0].data[active[0].index];
+                                    const pct = ((value / totalItems) * 100).toFixed(1) + '%';
+                                    const {ctx, chartArea: {left, top, right, bottom}} = chart;
+                                    ctx.save();
+                                    ctx.font = 'bold 14px sans-serif';
+                                    ctx.fillStyle = '#1e293b';
+                                    ctx.textAlign = 'center';
+                                    ctx.textBaseline = 'middle';
+                                    ctx.fillText(pct, (left + right) / 2, (top + bottom) / 2);
+                                    ctx.restore();
+                                }
+                            }
+                        }]
+                    });
+                } else {
+                    $('#inventoryValuesChart').parent().html('<div class="dash-empty"><i class="fas fa-chart-pie"></i><span>Inventario sin categorizar.</span></div>');
+                }
+
                 const categoryList = $('#totalCategoriasList');
                 categoryList.empty();
 
-                // Sort and take top 5
-                const sortedCats = [...data.categorias].sort((a, b) => b.count - a.count).slice(0, 5);
-                const maxCount = sortedCats[0]?.count || 1;
+                if(data.categorias && data.categorias.length > 0) {
+                    const sortedCats = [...data.categorias].sort((a, b) => b.count - a.count).slice(0, 6);
+                    const maxCount = sortedCats[0].count > 0 ? sortedCats[0].count : 1;
 
-                sortedCats.forEach((cat, index) => {
-                    const percentage = (cat.count / maxCount) * 100;
-                    // Alternate blue and dark colors for visual variety
-                    const colorClass = index % 2 === 0 ? 'blue' : 'dark';
-                    const itemHTML = `
-                        <div class="progress-list-item">
-                            <div class="progress-list-header">
-                                <span class="progress-list-title">${cat.categoria || 'Uncategorized'}</span>
-                                <span class="progress-list-value">${cat.count} Unidades</span>
+                    sortedCats.forEach((cat, index) => {
+                        if(cat.count === 0) return;
+                        const percentage = (cat.count / maxCount) * 100;
+                        const colorClass = index % 2 === 0 ? 'blue' : 'dark';
+                        const catClean = cat.categoria || '';
+                        const itemHTML = `
+                            <div class="progress-list-item list-interactive-item" style="cursor: pointer;" onclick='window.location.href="${URL_INVENTARIO}?name=${encodeURIComponent(catClean)}&skip_modal=1"' title="Filtrar por esta categoría en Inventario">
+                                <div class="progress-list-header">
+                                    <span class="progress-list-title">${catClean || 'Sin Categoría'}</span>
+                                    <span class="progress-list-value">${cat.count} Und.</span>
+                                </div>
+                                <div class="custom-progress">
+                                    <div class="custom-progress-bar ${colorClass}" style="width: 0%;" data-width="${percentage}%"></div>
+                                </div>
                             </div>
-                            <div class="custom-progress">
-                                <div class="custom-progress-bar ${colorClass}" style="width: ${percentage}%"></div>
-                            </div>
-                        </div>
-                    `;
-                    categoryList.append(itemHTML);
-                });
+                        `;
+                        categoryList.append(itemHTML);
+                    });
+                    setTimeout(() => {
+                        $('.custom-progress-bar').each(function() {
+                            $(this).css('width', $(this).data('width'));
+                        });
+                    }, 100);
+                } else {
+                    categoryList.html('<div class="dash-empty"><i class="fas fa-folder-open"></i><span>No hay categorías registradas.</span></div>');
+                }
 
-                // --- 1. POPULATE TOP USED ---
                 const topList = $('#topProductosList').empty();
                 if (data.top_productos && data.top_productos.length > 0) {
                     data.top_productos.forEach(p => {
                         topList.append(`
-                            <div class="py-2 border-bottom d-flex justify-content-between align-items-center">
-                                <span class="small text-dark fw-bold"><i class="fas fa-box-open me-2 text-muted"></i>${p.nombre}</span>
-                                <span class="badge bg-light text-primary border">${p.cantidad} mov.</span>
+                            <div class="py-2 border-bottom d-flex justify-content-between align-items-center list-interactive-item" onclick='abrirDetalleSuministro("${p.nombre.replace(/"/g, '\\"')}")' title="Ver en Inventario">
+                                <span class="small text-dark fw-bold text-truncate" style="max-width: 70%;"><i class="fas fa-circle me-2" style="font-size: 6px; color: #cbd5e1; vertical-align: middle;"></i>${p.nombre}</span>
+                                <span class="badge bg-light text-primary border rounded-pill">${p.cantidad} mov.</span>
                             </div>
                         `);
                     });
                 } else {
-                    topList.html('<div class="text-muted small p-2">Sin datos de uso</div>');
+                    topList.html('<div class="dash-empty"><i class="fas fa-box-open"></i><span>Sin datos registrados.</span></div>');
                 }
 
-                // --- 2. POPULATE SIN MOVIMIENTO ---
                 const sinMList = $('#sinMovimientoList').empty();
                 if (data.sin_movimiento && data.sin_movimiento.length > 0) {
                     data.sin_movimiento.forEach(p => {
                         sinMList.append(`
-                            <div class="py-2 border-bottom d-flex align-items-center">
-                                <i class="fas fa-exclamation-circle text-muted me-2" style="font-size: 0.8rem;"></i>
-                                <span class="small text-muted">${p.nombre}</span>
+                            <div class="py-2 border-bottom d-flex align-items-center list-interactive-item" onclick='abrirDetalleSuministro("${p.nombre.replace(/"/g, '\\"')}")' title="Ver en Inventario">
+                                <i class="fas fa-minus text-muted me-2" style="font-size: 0.8rem; opacity: 0.5;"></i>
+                                <span class="small text-muted text-truncate">${p.nombre}</span>
                             </div>
                         `);
                     });
                 } else {
-                    sinMList.html('<div class="text-muted small p-2">Todo el inventario tiene flujo</div>');
+                    sinMList.html('<div class="dash-empty"><i class="fas fa-check-circle text-success"></i><span>Todo el inventario tiene flujo.</span></div>');
                 }
 
-                // --- 3. POPULATE ROTATION ---
                 const rotList = $('#rotacionList').empty();
                 if (data.rotacion && data.rotacion.length > 0) {
                     data.rotacion.forEach(p => {
                         const badgeClass = p.status === 'Alta' ? 'badge-high' : p.status === 'Media' ? 'badge-medium' : 'badge-low';
                         rotList.append(`
-                            <div class="py-2 border-bottom d-flex justify-content-between align-items-center">
-                                <span class="small text-dark fw-bold">${p.nombre}</span>
+                            <div class="py-2 border-bottom d-flex justify-content-between align-items-center list-interactive-item" onclick='abrirDetalleSuministro("${p.nombre.replace(/"/g, '\\"')}")' title="Ver en Inventario">
+                                <span class="small text-dark fw-bold text-truncate" style="max-width: 70%;">${p.nombre}</span>
                                 <span class="badge-rotation ${badgeClass}">${p.status}</span>
                             </div>
                         `);
                     });
                 } else {
-                    rotList.html('<div class="text-muted small p-2">Sin datos de rotación</div>');
+                    rotList.html('<div class="dash-empty"><i class="fas fa-sync"></i><span>Sin historial de rotación.</span></div>');
                 }
 
             })
-            .catch(error => console.error('Error dashboard:', error));
+            .catch(error => {
+                console.error('Error dashboard:', error);
+                $('.dash-loading').parent().html('<div class="dash-empty text-danger"><i class="fas fa-exclamation-triangle"></i><span>Error cargando datos.</span></div>');
+            });
 
         // ----------------------------
-        // NOTIFICACIONES (Integration with Top Bar)
+        //  3. OBTENER STOCK BAJOS (Alertas)
         // ----------------------------
         fetch('{% url "obtener_stock_bajo_data" %}')
-            .then(response => response.json())
+            .then(response => {
+                if(response.status === 404) return { suministros_bajos: [] }; 
+                if(!response.ok) throw new Error('Network error');
+                return response.json();
+            })
             .then(data => {
                 const count = data.suministros_bajos ? data.suministros_bajos.length : 0;
-                // $('#notificationCount').text(count); // Comentado para evitar conflicto con lógica global
-                $('#totalAlertas').text(count); // Update the card too
-
+                
+                const tAlertas = document.getElementById('totalAlertas');
+                animateValue(tAlertas, 0, count, 1000);
+                
                 if (count > 0) {
-                    // $('#notificationCount').show(); // Comentado
-                    $('#notificationIcon').addClass('shake');
+                    $('#badgeAlertasRight').text(count).show();
+                    
 
-                    // Populate Real Alerts List
-                    const listContainer = $('#alertasListRight');
-                    listContainer.empty();
-                    data.suministros_bajos.slice(0, 5).forEach((item, index) => {
-                        // Alternate red/yellow dots based on severity (mocking severity by index)
-                        const dotColor = item.stock <= 5 ? 'var(--danger)' : 'var(--warning)';
+                    const listContainer = $('#alertasListRight').empty();
+                    data.suministros_bajos.forEach((item) => {
+                        let severityColor = 'var(--warning)';
+                        if(item.stock === 0) severityColor = 'var(--danger)';
+                        else if(item.stock <= (item.stockMinimo / 2)) severityColor = '#f97316'; 
+
                         listContainer.append(`
-                            <div class="py-2 border-bottom d-flex align-items-center gap-3">
-                                <span style="display:inline-block; width:10px; height:10px; background:${dotColor}; border-radius:50%; flex-shrink:0;"></span>
+                            <div class="py-2.5 border-bottom d-flex align-items-center gap-3 list-interactive-item" onclick='abrirDetalleSuministro("${item.nombre.replace(/"/g, '\\"')}", true, true)' title="Ver en Inventario">
+                                <span style="display:inline-block; width:8px; height:8px; background:${severityColor}; border-radius:50%; flex-shrink:0; box-shadow: 0 0 4px ${severityColor};"></span>
                                 <div class="w-100">
-                                    <div class="fw-bold small text-dark">${item.nombre}</div>
-                                    <div class="text-muted" style="font-size: 0.75rem;">Stock: ${item.stock} | Mín: ${item.stockMinimo}</div>
+                                    <div class="fw-bold text-dark text-truncate" style="font-size: 0.85rem;" title="${item.nombre}">${item.nombre}</div>
+                                    <div class="d-flex justify-content-between text-muted" style="font-size: 0.75rem;">
+                                        <span>Stock: <strong class="text-dark">${item.stock}</strong></span>
+                                        <span>Mínimo: ${item.stockMinimo}</span>
+                                    </div>
                                 </div>
                             </div>
                         `);
                     });
                 } else {
-                    // badge.hide(); // Comentado
-                    $('#alertasListRight').html('<div class="dash-card p-3 text-center small text-success"><i class="fas fa-check-circle me-1"></i> Todo en orden</div>');
+                    $('#alertasListRight').html(`
+                        <div class="dash-empty h-100 pt-4 text-center">
+                            <i class="fas fa-check-circle text-success mb-2" style="font-size: 2rem; opacity: 1;"></i>
+                            <span class="d-block text-dark fw-bold">No hay alertas de stock actualmente.</span>
+                        </div>
+                    `);
                 }
             })
-            .catch(error => console.error('Error notifications:', error));
+            .catch(error => {
+                console.error('Error notifications:', error);
+                $('#alertasListRight').html('<div class="dash-empty text-danger"><i class="fas fa-exclamation-triangle"></i><span>Falló la carga de alertas.</span></div>');
+            });
 
     });
 </script>

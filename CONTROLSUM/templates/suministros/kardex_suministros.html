@@ -339,6 +339,29 @@ GESTIONAR OTROS
             }
         });
 
+        // --- DEEP LINKING LOGIC ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlMes = urlParams.get('mes');
+        const urlFecha = urlParams.get('fecha');
+
+        if (urlFecha) {
+            setTimeout(() => {
+                $('#fecha_desde').val(urlFecha);
+                $('#fecha_hasta').val(urlFecha);
+                fillKardex(null, null, urlFecha, urlFecha);
+            }, 500);
+        } else if (urlMes) {
+            setTimeout(() => {
+                const currentYear = new Date().getFullYear();
+                const startStr = `${currentYear}-${String(urlMes).padStart(2, '0')}-01`;
+                const lastDay = new Date(currentYear, urlMes, 0).getDate();
+                const endStr = `${currentYear}-${String(urlMes).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+                $('#fecha_desde').val(startStr);
+                $('#fecha_hasta').val(endStr);
+                fillKardex(null, null, startStr, endStr);
+            }, 500);
+        }
+
     });
 </script>
 

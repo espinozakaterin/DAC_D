@@ -5,6 +5,7 @@ import json
 from django.db import transaction
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
+from datetime import datetime
 
 # Create your views here.
 from django import forms
@@ -64,51 +65,61 @@ def panel_controlsuministros(request):
 def dashboard(request):
     id_usuario = request.session.get('user_id')
 
-    print("ID USUARIO EN SESSION:", id_usuario)
-
-    print("==== DEBUG DASHBOARD ====")
-    print("SESSION:", dict(request.session))
-    print("ID USUARIO EN SESSION:", id_usuario)
-
-
     if not id_usuario:
         return JsonResponse({'error': 'No se recibió el ID del usuario'}, status=400)
 
     udcConn = connections['ctrlSum']
     with udcConn.cursor() as cursor:
-        cursor.callproc('universal_data_core.SUM_GET_ESTADISTICAS', [0])
+        # 1. Total de suministros
+        cursor.execute("SELECT COUNT(*) FROM universal_data_core.suministros")
+        total_suministros = cursor.fetchone()[0] or 0
 
+        # 2. Categorias con conteo de suministros
+        cursor.execute("""
+            SELECT c.nombre_categoria, COUNT(s.id_suministros)
+            FROM universal_data_core.categorias c
+            LEFT JOIN universal_data_core.suministros s ON s.id_categoria = c.id_categoria
+            GROUP BY c.id_categoria, c.nombre_categoria
+        """)
+        categorias = [{'categoria': r[0], 'count': r[1]} for r in cursor.fetchall()]
 
-        row_total = cursor.fetchone()
-        print("TOTAL ROW:", row_total)
+        # 3. Almacenes con conteo de suministros
+        cursor.execute("""
+            SELECT a.nombre_almacen, COUNT(s.id_suministros)
+            FROM universal_data_core.almacen a
+            LEFT JOIN universal_data_core.suministros s ON s.id_almacen = a.id_almacen
+            GROUP BY a.id_almacen, a.nombre_almacen
+        """)
+        almacenes = [{'almacen': r[0], 'count': r[1]} for r in cursor.fetchall()]
 
-        total_suministros = row_total[0] if row_total else 0
-        cursor.nextset()
+        # 4. Suministros por mes (Filtro por rango)
+        range_type = request.GET.get('range', 'this_year')
+        where_clause = "YEAR(fecha_adquisicion) = YEAR(CURDATE())"
+        
+        if range_type == 'last_year':
+            where_clause = "YEAR(fecha_adquisicion) = YEAR(CURDATE()) - 1"
+        elif range_type == 'last_6_months':
+            where_clause = "fecha_adquisicion >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)"
+        elif range_type == 'all':
+            where_clause = "1=1"
 
-        categorias = []
-        for row in cursor.fetchall():
-            categorias.append({'categoria': row[0], 'count': row[1]})
-
-        cursor.nextset()
-
-        almacenes = []
-        for row in cursor.fetchall():
-            almacenes.append({'almacen': row[0], 'count': row[1]})
-
-        cursor.nextset()
-
-        suministros_mes = []
-        for row in cursor.fetchall():
-            suministros_mes.append({'mes': row[0], 'cantidad': row[1]})
+        cursor.execute(f"""
+            SELECT MONTH(fecha_adquisicion) AS mes, COUNT(*) AS cantidad
+            FROM universal_data_core.suministros
+            WHERE {where_clause}
+            GROUP BY MONTH(fecha_adquisicion)
+            ORDER BY MONTH(fecha_adquisicion)
+        """)
+        suministros_mes = [{'mes': r[0], 'cantidad': r[1]} for r in cursor.fetchall()]
 
         # --- High Frequency Analysis Indicators ---
         
         # 1. Top Used (Asignaciones)
         cursor.execute("""
-            SELECT s.nombre, SUM(a.cantidad_asignacion) as total 
+            SELECT MAX(s.nombre) as display_name, SUM(a.cantidad_asignacion) as total 
             FROM universal_data_core.asignacion a 
             JOIN universal_data_core.suministros s ON a.id_suministros = s.id_suministros 
-            GROUP BY s.id_suministros, s.nombre 
+            GROUP BY TRIM(UPPER(s.nombre)) 
             ORDER BY total DESC 
             LIMIT 5
         """)
@@ -116,19 +127,20 @@ def dashboard(request):
 
         # 2. No Movement (Not in Asignaciones)
         cursor.execute("""
-            SELECT nombre 
+            SELECT MAX(nombre) as display_name 
             FROM universal_data_core.suministros 
             WHERE id_suministros NOT IN (SELECT DISTINCT id_suministros FROM universal_data_core.asignacion) 
+            GROUP BY TRIM(UPPER(nombre))
             LIMIT 5
         """)
         sin_movimiento = [{'nombre': r[0]} for r in cursor.fetchall()]
 
         # 3. Rotation Frequency
         cursor.execute("""
-            SELECT s.nombre, COUNT(a.id_asignacion) as freq 
+            SELECT MAX(s.nombre) as display_name, COUNT(a.id_asignacion) as freq 
             FROM universal_data_core.suministros s 
             LEFT JOIN universal_data_core.asignacion a ON s.id_suministros = a.id_suministros 
-            GROUP BY s.id_suministros, s.nombre 
+            GROUP BY TRIM(UPPER(s.nombre)) 
             ORDER BY freq DESC 
             LIMIT 5
         """)
@@ -268,6 +280,20 @@ def insertar_actualizar_suministro(request):
         userName = request.session.get('userName', '')
         fkgrupo = request.POST.get('fkgrupo')
         acreedor = request.POST.get('id_proveedor')
+        
+        # Validación de cantidad mínima (no puede ser 0 o vacío)
+        try:
+            val_minima = int(cantidad_minima or 0)
+            if val_minima <= 0:
+                return JsonResponse({
+                    'save': 0,
+                    'mensaje': 'La cantidad mínima debe ser mayor a 0.'
+                })
+        except (ValueError, TypeError):
+            return JsonResponse({
+                'save': 0,
+                'mensaje': 'La cantidad mínima debe ser un valor numérico válido mayor a 0.'
+            })
 
         # Manejo de imagen
         if imagen_suministro:
@@ -308,7 +334,7 @@ def insertar_actualizar_suministro(request):
                 return JsonResponse({
                     'save': 0,
                     'existe': 1,
-                    'mensaje': 'Este suministro ya existe.'
+                    'mensaje': 'Este producto ya existe.'
                 })
 
             # Guardar usando procedimiento
@@ -341,7 +367,7 @@ def insertar_actualizar_suministro(request):
         udcConn.close()
 
         if guardado == 1:
-            mensaje = "Suministro guardado exitosamente."
+            mensaje = "Producto guardado con éxito"
         else:
             mensaje = "Suministro actualizado exitosamente."
 
@@ -386,20 +412,20 @@ def obtener_stock_bajo_data(request):
     stock_bajo = []
 
     try:
-        # Establece la conexión con la base de datos
         udcConn = connections['ctrlSum']
         with udcConn.cursor() as cursor:
-            # Llamada al procedimiento almacenado
-            cursor.callproc("OBTENER_STOCK_BAJOS", [])
-            
-            # Obtener los nombres de las columnas
+            # Consulta directa con alias que coinciden con lo que espera el frontend
+            cursor.execute("""
+                SELECT s.nombre AS nombre,
+                       s.cantidad_stock AS stock,
+                       s.cantidad_minima AS stockMinimo
+                FROM universal_data_core.suministros s
+                WHERE s.cantidad_stock < s.cantidad_minima
+                ORDER BY s.cantidad_stock ASC
+            """)
             column_names = [desc[0] for desc in cursor.description]
-            
-            # Obtener los resultados y convertirlos a un diccionario
-            stock_bajo = [dict(zip(map(str, column_names), row)) for row in cursor.fetchall()]
-            #print(stock_bajo)  # Verifica qué datos están siendo devueltos
+            stock_bajo = [dict(zip(column_names, row)) for row in cursor.fetchall()]
 
-        
         # Si no se encontraron resultados, se devuelve un mensaje adecuado
         if not stock_bajo:
             return JsonResponse({'message': 'No se encontraron suministros con stock bajo.'}, status=404)
@@ -408,7 +434,6 @@ def obtener_stock_bajo_data(request):
         return JsonResponse({'suministros_bajos': stock_bajo}, status=200)
     
     except Exception as e:
-        # Manejo de errores y respuesta con código de error 500
         return JsonResponse({'error': str(e)}, status=500)
         
 # -------------------------------------------------------------------------------------- #
@@ -570,17 +595,24 @@ def get_suministros_data(request):
             sql = """
                 SELECT
                     s.id_suministros AS id,
+                    s.id_suministros AS id_suministros,
                     s.nombre AS nombre,
                     s.descripcion AS descripcion,
                     c.nombre_categoria AS nombre_categoria,
-                    s.cantidad_inicial AS cantidad_max,
+                    s.cantidad_inicial AS cantidad_inicial,
                     s.cantidad_stock   AS cantidad_stock,
-                    s.cantidad_minima  AS cantidad_min,
+                    s.cantidad_minima  AS cantidad_minima,
                     s.precio_unitario AS precio_unitario,
                     s.fecha_adquisicion AS fecha_adquisicion,
                     p.nombre_proveedor AS nombre_proveedor,
                     a.nombre_almacen   AS nombre_almacen,
                     a.ubicacion_almacen AS ubicacion_almacen,
+
+                    s.id_categoria AS id_categoria,
+                    s.id_almacen AS id_almacen,
+                    s.id_proveedor AS id_proveedor,
+                    s.fkgrupo AS PKgrupo,
+                    s.imagen_url AS imagen_url,
 
                     --  AQUÍ EL NOMBRE DEL GRUPO
                     g.nombre_grupo AS nombre_grupo,
@@ -595,10 +627,20 @@ def get_suministros_data(request):
                 LEFT JOIN universal_data_core.grupos g ON g.id_grupo = s.fkgrupo
             """
 
+            where_clauses = []
             params = []
+
             if str(varEstado) not in ("0", "", "None"):
-                sql += " WHERE s.estado = %s"
+                where_clauses.append("s.estado = %s")
                 params.append(int(varEstado))
+
+            # Filtro Real de Stock Bajo
+            stock_bajo = request.POST.get('stock_bajo') or request.GET.get('stock_bajo')
+            if stock_bajo == '1':
+                where_clauses.append("s.cantidad_stock < s.cantidad_minima")
+
+            if where_clauses:
+                sql += " WHERE " + " AND ".join(where_clauses)
 
             cursor.execute(sql, params)
 
@@ -1864,22 +1906,34 @@ def insertar_actualizar_detalle_adquisicion_data(request):
                 # Iteramos sobre los detalles que hemos recibido
                 for detalle in detalles:
                     # Validamos que los datos esenciales estén presentes
-                    if not detalle.get('id_detalle_requisicion') or not('id_suministros') or not detalle.get('cantidad') or not detalle.get('precio_unitario'):
+                    if not detalle.get('id_detalle_requisicion') or not detalle.get('id_suministros') or detalle.get('cantidad') is None or detalle.get('precio_unitario') is None:
                         raise ValueError("Faltan datos en los detalles de la adquisición.")
                     
                     # Validar que cantidad y precio_unitario sean mayores a cero
                     if detalle['cantidad'] <= 0 or detalle['precio_unitario'] <= 0:
                         raise ValueError("La cantidad y el precio unitario deben ser mayores a cero.")
 
+                    # Convertir a tipos de datos correctos antes de llamar al SP
+                    try:
+                        id_da = int(detalle.get('id_detalle_adquisicion', 0))
+                        id_adq = int(id_adquisicion)
+                        id_req = int(id_requisicion)
+                        id_dr = int(detalle['id_detalle_requisicion'])
+                        id_sum = int(detalle['id_suministros'])
+                        cant = float(detalle['cantidad'])
+                        prec = float(detalle['precio_unitario'])
+                    except (ValueError, TypeError):
+                        raise ValueError(f"Formato de datos inválido en detalle: {detalle}")
+
                     # Llamamos al procedimiento almacenado con los parámetros correspondientes
                     cursor.callproc('SUM_INSERT_UPDATE_DETALLE_ADQUISICION', [
-                        detalle.get('id_detalle_adquisicion', 0),
-                        id_adquisicion,  # El ID de la adquisición
-                        id_requisicion,
-                        detalle['id_detalle_requisicion'],  # El ID del detalle de requisicion
-                        detalle['id_suministros'],  # El ID del suministro
-                        detalle['cantidad'],  # La cantidad del suministro
-                        detalle['precio_unitario'],  # El precio unitario
+                        id_da,
+                        id_adq,
+                        id_req,
+                        id_dr,
+                        id_sum,
+                        cant,
+                        prec,
                     ])
 
         # Si todo va bien, retornamos una respuesta de éxito
@@ -1962,35 +2016,41 @@ def obtener_detalle_adquisicion(request):
         udcConn = connections['ctrlSum']
         with udcConn.cursor() as cursor:
             cursor.callproc('universal_data_core.OBTENER_DETALLE_ADQUISICION', [id_adquisicion, id_requisicion])
-            result = cursor.fetchall()
+            
+            # Obtener nombres de columnas dinámicamente
+            if cursor.description:
+                columns = [col[0].lower() for col in cursor.description]
+                results = cursor.fetchall()
+                
+                # Deduplicar resultados si el SP devuelve filas idénticas
+                unique_results = list(dict.fromkeys(results)) # dict.fromkeys preserva el orden
+                
+                detalles = []
+                for row in unique_results:
+                    d = dict(zip(columns, row))
+                    # Normalizar nombres de campos para el frontend
+                    # Estricto: Solo usar IDs de detalle reales (pk_detalle_requisicion o id_detalle_requisicion)
+                    # SE ELIMINAN: fkrequisicion e id_requisicion para evitar errores de llave foránea
+                    id_det_req = d.get('pk_detalle_requisicion') or d.get('id_detalle_requisicion') or d.get('fk_detalle_requisicion')
+                    
+                    if id_det_req:
+                        detalle_mapeado = {
+                            'id_adquisicion': d.get('pkadquisicion') or d.get('id_adquisicion') or d.get('pk_adquisicion', id_adquisicion),
+                            'id_detalle_requisicion': id_det_req,
+                            'id_suministros': d.get('fk_suministros') or d.get('id_suministros'),
+                            'nombre_suministro': d.get('nombre_suministro') or d.get('nombresuministro') or d.get('nombre', 'N/A'),
+                            'cantidad': d.get('cantidad', 0),
+                            'precio_unitario': d.get('precio_unitario', 0),
+                            'precio_total': d.get('precio_total', 0),
+                            'estado': d.get('estado', 'ACTIVO')
+                        }
+                        detalles.append(detalle_mapeado)
+            else:
+                detalles = []
 
         # Si no se encuentran resultados, devolver un error
-        if not result:
-            return JsonResponse({'success': False, 'message': 'No se encontraron detalles.'})
-
-        # Si hay resultados, devolverlos como respuesta JSON
-        detalles = []
-        for row in result:
-            detalle = {
-                'id_detalle_adquisicion': row[0],
-                'id_adquisicion': row[1],
-                'id_requisicion': row[2],
-                'id_detalle_requisicion': row[3],
-                'solicitante': row[4],
-                'id_suministros': row[5],
-                'nombre_suministro': row[6],
-                'cantidad': row[7],
-                'precio_unitario': row[8],
-                'precio_total': row[9],
-                'id_proveedor': row[10],
-                'nombre_proveedor': row[11],
-                'estado': row[12],
-                'creado_por': row[13],
-                'fecha_hora_creacion': row[14],
-                'modificado_por': row[15],
-                'fecha_hora_modificado': row[16],
-            }
-            detalles.append(detalle)
+        if not detalles:
+            return JsonResponse({'success': False, 'message': 'No se encontraron detalles para esta adquisición.'})
 
         return JsonResponse({'success': True, 'data': detalles})
     else:
@@ -2394,14 +2454,129 @@ def perfil_view(request):
     fullName = request.session.get('fullName', 'Usuario del Sistema')
     empresa = request.session.get('empresa', 'Compañía')
     
+    # Intentar obtener los últimos datos de la base de datos
+    try:
+        with connections['global_nube'].cursor() as cursor:
+            cursor.execute("SELECT Nombre, Usuario FROM usuarios WHERE PKUsuario = %s", [user_id])
+            row = cursor.fetchone()
+            if row:
+                fullName = row[0]
+                userName = row[1]
+                # Actualizar sesión con los datos frescos
+                request.session['fullName'] = fullName
+                request.session['userName'] = userName
+    except Exception as e:
+        print(f"Error fetching updated user profile: {e}")
+    
     return render(request, 'perfil.html', {
         'userName': userName,
         'fullName': fullName,
         'empresa': empresa
     })
 
-    
+from django.core.files.storage import FileSystemStorage
+from django.conf import settings
+import os
 
+def actualizar_perfil(request):
+    if request.method == 'POST':
+        user_id = request.session.get('user_id')
+        if not user_id:
+            return JsonResponse({'success': False, 'message': 'No autenticado'})
+            
+        full_name = request.POST.get('fullName')
+        user_name = request.POST.get('userName')
+        empresa = request.POST.get('empresa')
+        
+        try:
+            with connections['global_nube'].cursor() as cursor:
+                # Actualizar Nombre y Usuario en la tabla principal
+                cursor.execute("""
+                    UPDATE usuarios 
+                    SET Nombre = %s, Usuario = %s 
+                    WHERE PKUsuario = %s
+                """, [full_name, user_name, user_id])
+                
+                # Para la empresa, comprobamos si la columna Empresa_Nombre existe
+                try:
+                    cursor.execute("""
+                        UPDATE usuarios 
+                        SET Empresa_Nombre = %s 
+                        WHERE PKUsuario = %s
+                    """, [empresa, user_id])
+                except Exception as ex:
+                    # Si la columna no existe o falla, ignorar el error SQL y crearla
+                    try:
+                        cursor.execute("ALTER TABLE usuarios ADD Empresa_Nombre VARCHAR(255) NULL")
+                        cursor.execute("""
+                            UPDATE usuarios 
+                            SET Empresa_Nombre = %s 
+                            WHERE PKUsuario = %s
+                        """, [empresa, user_id])
+                    except Exception as e_col:
+                        print(f"No se pudo guardar empresa en BD: {e_col}")
+                        
+            # Actualizar la sesión para que se refleje de inmediato
+            request.session['fullName'] = full_name
+            request.session['userName'] = user_name
+            request.session['empresa'] = empresa
+            
+            return JsonResponse({'success': True, 'message': 'Perfil actualizado correctamente'})
+            
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': f'Error al actualizar: {str(e)}'})
+            
+    return JsonResponse({'success': False, 'message': 'Método no permitido'})
+
+def subir_foto_perfil(request):
+    from django.conf import settings
+    from django.core.files.storage import FileSystemStorage
+    try:
+        if request.method == 'POST' and request.FILES.get('avatar'):
+            user_id = request.session.get('user_id')
+            if not user_id:
+                return JsonResponse({'success': False, 'message': 'No autenticado'})
+                
+            avatar = request.FILES['avatar']
+            
+            # Validación de tipo de archivo
+            extension = avatar.name.split('.')[-1].lower()
+            if extension not in ['jpg', 'jpeg', 'png']:
+                return JsonResponse({'success': False, 'message': 'Formato no válido. Solo JPG y PNG permitidos.'})
+                
+            # Validación de tamaño (< 2MB)
+            if avatar.size > 2 * 1024 * 1024:
+                return JsonResponse({'success': False, 'message': 'La imagen excede el límite de 2MB.'})
+                
+            import time
+            
+            fs = FileSystemStorage(location=os.path.join(settings.MEDIA_ROOT, 'user_avatars'))
+            
+            filename = f'user_{user_id}_{int(time.time())}.{extension}'
+            
+            saved_name = fs.save(filename, avatar)
+            avatar_url = f"{settings.MEDIA_URL}user_avatars/{saved_name}"
+            
+            # Guardar en base de datos
+            with connections['global_nube'].cursor() as cursor:
+                try:
+                    cursor.execute("""
+                        UPDATE usuarios SET Avatar = %s WHERE PKUsuario = %s
+                    """, [avatar_url, user_id])
+                except Exception:
+                    # Si la columna no existe, crearla y luego actualizar
+                    cursor.execute("ALTER TABLE usuarios ADD Avatar VARCHAR(255) NULL")
+                    cursor.execute("""
+                        UPDATE usuarios SET Avatar = %s WHERE PKUsuario = %s
+                    """, [avatar_url, user_id])
+                        
+            request.session['avatar_url'] = avatar_url
+            return JsonResponse({'success': True, 'avatar_url': avatar_url})
+            
+        return JsonResponse({'success': False, 'message': 'Petición inválida o sin imagen'})
+    except Exception as e:
+        import traceback
+        return JsonResponse({'success': False, 'message': f'EXCEPCIÓN INTERNA: {str(e)} | Traza: {traceback.format_exc()}'})
 
 
 def obtener_notificaciones_sistema(request):
@@ -2420,55 +2595,68 @@ def obtener_notificaciones_sistema(request):
             # 1. Stock Bajo
             try:
                 cursor.callproc("OBTENER_STOCK_BAJOS", [])
-                if cursor.description:
+                results = cursor.fetchall()
+                if results and cursor.description:
                     column_names = [desc[0] for desc in cursor.description]
-                    stock_bajo = [dict(zip(map(str, column_names), row)) for row in cursor.fetchall()]
+                    stock_bajo = [dict(zip(column_names, row)) for row in results]
+                    
                     for item in stock_bajo:
-                        stock = item.get('stock')
-                        stock_min = item.get('stockMinimo')
+                        stock = item.get('stock', 0)
+                        stock_min = item.get('stockMinimo', 1)
+                        # PKsuministro es el ID único en la tabla suministros
+                        pk_sum = item.get('PKsuministro') or item.get('id_suministros')
                         nombre = item.get('nombre', 'Suministro')
                         
-                        # Defensive conversion
                         try:
-                            s_val = int(stock) if stock is not None else 0
-                            sm_val = int(stock_min) if stock_min is not None else 1
+                            s_val = float(stock) if stock is not None else 0
+                            sm_val = float(stock_min) if stock_min is not None else 1
                         except:
                             s_val, sm_val = 0, 1
 
-                        notif_id = f"stock_{item.get('PKsuministro')}"
+                        notif_id = f"stock_{pk_sum}"
                         notifications.append({
                             'id': notif_id,
                             'type': 'stock_bajo',
                             'title': nombre,
                             'message': f"Stock bajo: {stock} (Mín: {stock_min})",
-                            'url': reverse('listado_suministro_data'),
-                            'severity': 'danger' if s_val <= (sm_val / 2) else 'warning',
+                            'url': reverse('listado_suministro_data') + f"?id={pk_sum}&name={nombre}",
+                            'severity': 'danger' if s_val <= (sm_val * 0.5) else 'warning',
                             'is_new': notif_id not in vistas
                         })
                 
                 while cursor.nextset(): pass
             except Exception as e_stock:
-                print(f"Error en notificaciones de stock: {e_stock}")
+                print(f"Error en notificaciones de stock: {str(e_stock)}")
 
             # 2. Requisiciones Pendientes (Estado 1)
             try:
                 cursor.callproc("GET_REQUISICIONES", [1])
-                if cursor.description:
+                results_req = cursor.fetchall()
+                if results_req and cursor.description:
                     column_names = [desc[0] for desc in cursor.description]
-                    requisiciones = [dict(zip(map(str, column_names), row)) for row in cursor.fetchall()]
+                    requisiciones = [dict(zip(column_names, row)) for row in results_req]
+                    
                     if requisiciones:
-                        notif_id = f"req_pendientes_{len(requisiciones)}"
+                        # Usamos un ID que cambie si cambia el número de requisiciones o el ID más reciente
+                        last_id = requisiciones[0].get('id_requisicion', 0)
+                        notif_id = f"req_pendientes_{len(requisiciones)}_{last_id}"
+                        
                         notifications.append({
                             'id': notif_id,
                             'type': 'requisiciones',
                             'title': 'Requisiciones Pendientes',
-                            'message': f"Hay {len(requisiciones)} requisiciones esperando aprobación.",
+                            'message': f"Hay {len(requisiciones)} requisiciones esperando su gestión.",
                             'url': reverse('listado_requisicion_data'),
                             'severity': 'info',
                             'is_new': notif_id not in vistas
                         })
+                
+                while cursor.nextset(): pass
             except Exception as e_req:
-                print(f"Error en notificaciones de requisiciones: {e_req}")
+                print(f"Error en notificaciones de requisiciones: {str(e_req)}")
+
+        # Ordenar por 'is_new' primero
+        notifications.sort(key=lambda x: x['is_new'], reverse=True)
 
         return JsonResponse({'notifications': notifications}, status=200)
     except Exception as e:
@@ -2491,3 +2679,73 @@ def marcar_notificaciones_vistas(request):
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=400)
     return JsonResponse({'error': 'Invalid method'}, status=405)
+
+def notificaciones_page_view(request):
+    """Vista para mostrar todas las notificaciones en una página dedicada."""
+    user_id = request.session.get('user_id')
+    if not user_id:
+        return HttpResponseRedirect(reverse('login'))
+
+    userName = request.session.get('userName', 'Usuario')
+    notifications = []
+    
+    # Reutilizamos la lógica de obtención pero para renderizar en el server
+    try:
+        udcConn = connections['ctrlSum']
+        with udcConn.cursor() as cursor:
+            # 1. Stock Bajo
+            cursor.callproc("OBTENER_STOCK_BAJOS", [])
+            results = cursor.fetchall()
+            if results and cursor.description:
+                cols = [desc[0] for desc in cursor.description]
+                for row in results:
+                    item = dict(zip(cols, row))
+                    pk_sum = item.get('PKsuministro') or item.get('id_suministros')
+                    stock = item.get('stock') if item.get('stock') is not None else 0
+                    stock_min = item.get('stockMinimo') if item.get('stockMinimo') is not None else 0
+                    
+                    nombre_notif = item.get('nombre', 'Suministro')
+                    notifications.append({
+                        'id': f"stock_{pk_sum}",
+                        'type': 'stock_bajo',
+                        'title': nombre_notif,
+                        'message': f"Stock bajo en inventario: {stock} (Mín: {stock_min})",
+                        'url': reverse('listado_suministro_data') + f"?id={pk_sum}&name={nombre_notif}",
+                        'severity': 'danger' if float(stock) <= (float(stock_min or 1) * 0.5) else 'warning',
+                        'fecha': datetime.now().strftime("%d/%m/%Y %H:%M")
+                    })
+            while cursor.nextset(): pass
+
+            # 2. Requisiciones
+            cursor.callproc("GET_REQUISICIONES", [1])
+            results_req = cursor.fetchall()
+            if results_req and cursor.description:
+                cols_req = [desc[0] for desc in cursor.description]
+                for row in results_req:
+                    item = dict(zip(cols_req, row))
+                    req_id = item.get('id_requisicion')
+                    notifications.append({
+                        'id': f"req_{req_id}",
+                        'type': 'requisiciones',
+                        'title': f"Requisición #{req_id}",
+                        'message': "Nueva solicitud de suministro pendiente de gestión.",
+                        'url': reverse('listado_requisicion_data') + f"?id={req_id}",
+                        'severity': 'info',
+                        'fecha': item.get('fecha_hora_creacion') or datetime.now().strftime("%d/%m/%Y %H:%M")
+                    })
+            while cursor.nextset(): pass
+
+    except Exception as e:
+        print(f"Error cargando página de notificaciones: {e}")
+
+    # Marcar todas como vistas al entrar a la página
+    all_ids = [n['id'] for n in notifications]
+    vistas = request.session.get('notificaciones_vistas', [])
+    request.session['notificaciones_vistas'] = list(set(vistas + all_ids))
+    request.session.modified = True
+
+    return render(request, 'notificaciones_sistema.html', {
+        'notifications': notifications,
+        'userName': userName,
+        'count': len(notifications)
+    })

@@ -337,7 +337,7 @@ GESTION DE DEVOLUCIONES
             suministro = filaDevolucion.find("td:eq(3)").text();
             id_suministro = $(this).data('suministros');
             cantidadDevuelta = filaDevolucion.find("td:eq(4)").text();
-            precioUnitario = filaDevolucion.find("td:eq(5)").text().replace(/,/g, "");
+            precioUnitario = filaDevolucion.find("td:eq(5)").text().trim().replace(/[^0-9.-]+/g, "");
             proveedor = filaDevolucion.find("td:eq(9)").text();
             proveedor_id = $(this).data('proveedor');
             id_detalle_requisicion_numero = $(this).data('id_detalle_requisicion');
@@ -419,11 +419,15 @@ GESTION DE DEVOLUCIONES
             const filaExistente = tablaDevolucion.find(`tr[data-id-adquisicion="${id_adquisicion_numero}"]`);
 
             if (filaExistente.length > 0) {
-                filaExistente.find('td:eq(3)').text(cantidadDevuelta); 
-                filaExistente.find('td:eq(4)').text(precioUnitario);   
-                filaExistente.find('td:eq(5)').text((parseFloat(cantidadDevuelta) * parseFloat(precioUnitario)).toFixed(2)); 
+                const parsedCant = parseFloat(cantidadDevuelta) || 0;
+                const parsedPrice = parseFloat(precioUnitario) || 0;
+                filaExistente.find('td:eq(3)').text(parsedCant); 
+                filaExistente.find('td:eq(4)').text(parsedPrice.toFixed(2));   
+                filaExistente.find('td:eq(5)').text((parsedCant * parsedPrice).toFixed(2)); 
             } else {
-                const totalFila = (parseFloat(cantidadDevuelta) * parseFloat(precioUnitario)).toFixed(2);
+                const parsedCant = parseFloat(cantidadDevuelta) || 0;
+                const parsedPrice = parseFloat(precioUnitario) || 0;
+                const totalFila = (parsedCant * parsedPrice).toFixed(2);
                 const filaHtml = `
             <tr data-id-adquisicion="${id_adquisicion_numero}">
                 <td>${id_adquisicion_numero}</td>
@@ -456,9 +460,9 @@ GESTION DE DEVOLUCIONES
         // Al cambiar la cantidad, actualizamos la fila en la tabla
         $(document).on('input', '#cantidad_devuelta', function () {
             var cantidadDevuelta = parseFloat($(this).val()) || 0;
-            var precioUnitario = $('#precio_unitario').val();
+            var precioUnitario = parseFloat($('#precio_unitario').val()) || 0;
             var id_adquisicion_numero = $('#id_adquisicion').val();
-            var totalFila = (cantidadDevuelta * parseFloat(precioUnitario)).toFixed(2);
+            var totalFila = (cantidadDevuelta * precioUnitario).toFixed(2);
 
             // Actualizamos la fila correspondiente
             actualizarFilaDevolucion(id_adquisicion_numero, $('#id_detalle_requisicion').val(), $('#suministro').val(), cantidadDevuelta, precioUnitario);

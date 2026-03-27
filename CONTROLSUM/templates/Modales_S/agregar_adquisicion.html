@@ -77,7 +77,7 @@
                                 <tbody id="tabla-articulos"></tbody>
                             </table>
                             <div class="d-flex justify-content-end mb-3" style="white-space: nowrap;">
-                                <h5><strong>Total de la Requisición:</strong> L&nbsp;<span id="costo-total"><strong>0.00</strong></span></h5>
+                                <h5><strong>Total de la Adquisición:</strong> L&nbsp;<span id="costo-total">0.00</span></h5>
                             </div>
                         </div>
                     </div>
@@ -111,6 +111,11 @@
         global_id_requisicion = id_requisicion
         var id_solicitante_seleccionado = $("#solicitante").find('option:selected').data('PKUsuario'); 
         var nombre = $("#solicitante").find('option:selected').data('nombre'); 
+        
+        // console.log("=== INICIO DE SELECCION REQUISICION ===");
+        // console.log("Valor ID Requisición seleccionado en el select:", id_requisicion);
+        // console.log("Payload enviado por AJAX:", { pk_usuario: 0, id_requisicion: id_requisicion });
+
         if (id_solicitante_seleccionado !== "#") {
 
             $.ajax({
@@ -121,6 +126,7 @@
                     id_requisicion: id_requisicion  
                 },
                 success: function(response) {
+                    console.log("Respuesta AJAX backend:", response);
 
                     // Verificar si la respuesta es exitosa
                     if (response.success && response.data) {
@@ -138,14 +144,16 @@
 
                             // Iterar sobre los detalles y crear las filas de la tabla
                             response.data.detalles.forEach(function(articulo) {
-                                const cantidad = articulo.cantidad || 0;  
-                                const precioUnitario = parseFloat(articulo.precio_unitario || 0); 
+                                const id_dr = articulo.id_detalle_requisicion || articulo.FKRequisicion || articulo.PKDetalleRequisicion || "";
+                                const cantidad = articulo.cantidad !== undefined ? articulo.cantidad : (articulo.Cantidad !== undefined ? articulo.Cantidad : 0);
+                                const precioUnitario = parseFloat(articulo.precio_unitario || articulo.PrecioUnitario || 0); 
+                                const id_sum = articulo.id_suministros || articulo.FKSuministros || articulo.id_suministro || "";
                                 const precioTotal = cantidad * precioUnitario;
 
                                 tablaArticulos += `
-                                    <tr>
+                                    <tr data-id-dr="${id_dr}" data-id-sum="${id_sum}">
                                         <td>${articulo.id_detalle_requisicion || ''}</td>
-                                        <td style="display: none">${articulo.id_suministros || ''}</td>
+                                        <td style="display: none">${id_sum}</td>
                                         <td>${articulo.nombre_suministro || ''}</td>
                                         <td>${cantidad}</td>
                                         <td>L\u00A0${dollarUSLocale.format(precioUnitario)}</td>
@@ -157,20 +165,59 @@
 
                             // Actualizar el contenido de la tabla y el costo total
                             $('#tabla-articulos').html(tablaArticulos);
-                            $('#costo-total').text('L\u00A0' + dollarUSLocale.format(costoTotal));
+                            $('#costo-total').html('<strong>' + dollarUSLocale.format(costoTotal) + '</strong>');
                         } else {
                             Swal.fire("", "No se encontraron artículos para esta requisición.", "warning");
                         }
 
                     } else {
-                        alert('No se encontraron datos para este usuario.');
+                        console.error('Error lógico en el backend:', response.message);
+                        alert('No se pudieron obtener los detalles de la requisición seleccionada.');
                     }
                 },
                 error: function(xhr, status, error) {
+                    console.error('Error CRÍTICO AJAX:', error, xhr.responseText);
                     $('#solicitante').prop('disabled', false);
                     alert('Hubo un error al obtener los detalles: ' + error);
                 }
             });
+        }
+    }
+
+    function CargarDetallesAdquisicion(response) {
+        const dollarUSLocale = Intl.NumberFormat("en-US", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+
+        if (response.detalles && Array.isArray(response.detalles)) {
+            let tablaArticulos = '';
+            let costoTotal = 0;
+
+            response.detalles.forEach(function(detalle) {
+                const cantidadVal = detalle.cantidad !== undefined ? detalle.cantidad : (detalle.Cantidad !== undefined ? detalle.Cantidad : 0);
+                const precioUnitarioVal = parseFloat(detalle.precio_unitario || detalle.PrecioUnitario || 0);
+                const id_sum = detalle.id_suministros || detalle.FKSuministros || detalle.id_suministro || "";
+                const id_dr = detalle.id_detalle_requisicion || detalle.FKRequisicion || "";
+                const id_da = detalle.id_detalle_adquisicion || detalle.PKDetalleAdquisicion || "";
+                
+                const precioTotalVal = cantidadVal * precioUnitarioVal;
+
+                tablaArticulos += `
+                    <tr data-id-da="${id_da}" data-id-dr="${id_dr}" data-id-sum="${id_sum}">
+                        <td>${id_da || id_dr || ''}</td>
+                        <td style="display: none">${id_sum}</td>
+                        <td>${detalle.nombre_suministro || detalle.NombreSuministro || ''}</td>
+                        <td>${cantidadVal}</td>
+                        <td>L\u00A0${dollarUSLocale.format(precioUnitarioVal)}</td>
+                        <td>L\u00A0${dollarUSLocale.format(precioTotalVal)}</td>
+                    </tr>
+                `;
+                costoTotal += precioTotalVal;
+            });
+
+            $('#tabla-articulos').html(tablaArticulos);
+            $('#costo-total').html('<strong>' + dollarUSLocale.format(costoTotal) + '</strong>');
         }
     }
 
