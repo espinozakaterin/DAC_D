@@ -465,25 +465,20 @@ body {
 .user-dropdown-top {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
     cursor: pointer;
-    background: var(--white);
-    padding: 5px 16px 5px 5px;
-    border-radius: 30px;
-    border: 1px solid var(--border-color);
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+    border: none;
     transition: var(--transition);
-    height: 40px;
 }
 .user-dropdown-top:hover {
-    background-color: var(--body-bg);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;
+    opacity: 0.8;
 }
-.user-dropdown-top img.user-avatar {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    object-fit: cover;
+/* user-avatar styles moved to inline or managed by container */
+.user-dropdown-top .user-info {
+    display: none; /* Removed as it's replaced by the new structure */
 }
 .user-dropdown-top .user-info {
     font-size: 0.82rem;
