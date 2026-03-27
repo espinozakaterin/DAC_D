@@ -1,0 +1,1003 @@
+{% extends 'menu_control_suministros.html' %}
+{% load static %}
+
+{% block title %}
+GESTION DE ASIGNACIONES
+{% endblock %}
+
+{% block body %}
+
+<div class="row align-items-center">
+    <div class="col d-flex align-items-center">
+        <button id="toggle-sidebar" class="hamburger btnMenu me-3" title="Mostrar/Ocultar Menu">
+            <i class="fas fa-bars"></i>
+        </button>
+        <h3 class="page-title mb-0">
+            <i class="fas fa-clipboard"></i> <strong>LISTADO DE ASIGNACIONES</strong>
+        </h3>
+    </div>
+
+    <div class="col-auto text-end float-end ms-auto download-grp">
+        <button class="btn btn-sm btn-success" style="background-color: #697a8a; text-align: justify;" id="btnNuevo"
+            title="Crear Nuevo"><i class="fas fa-plus me-2"></i>
+            <strong>Nueva Asignación</strong></button>
+    </div>
+</div>
+
+
+<div class="row mb-3">
+    <div class="col-auto">
+        <label for="estadoFiltro" class="form-label"><strong>Filtrar por Estado</strong></label>
+        <select id="estadoFiltro" class="form-select" aria-label="Filtrar por Estado">
+            <option value="0">Todo el listado</option>
+            <option value="1">Listado de Requisiciones Activas</option>
+            <option value="3">Listado de Requisiciones Deshabilitadas</option>
+        </select>
+    </div>
+</div>
+
+
+<div class="row">
+    <div class="table-responsive bg-white shadow rounded-4 p-3">
+        <table id="Tabla_Asignaciones"
+            class="table table-hover table-bordered table-striped table-sm align-middle mb-0 rounded-4"
+            style="width: 100%; border-collapse: collapse; border-radius: 10px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
+            <thead class="text-white text-center rounded-4" style="background-color: #697a8a; text-align: center;">
+                <tr>
+                    <th style="border-radius: 10px 0 0 0;">No.</th>
+                    <th class="text-center">Nombre Completo</th>
+                    <th class="text-center">Usuario</th>
+                    <th class="text-center">Grupo/Área</th>
+                    <th class="text-center">Categoria</th>
+                    <th class="text-center">Suministro</th>
+                    <th class="text-center">Cantidad</th>
+                    <th class="text-center">Fecha</th>
+                    <th class="text-center">Comentario</th>
+                    <th class="text-center">Estado</th>
+                    <th class="text-center" style="border-radius: 10px 0 0 0;">Acciones</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% include 'Modales_S/agregar_asignacion.html' %}
+{% include 'Modales_S/Opciones_Impresion.html' %}
+
+{% endblock %}
+
+
+{% block scripts %}
+
+<script>
+    $(document).ready(function () {
+        var csrfToken = "{{ csrf_token }}";
+        var cambiar_estado_actual = 0;
+        const usuarioActivo = "{{ userName }}";
+        // var opcion = "{{ prueba }}";
+
+
+        var toastMixin = Swal.mixin({
+            toast: true,
+            icon: 'success',
+            title: 'General Title',
+            animation: false,
+            position: 'top-right',
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
+            }
+        });
+
+        $('#menu_gestion_suministros, #listar_asignaciones_submenu').addClass('active');
+
+        id_grupo_seleccionado = null;
+        id_suministro_seleccionado = null;
+        select_estado_asignaciones = 0;
+        let idAsignacionSeleccionada = null;
+
+        fillAsignaciones()
+
+        function fillAsignaciones() {
+
+            $("#Tabla_Asignaciones").DataTable().clear().destroy();
+
+            Tabla_Asignaciones = $("#Tabla_Asignaciones").DataTable({
+                autoWidth: false,
+                scrollX: true,
+                scrollY: '350px',
+                scrollCollapse: true,
+                pageLength: 30,
+                dom: 'Brftip',
+                language: {
+                    url: "{% static 'app/th/json/es-ES.json' %}",
+                },
+                ajax: {
+                    url: `{% url 'get_asignaciones_data' %}`,
+                    type: "POST",
+                    dataSrc: 'data',
+                    data: {
+                        varEstado: select_estado_asignaciones,
+                        csrfmiddlewaretoken: csrfToken
+                    },
+                },
+                colReorder: {
+                    realtime: false,
+                },                buttons: [
+    {
+        extend: 'excelHtml5',
+        text: '<i class="fas fa-file-excel"></i> Excel',
+        titleAttr: 'Exportar a Excel',
+        className: 'btn btn-success btn-sm',
+        exportOptions: {
+            columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 10]
+        }
+    },
+    {
+        extend: 'pdfHtml5',
+        text: '<i class="fas fa-file-pdf"></i> PDF',
+        titleAttr: 'Exportar a PDF',
+        className: 'btn btn-danger btn-sm',
+        pageSize: 'A4',
+        orientation: 'portrait',
+        exportOptions: {
+            columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 10]
+        },
+        customize: function (doc) {
+            doc.content[1].table.widths = Array(doc.content[1].table.body[0].length).fill('*');
+            doc.styles.tableHeader.fillColor = '#2c4770';
+            doc.styles.tableHeader.color = 'white';
+            doc.styles.tableHeader.alignment = 'center';
+            doc.styles.tableHeader.fontSize = 9;
+            doc.defaultStyle.alignment = 'center';
+            doc.defaultStyle.fontSize = 7;
+            doc.pageMargins = [15, 20, 15, 20];
+            doc.content[0].text = "REPORTE DE ASIGNACIONES";
+            doc.content[0].alignment = 'center';
+            doc.content[0].margin = [0, 0, 0, 10];
+        }
+    },
+    {
+        extend: 'print',
+        text: '<i class="fas fa-print"></i> Imprimir',
+        titleAttr: 'Imprimir',
+        className: 'btn btn-secondary btn-sm',
+        exportOptions: {
+            columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 10]
+        },
+        customize: function (win) {
+            $(win.document.body).find('table').addClass('compact').css('font-size', '8pt');
+            $(win.document.body).find('h1').css('text-align', 'center').text('ASIGNACIONES - CONTROL SUMINISTROS');
+        }
+    }
+],
+                columns: [
+                    {
+                        data: 'id_asignacion'
+                    },
+                    {
+                        data: 'Nombre'
+                    },
+                    {
+                        data: 'Usuario'
+                    },
+                    {
+                        data: 'GrupoNombre'
+                    },
+                    {
+                        data: 'nombre_categoria'
+                    },
+                    {
+                        data: 'nombre'
+                    },
+                    {
+                        data: 'cantidad_asignacion'
+                    },
+                    {
+                        data: 'fecha_asignacion'
+                    },
+                    {
+                        data: 'comentario'
+                    },
+                    
+                    {
+                        data: 'estado',
+                        className: 'text-center',
+                        render: function (data, type, row) {
+                            var badge = "";
+                            if (data == 3) {
+                                badge +=
+                                    '<span class="badge badge-pill custom-red">DESHABILITADO</span>';
+                            } else {
+                                badge +=
+                                    '<span class="badge badge-pill bg-success">ACTIVO</span>';
+                            }
+
+                            return badge;
+                        },
+                    },
+                    {
+                        data: null,
+                        width: '3%',
+                        title: "Acciones",
+                        render: function (data, type, row) {
+                            if (row.estado == 3) {
+                                return `
+                            <div class="text-center">
+                                <div class="btn-group">
+                                    <button class="btn btn-danger btn-sm anularAsignacion rounded-pill shadow-sm" title="Cambiar Estado" data-id="${row.id_asignacion}" data-estado="${row.estado}">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </button>                               
+                                </div>
+                            </div>
+                            `;
+                            }
+                            return `
+                            <div class="text-center">
+                                <div class="btn-group">
+                                    
+                                    <!-- Editar -->
+                                    <button class="btn btn-warning btn-sm editarAsignacion rounded-pill shadow-sm" data-id="${row.id_asignacion}" data-nombre="${row.PKUsuario}" data-grupo="${row.PKgrupo}" data-categoria="${row.id_categoria}" data-suministros="${row.id_suministros}" data-estado="${row.estado}">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <!-- Imprimir -->
+                                    <button class="btn btn-success btn-sm imprimirAsignacion rounded-pill shadow-sm" title="Imprimir Asignación" data-id="${row.id_asignacion}">
+                                        <i class="fas fa-print"></i> 
+                                    </button>
+                                    <!-- Anular/Habilitar -->
+                                    <button class="btn btn-danger btn-sm anularAsignacion rounded-pill shadow-sm" title="Cambiar Estado" data-id="${row.id_asignacion}" data-estado="${row.estado}">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </button>                                
+                                </div>
+                            </div>
+                            `;
+                        }
+                    },
+                    
+                ],
+                
+            });
+        }
+
+
+        // Agregar nueva asignacion
+$('#btnNuevo').click(function (e) {
+    e.preventDefault();
+
+    $('#formAsignacion').trigger('reset');
+    $('#modalAsignacionLabel').html('<strong>Crear Nueva Asignacion</strong>');
+
+    opcion = 1;
+    id_asignacion = null;
+    id_grupo_seleccionado = null;
+    id_suministro_seleccionado = null;
+
+    $('#usuario').val('');
+    $('#grupos').val('').trigger('change');
+    $('#categoria').val('');
+    $('#cantidad').val('');
+    $('#comentario').val('');
+    $('#fecha_asignacion').val('');
+
+    // dejar vacío suministro hasta elegir categoría
+    $('#suministro').html('<option value="">Seleccione el suministro:</option>');
+
+    $('#modalAsignacion').modal('show');
+});
+
+        // EDITAR ASIGNACION
+        $(document).on('click', '.editarAsignacion', function () {
+            $('#formAsignacion').trigger('reset');
+
+            // Establecer la opción de editar y obtener la fila seleccionada
+            opcion = 2;
+           filaAsignacion = $(this).closest('tr');
+           id_asignacion = $(this).data('id');
+           id_nombre = $(this).data('nombre');
+           id_grupo_seleccionado = $(this).data('grupo');
+           categoria_id = $(this).data('categoria');
+           usuario = filaAsignacion.find("td:eq(2)").text();
+           id_suministro_seleccionado = $(this).data('suministros');
+           cantidad = filaAsignacion.find("td:eq(6)").text();
+           var fecha = filaAsignacion.find("td:eq(7)").text();
+           comentario = filaAsignacion.find("td:eq(10)").text();
+
+            // Obtener la fecha desde la tabla (que es en formato YYYY-MM-DDTHH:MM:SS)
+            var fecha = filaAsignacion.find("td:eq(8)").text();  // Asumimos que la fecha está en formato YYYY-MM-DDTHH:MM:SS
+
+            // Verificar que la fecha no esté vacía
+            if (fecha) {
+                // Crear un objeto Date a partir de la fecha (en formato ISO 8601)
+                var fechaConvertida = new Date(fecha);
+
+                // Comprobar si la fecha se ha convertido correctamente
+                if (!isNaN(fechaConvertida)) {
+                    // Extraer la fecha en formato YYYY-MM-DD (sin la hora)
+                    var fechaFormateada = fechaConvertida.toISOString().split('T')[0]; // Esto obtiene solo la parte YYYY-MM-DD
+
+                    // Asignar la fecha al campo de fecha
+                    $('#fecha_asignacion').val(fechaFormateada);
+                } else {
+                    console.error("La fecha no es válida: " + fecha);
+                }
+            } else {
+                console.error("No se ha encontrado una fecha válida.");
+            }
+
+            // Asignar los valores a los campos del formulario
+            $('#nombre_completo').val(id_nombre).change();
+            $('#usuario').val(usuario);
+            $('#grupos').val(id_grupo_seleccionado).change();
+            $('#categoria').val(categoria_id).change();
+            $('#suministro').val(id_suministro_seleccionado).change();
+            $('#cantidad').val(cantidad);
+            $('#comentario').val(comentario);
+
+            // Actualizar el estado del almacén a "Editado" (suponiendo que el estado es 2 para editar)
+            cambiar_estado_actual = 2;
+
+            $.ajax({
+                url: "{% url 'actualizar_estado_asignacion' %}",  // URL para actualizar el estado a 'Editado'
+                type: "POST",
+                data: {
+                    id_asignacion: id_asignacion,
+                    estado: cambiar_estado_actual,  // Estado Editado
+                    csrfmiddlewaretoken: csrfToken
+                },
+                success: function (response) {
+                    // Aquí puedes manejar la respuesta, como mostrar un mensaje de éxito
+                    console.log("Estado actualizado correctamente");
+                },
+                error: function (xhr, status, error) {
+                    // Aquí puedes manejar errores, como mostrar un mensaje de error
+                    console.error("Hubo un problema al actualizar el estado:", error);
+                }
+            });
+
+
+            // Mostrar el modal con el título adecuado
+            $('#modalAsignacionLabel').html('<strong>Editar Asignacion #' + id_asignacion + '</strong>');
+            $('#modalAsignacion').modal('show');
+
+        });
+
+        // AGREGAR NUEVA ASIGNACION
+        $('#formAsignacion').submit(function (e) {
+            e.preventDefault();
+
+            // Recoger valores de los campos del formulario
+            var nombre_completo = $('#nombre_completo').val();
+            var usuario = $('#usuario').val();
+            var grupos = $('#grupos').val();
+            var id_categoria = $('#categoria').val();
+            var suministro = $('#suministro').val();
+            var cantidad = $('#cantidad').val();
+            var comentario = $('#comentario').val();
+            var fecha = $('#fecha_asignacion').val();
+
+            // Validación básica de campos
+            // Validación básica de campos
+if (!nombre_completo || !id_categoria || !suministro) {
+    Swal.fire("", "Debes llenar todos los campos!", "warning");
+    return;
+} else {
+    // Enviar datos al servidor
+    $.ajax({
+        url: "{% url 'insertar_actualizar_asignacion' %}",
+        type: "POST",
+        data: {
+            id_asignacion: id_asignacion,
+            usuario: usuario,
+            nombre_completo: nombre_completo,
+            grupos: grupos,
+            categoria: id_categoria,
+            suministro: suministro,
+            cantidad: cantidad,
+            comentario: comentario,
+            fecha: fecha,
+            csrfmiddlewaretoken: csrfToken
+        },
+        success: function (data) {
+            if (data.save == 1) {
+                if (opcion == 1) {
+                    if (data.existe == 0) {
+                        $('#modalAsignacion').modal('hide');
+
+                        toastMixin.fire({
+                            animation: true,
+                            title: 'Asignación Creada!'
+                        });
+                    } else {
+                        Swal.fire("", "La asignación ya existe.", "warning");
+                    }
+                } else {
+                    $('#modalAsignacion').modal('hide');
+
+                    toastMixin.fire({
+                        animation: true,
+                        title: 'Asignación Editada!'
+                    });
+                }
+
+                Tabla_Asignaciones.ajax.reload(null, false);
+            } else {
+                Swal.fire("", "Error D: " + data.error, "error");
+            }
+        },
+        error: function () {
+            Swal.fire("", "Ocurrió un error al guardar los datos.", "error");
+        }
+     });
+    }
+});
+
+
+        // --------------------------------------------------------------------------------------------------------------------------------- //
+
+        $('#estadoFiltro').change(function (e) {
+            e.preventDefault();
+
+
+            select_estado_asignaciones = $("#estadoFiltro").val();
+            fillAsignaciones();
+        });
+
+        // --------------------------------------------------------------------------------------------------------------------------------- //
+        // CAMBIAR ESTADO DE LA REQUISICIÓN (DESHABILITAR O ACTIVAR)
+        $(document).on('click', '.anularAsignacion', function () {
+            var id_asignacion = $(this).data('id');
+            var estado_actual = $(this).data('estado');  // Este atributo 'data-estado' debe tener el estado actual de la requisición
+
+            // Definir mensaje y acción según el estado actual
+            var mensaje = estado_actual == 3
+                ? '¿Estás seguro de que quieres activar esta asignación?'
+                : '¿Estás seguro de que quieres deshabilitar esta asignación?';
+            var confirmButtonText = estado_actual == 3
+                ? 'Sí, activar'
+                : 'Sí, deshabilitar';
+            var action = estado_actual == 3
+                ? 1  // Activar
+                : 3;  // Deshabilitar
+
+            Swal.fire({
+                title: estado_actual == 3 ? 'Activar Asignación' : 'Deshabilitar Asignación',
+                text: mensaje,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: confirmButtonText,
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: "{% url 'actualizar_estado_asignacion' %}", // URL de tu vista
+                        type: "POST",
+                        data: {
+                            id_asignacion: id_asignacion,
+                            estado: action,  // El estado que corresponde según la acción (activar o deshabilitar)
+                            csrfmiddlewaretoken: csrfToken
+                        },
+                        success: function (data) {
+                            if (data.success) {
+                                var mensajeExito = estado_actual == 3
+                                    ? 'La asignación ha sido activada.'
+                                    : 'La asignación ha sido deshabilitada.';
+                                Swal.fire(estado_actual == 3 ? 'Activada!' : 'Deshabilitada!', mensajeExito, 'success');
+
+                                // Actualizar el estado de la requisición en la interfaz
+                                var row = $('tr[data-id="' + id_asignacion + '"]');
+                                row.find('.estado').html(
+                                    estado_actual == 3
+                                        ? '<span class="badge badge-pill bg-success">ACTIVO</span>'
+                                        : '<span class="badge badge-pill bg-danger">DESHABILITADO</span>'
+                                );
+
+                                // Recargar la tabla de requisiciones después de actualizar el estado
+                                Tabla_Asignaciones.ajax.reload(null, false);
+                            } else {
+                                Swal.fire('Error!', data.error || 'No se pudo actualizar el estado de la asignación.', 'error');
+                            }
+                        },
+                        error: function () {
+                            Swal.fire('Error!', 'Ocurrió un error al intentar cambiar el estado de la asignación.', 'error');
+                        }
+                    });
+                }
+            });
+        });
+
+        $(document).on('click', '.imprimirAsignacion', function () {
+            idAsignacionSeleccionada = $(this).data('id'); // Obtener el ID de la asignación
+            $('#modalImprimir').modal('show');
+
+            $('#tipoImpresion').on('change', function () {
+                const tipo = $(this).val();
+                if (tipo === 'pase') {
+                    $('#comentarioContainer').show();
+                } else {
+                    $('#comentarioContainer').hide();
+                    $('#comentarioPase').val('');
+                }
+            });
+
+        });
+
+      $('#confirmarImpresion').on('click', function () {
+    const tipoImpresion = $('#tipoImpresion').val();
+    const comentarioPase = $('#comentarioPase').val();
+    const empresaImpresion = $('#empresaImpresion').val();
+
+    $('#modalImprimir').modal('hide');
+
+    $.ajax({
+        url: "{% url 'obtener_asignacion_data' %}",
+        type: "GET",
+        data: { 'id_asignacion': idAsignacionSeleccionada },
+        success: function (data) {
+            if (data.asignacion) {
+                const asignacion = data.asignacion;
+
+                const { jsPDF } = window.jspdf;
+
+                if (tipoImpresion === "detalle") {
+                    const doc = new jsPDF({ unit: "mm", format: [216, 279] });
+                    imprimirAsignacionCompleta(doc, asignacion, empresaImpresion);
+                } else if (tipoImpresion === "pase") {
+                    const doc = new jsPDF({
+                        unit: 'mm',
+                        format: [58, 100],
+                    });
+                    imprimirPaseSalida(doc, asignacion, comentarioPase, empresaImpresion);
+                }
+
+            } else {
+                Swal.fire("Advertencia", "No se encontraron detalles para esta asignación.", "warning");
+            }
+        },
+        error: function (xhr) {
+            Swal.fire("Error", `Error al cargar la asignación: ${xhr.statusText}`, "error");
+        }
+    });
+});
+function imprimirAsignacionCompleta(doc, asignacion, empresaImpresion) {
+
+    let nombreEmpresa = "";
+    let direccionEmpresa = "Barrio Cabañas, dos cuadras y media al Sur del Costeño Oeste Mercado Concepción.";
+    let telefonoEmpresa = "Tel. 2782-6464";
+
+    const logoUrl = "/static/app/controlsum/images/carbajal_logo.png";
+
+    if (empresaImpresion === "hermanitos") {
+        nombreEmpresa = "HERMANITOS ALVAREZ CARBAJAL S DE R.L DE C.V";
+    } else if (empresaImpresion === "nuevo_amanecer") {
+        nombreEmpresa = "CORPORACIÓN NUEVO AMANECER CARBAJAL S DE R.L DE C.V";
+    }
+
+    fetch(logoUrl)
+        .then(response => response.blob())
+        .then(blob => {
+
+            const imageUrl = URL.createObjectURL(blob);
+            const pageWidth = doc.internal.pageSize.width;
+
+            function formatearFecha(fechaTexto) {
+
+                if (!fechaTexto) return "";
+
+                const fecha = new Date(fechaTexto);
+                if (isNaN(fecha)) return fechaTexto;
+
+                const dia = String(fecha.getDate()).padStart(2, "0");
+                const mes = String(fecha.getMonth() + 1).padStart(2, "0");
+                const anio = fecha.getFullYear();
+                const horas = String(fecha.getHours()).padStart(2, "0");
+                const minutos = String(fecha.getMinutes()).padStart(2, "0");
+                const segundos = String(fecha.getSeconds()).padStart(2, "0");
+
+                return `${dia}/${mes}/${anio} ${horas}:${minutos}:${segundos}`;
+            }
+
+            const fechaFormateada = formatearFecha(asignacion.fecha_asignacion);
+
+            /* LOGO */
+
+            doc.addImage(imageUrl, "PNG", 20, 12, 28, 18);
+
+            /* NOMBRE EMPRESA */
+
+            doc.setFont("helvetica", "bold");
+
+            if (empresaImpresion === "nuevo_amanecer") {
+                doc.setFontSize(12);
+            } else {
+                doc.setFontSize(15);
+            }
+
+            doc.text(nombreEmpresa, pageWidth / 2, 20, { align: "center" });
+
+            /* DIRECCION Y TELEFONO */
+
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(10);
+
+            doc.text(direccionEmpresa, pageWidth / 2, 27, { align: "center" });
+            doc.text(telefonoEmpresa, pageWidth / 2, 33, { align: "center" });
+
+            /* LINEA */
+
+            doc.setDrawColor(120, 120, 120);
+            doc.line(20, 40, 190, 40);
+
+            /* TITULO */
+
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(14);
+
+            doc.text("CONTROL DE SALIDA DE SUMINISTROS", pageWidth / 2, 50, { align: "center" });
+
+            /* DATOS */
+
+            doc.setFontSize(10);
+
+            doc.setFont("helvetica", "bold");
+            doc.text("Nombre quien recibe:", 20, 64);
+
+            doc.setFont("helvetica", "normal");
+            doc.text(asignacion.Nombre || "", 65, 64);
+
+            doc.line(20, 67, 190, 67);
+
+            doc.setFont("helvetica", "bold");
+            doc.text("Lugar y fecha:", 20, 78);
+
+            doc.setFont("helvetica", "normal");
+            doc.text("Choluteca, " + fechaFormateada, 20, 84);
+
+            doc.setFont("helvetica", "bold");
+            doc.text("Área laboral:", 130, 78);
+
+            doc.setFont("helvetica", "normal");
+            doc.text(asignacion.GrupoNombre || "", 130, 84);
+
+            /* CAJA DESCRIPCION */
+
+            doc.setDrawColor(180, 180, 180);
+            doc.roundedRect(20, 94, 170, 55, 2, 2);
+
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(11);
+            doc.text("DESCRIPCIÓN DE LA ASIGNACIÓN", 25, 104);
+
+            doc.setFontSize(10);
+
+            doc.setFont("helvetica", "bold");
+            doc.text("Suministro:", 25, 116);
+
+            doc.setFont("helvetica", "normal");
+            doc.text(asignacion.nombre || "", 60, 116);
+
+            doc.setFont("helvetica", "bold");
+            doc.text("Categoría:", 25, 126);
+
+            doc.setFont("helvetica", "normal");
+            doc.text(asignacion.nombre_categoria || "", 60, 126);
+
+            doc.setFont("helvetica", "bold");
+            doc.text("Cantidad:", 25, 136);
+
+            doc.setFont("helvetica", "normal");
+            doc.text(String(asignacion.cantidad_asignacion || ""), 60, 136);
+
+            doc.setFont("helvetica", "bold");
+            doc.text("Comentario:", 25, 146);
+
+            doc.setFont("helvetica", "normal");
+
+            const comentario = asignacion.comentario || "Sin comentario.";
+            const comentarioLineas = doc.splitTextToSize(comentario, 120);
+
+            doc.text(comentarioLineas, 60, 146);
+
+            /* TEXTO FINAL */
+
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(10);
+
+            const textoAceptacion =
+                "ACEPTO DE CONFORMIDAD EL SUMINISTRO ANTES DESCRITO, HACIENDO CONSTAR QUE LO RECIBO EN EXCELENTES CONDICIONES Y ME COMPROMETO AL BUEN USO DEL MISMO.";
+
+            const lineasAceptacion = doc.splitTextToSize(textoAceptacion, 165);
+
+            doc.text(lineasAceptacion, 20, 165);
+
+            /* FIRMAS */
+
+            doc.line(25, 230, 85, 230);
+            doc.line(125, 230, 185, 230);
+
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(10);
+
+            doc.text("Recibido por", 55, 236, { align: "center" });
+            doc.text("Entregado por", 155, 236, { align: "center" });
+
+            /* GUARDAR PDF */
+
+            doc.save(`Asignacion_#${idAsignacionSeleccionada}.pdf`);
+
+        })
+        .catch(error => {
+
+            Swal.fire("Error", `No se pudo cargar el logo. ${error}`, "error");
+
+        });
+}
+
+        function imprimirPaseSalida(doc, asignacion, comentarioPase, empresaImpresion) {
+
+    const pageWidth = doc.internal.pageSize.width;
+    const comentarioFinal = comentarioPase || asignacion.comentario;
+    const logoUrl = '/static/app/controlsum/images/carbajal_logo.png';
+
+    function formatearFechaCorta(fechaTexto) {
+        if (!fechaTexto) return '';
+        const fecha = new Date(fechaTexto);
+        if (isNaN(fecha)) return fechaTexto;
+
+        const dia = String(fecha.getDate()).padStart(2, '0');
+        const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+        const anio = fecha.getFullYear();
+
+        return `${dia}/${mes}/${anio}`;
+    }
+
+    const fechaFormateada = formatearFechaCorta(asignacion.fecha_asignacion);
+
+    fetch(logoUrl)
+        .then(response => response.blob())
+        .then(blob => {
+
+            const imageUrl = URL.createObjectURL(blob);
+
+            // Logo centrado
+            const logoWidth = 20;
+            const logoHeight = 10;
+            const xLogo = (pageWidth - logoWidth) / 2;
+            const yLogo = 5;
+
+            doc.addImage(imageUrl, 'PNG', xLogo, yLogo, logoWidth, logoHeight);
+
+            // Empresa
+            doc.setFont("Arial", "bold");
+            doc.setFontSize(6);
+
+            let title = "HERMANITOS ALVAREZ";
+
+            if (empresaImpresion === "hermanitos") {
+                title = "HERMANITOS ALVAREZ";
+            } 
+            else if (empresaImpresion === "nuevo_amanecer") {
+                title = "CORPORACIÓN NUEVO AMANECER";
+            }
+
+            const titleX = (pageWidth - doc.getTextWidth(title)) / 2;
+            doc.text(title, titleX, 20);
+
+            // Subtítulo
+            doc.setFontSize(6);
+            doc.setFont("Arial", "normal");
+
+            const subtitulo = "PASE DE SALIDA DE SUMINISTROS";
+            const subX = (pageWidth - doc.getTextWidth(subtitulo)) / 2;
+            doc.text(subtitulo, subX, 25);
+
+            // Datos
+            doc.setFontSize(5);
+            doc.text(`Fecha: ${fechaFormateada}`, 10, 32);
+            doc.text(`Salida de: ${asignacion.nombre || ''}`, 10, 38);
+            doc.text(`Concepto: ${comentarioFinal}`, 10, 44);
+
+            // Firma
+            const firmaY = 55;
+
+            doc.setFontSize(4.5);
+            doc.text(asignacion.creado_por || '', 10, firmaY - 3);
+
+            doc.line(8, firmaY, 50, firmaY);
+            doc.text("Firma Autorizada", 23, firmaY + 5);
+
+            // Guardia
+            doc.line(8, firmaY + 15, 50, firmaY + 15);
+            doc.text("Nombre Guardia", 23, firmaY + 20);
+
+            // Guardar PDF
+            doc.save(`PaseSalida_#${idAsignacionSeleccionada}.pdf`);
+
+        })
+        .catch(error => {
+            Swal.fire("Error", `No se pudo cargar el logo. ${error}`, "error");
+        });
+}
+
+        // Limpiar modal al cerrarlo
+        $('#modalImprimir').on('hidden.bs.modal', function () {
+            $(this).find('form')[0]?.reset(); // solo si hay un <form>
+            $(this).find('textarea, input').val('');
+            $(this).find('select').val('').trigger('change');
+            $(this).find('.is-invalid, .is-valid').removeClass('is-invalid is-valid');
+            $('#comentarioContainer').hide();
+            // Restablecer el select a "detalle"
+            $('#tipoImpresion').val('detalle').trigger('change');
+        });
+        // --------------------------------------------------------------------------------------------------------------------------------- //
+
+        // Obtener el nombre completo para el input por medio del select de usuario
+        $('#nombre_completo').change(function () {
+            var pkUsuario = $('#nombre_completo').val();  // Captura el valor seleccionado
+            console.log("PKUsuario capturado:", pkUsuario);  // Depuración
+
+            if (pkUsuario && pkUsuario !== "") {  // Verifica que el valor no sea vacío o ""
+                // Realizar la solicitud AJAX para obtener el nombre del usuario
+                $.ajax({
+                    url: '{% url "obtener_usuario_por_nombre_data" %}',  // URL de la vista Django
+                    data: {
+                        'PKUsuario': pkUsuario,  // Enviar PKUsuario
+                        csrfmiddlewaretoken: csrfToken  // Asegúrate de tener el token CSRF
+                    },
+                    type: "POST",
+                    dataType: 'json',
+                    success: function (response) {
+                        console.log("Respuesta del servidor:", response);
+                        if (response.usuario) {
+                            // Completar el campo de texto con el usuario
+                            $('#usuario').val(response.usuario);
+                        } else {
+                            console.log("Error: No se encontró el usuario.");
+                            Swal.fire("", "No se encontró el usuario.", "error");
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.log("Error al obtener el nombre del usuario:", error);
+                        Swal.fire("", "Ocurrió un error al obtener el nombre del usuario.", "error");
+                    }
+                });
+            } else {
+                console.log("No se ha seleccionado un ID de usuario válido.");
+            }
+        });
+
+        // =========================
+        // SELECT2 + CARGAR AREAS
+        // =========================
+function initSelect2EnModal() {
+
+    if ($.fn.select2 && $('#nombre_completo').hasClass('select2-hidden-accessible')) {
+        $('#nombre_completo').select2('destroy');
+    }
+    $('#nombre_completo').select2({
+        placeholder: "Seleccione",
+        width: "100%",
+        allowClear: true,
+        dropdownParent: $('#modalAsignacion')
+    });
+
+    if ($.fn.select2 && $('#grupos').hasClass('select2-hidden-accessible')) {
+        $('#grupos').select2('destroy');
+    }
+    $('#grupos').select2({
+        placeholder: "Seleccione el área",
+        width: "100%",
+        allowClear: true,
+        dropdownParent: $('#modalAsignacion')
+    });
+
+    if ($.fn.select2 && $('#categoria').hasClass('select2-hidden-accessible')) {
+        $('#categoria').select2('destroy');
+    }
+    $('#categoria').select2({
+        placeholder: "Seleccione Categoría",
+        width: "100%",
+        allowClear: true,
+        minimumResultsForSearch: Infinity,   
+        dropdownParent: $('#modalAsignacion')
+    });
+}
+    
+
+function cargarSelectGrupos() {
+    $.ajax({
+        url: "{% url 'get_areas_data' %}",
+        type: "GET",
+        dataType: "json",
+        success: function (response) {
+
+            const $select = $('#grupos');
+            $select.empty();
+            $select.append('<option value=""></option>');
+
+            (response.data || []).forEach(item => {
+                $select.append(`<option value="${item.id}">${item.nombre}</option>`);
+            });
+
+            if (id_grupo_seleccionado) {
+                $select.val(id_grupo_seleccionado).trigger('change');
+            }
+        },
+        error: function (xhr) {
+            console.error("Error al obtener áreas:", xhr.responseText);
+        }
+    });
+}
+
+// =========================
+// EVENTOS (SOLO UNA VEZ)
+// =========================
+
+// cuando se abre el modal
+$('#modalAsignacion').on('shown.bs.modal', function () {
+    initSelect2EnModal();
+    cargarSelectGrupos();
+});
+
+// cuando cambia el area, vuelve a cargar suministros si ya hay categoria
+$(document).on('change', '#grupos', function () {
+    $('#categoria').trigger('change');
+});
+
+$(document).on('change', '#categoria', function () {
+    const id_categoria = $('#categoria').val();
+
+    console.log("Categoría seleccionada:", id_categoria);
+
+    // limpiar suministro cada vez que cambie categoria
+    $('#suministro').empty().append('<option value="">Seleccione el suministro:</option>');
+
+    if (!id_categoria || id_categoria === '#') {
+        return;
+    }
+
+    $('#suministro').html('<option value="">Cargando suministros...</option>');
+
+    $.ajax({
+        url: '{% url "obtener_suministros_por_categoria_data" %}',
+        type: "GET",
+        dataType: "json",
+        data: {
+            id_categoria: id_categoria
+        },
+        success: function (response) {
+            console.log("Respuesta del servidor:", response);
+
+            const lista = response.data || [];
+            let html = '<option value="">Seleccione el suministro:</option>';
+
+            if (lista.length > 0) {
+                lista.forEach(function(item) {
+                    html += `<option value="${item.id}">${item.nombre}</option>`;
+                });
+            } else {
+                html += '<option value="">No hay suministros disponibles</option>';
+            }
+
+            $('#suministro').html(html);
+
+            if (id_suministro_seleccionado) {
+                $('#suministro').val(id_suministro_seleccionado).trigger('change');
+            }
+        },
+        error: function (xhr) {
+            console.error("Error al obtener suministros:", xhr.responseText);
+            Swal.fire("", "Ocurrió un error al obtener los suministros.", "error");
+        }
+    });
+});
+});
+ 
+</script>
+{% endblock %}

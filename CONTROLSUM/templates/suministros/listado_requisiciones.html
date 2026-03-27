@@ -1,0 +1,1126 @@
+{% extends 'menu_control_suministros.html' %}
+{% load static %}
+
+{% block title %}
+GESTION DE REQUISICIONES
+{% endblock %}
+
+
+{% block body %}
+
+<div class="row align-items-center">
+    <div class="col d-flex align-items-center">
+    
+        <h3 class="page-title mb-0">
+            <i class="fas fa-check-circle"></i> <strong>LISTADO DE REQUISICIONES</strong>
+        </h3>
+    </div>
+
+    <div class="col-auto text-end float-end ms-auto download-grp">
+        <button class="btn btn-sm btn-success" style="background-color: #697a8a; text-align: justify;" id="btnNuevo"
+            title="Crear Nuevo"><i class="fas fa-plus me-2"></i>
+            <strong>Nueva Requisición</strong></button>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-auto">
+        <label for="estadoFiltro" class="form-label"><strong>Filtrar por Estado</strong></label>
+        <select id="estadoFiltro" class="form-select" aria-label="Filtrar por Estado">
+            <option value="0">Todo el listado</option>
+            <option value="1">Listado de Requisiciones Activas</option>
+            <option value="3">Listado de Requisiciones Deshabilitadas</option>
+        </select>
+    </div>
+</div>
+
+<div class="row">
+    <div class="table-responsive bg-white shadow rounded-4 p-3">
+        <table id="Tabla_Requisiciones"
+            class="table table-hover table-bordered table-striped table-sm align-middle mb-0 rounded-4">
+            <thead class="text-white text-center rounded-4" style="background-color: #697a8a; text-align: center;">
+                <tr>
+                    <th class="rounded-start">No.</th>
+                    <th class="text-center">Solicitante</th>
+                    <th class="text-center">Grupo/Area</th>
+                    <th class="text-center">Acreedor</th>
+                    <th class="text-center">Fecha Pedido</th>
+                    <th class="text-center">Fecha Pago</th>
+                    <th class="text-center">Costo Total</th>
+                    <th class="text-center">Estado de Requisición</th>
+                    <th class="text-center">Estado</th>
+                    <th class="text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody class="text-center">
+                <!-- Contenido dinámico -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+{% include 'Modales_S/agregar_requisicion.html' %}
+
+{% endblock %}
+
+
+{% block scripts %}
+
+<script>
+    $(document).ready(function () {
+        var csrfToken = "{{ csrf_token }}";
+$("#nombre_completo").on('change', function () {
+
+    const usuario_id_raw = $(this).val();
+    const usuario_id = (usuario_id_raw || '').toString().trim();
+
+    if (!usuario_id) {
+        $('#grupos').empty().append('<option value="">Seleccione el grupo</option>');
+        return;
+    }
+
+    if (!/^\d+$/.test(usuario_id)) {
+        alert("Seleccione un usuario válido.");
+        return;
+    }
+
+    $('#grupos').empty().append('<option value="">Cargando grupos...</option>');
+
+    $.ajax({
+    url: "/CWS/modulos/control/suministros/grupos/por/usuario/data",
+    type: "GET",
+    data: {
+        pk_usuario: usuario_id
+    },
+    success: function (response) {
+        if (response.data && response.data.length > 0) {
+            response.data.forEach(function (g) {
+                $("#grupos").append(
+                    `<option value="${g.id}">${g.nombre}</option>`
+                );
+            });
+        } else {
+            $("#grupos").append('<option value="#">No hay grupos</option>');
+        }
+    },
+    error: function (xhr) {
+        console.log("Error grupos:", xhr.responseText);
+        }
+    });
+});
+
+        var cambiar_estado_actual = 0;
+
+        var toastMixin = Swal.mixin({
+            toast: true,
+            icon: 'success',
+            title: 'General Title',
+            animation: false,
+            position: 'top-right',
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
+            }
+        });
+
+        let dollarUSLocale = Intl.NumberFormat("en-US", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+
+        let intergerLocale = Intl.NumberFormat("en-US", {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+
+        });
+
+        $('#menu_gestion_requisiciones, #listar_requisicion_submenu').addClass('active');
+
+        id_grupo_seleccionado = null;
+        id_categoria_seleccionada = null;
+        id_acreedor_seleccionado = null;
+        select_estado_requisicion = 0;
+
+        requisicion_id = null;
+
+        fillRequisicion()
+
+        function fillRequisicion() {
+
+            $("#Tabla_Requisiciones").DataTable().clear().destroy();
+
+            Tabla_Requisiciones = $("#Tabla_Requisiciones").DataTable({
+                autoWidth: false,
+                scrollX: true,
+                scrollY: '350px',
+                scrollCollapse: true,
+                pageLength: 30,
+                dom: 'Brftip',
+                language: {
+                    url: "{% static 'app/th/json/es-ES.json' %}",
+                },
+                ajax: {
+                    url: `{% url 'get_requisicion_data' %}`,
+                    type: "POST",
+                    dataSrc: 'data',
+                    data: {
+                        varEstado: select_estado_requisicion,
+                        csrfmiddlewaretoken: csrfToken
+                    },
+                },
+                colReorder: {
+                    realtime: false,
+                },
+                buttons: [
+                    {
+                        extend: 'excelHtml5',
+                        text: '<i class="fas fa-file-excel"></i> Excel',
+                        titleAttr: 'Exportar a Excel',
+                        className: 'btn btn-success btn-sm',
+                        exportOptions: {
+                            columns: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+                        }
+                    },
+                    {
+                        extend: 'pdfHtml5',
+                        text: '<i class="fas fa-file-pdf"></i> PDF',
+                        titleAttr: 'Exportar a PDF',
+                        className: 'btn btn-danger btn-sm',
+                        pageSize: 'A4',
+                        orientation: 'portrait',
+                        exportOptions: {
+                            columns: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+                        },
+                        customize: function (doc) {
+                            doc.content[1].table.widths = Array(doc.content[1].table.body[0].length).fill('*');
+                            doc.styles.tableHeader.fillColor = '#2c4770';
+                            doc.styles.tableHeader.color = 'white';
+                            doc.styles.tableHeader.alignment = 'center';
+                            doc.styles.tableHeader.fontSize = 9;
+                            doc.defaultStyle.alignment = 'center';
+                            doc.defaultStyle.fontSize = 7;
+                            doc.pageMargins = [15, 20, 15, 20];
+                            doc.content[0].text = "REPORTE DE REQUISICIONES";
+                            doc.content[0].alignment = 'center';
+                            doc.content[0].margin = [0, 0, 0, 10];
+                        }
+                    },
+                    {
+                        extend: 'print',
+                        text: '<i class="fas fa-print"></i> Imprimir',
+                        titleAttr: 'Imprimir',
+                        className: 'btn btn-secondary btn-sm',
+                        exportOptions: {
+                            columns: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+                        },
+                        customize: function (win) {
+                            $(win.document.body).find('table').addClass('compact').css('font-size', '8pt');
+                            $(win.document.body).find('h1').css('text-align', 'center').text('REQUISICIONES - CONTROL SUMINISTROS');
+                        }
+                    }
+                ],
+                columns: [
+                    {
+                        data: 'id_requisicion'
+                    },
+                    {
+                        data: 'Nombre',
+                    },
+                    {
+                        data: 'GrupoNombre',
+                    },
+                    {
+                        data: 'nombre_proveedor',
+                    },
+                    {
+                        data: 'fecha_pedido'
+                    },
+                    {
+                        data: 'fecha_pago'
+                    },
+                    {
+                        data: 'costo_total',
+                        className: 'formattMoney',
+                        render: $.fn.dataTable.render.number(',', '.', 2, 'L ')
+                    },
+                    {
+                        data: 'estado_requisicion',
+                        className: 'text-center',
+                        render: function (data, type, row) {
+                            var badge = "";
+                            var estado = Number(data);
+
+                            if (estado === 1) {
+                                badge = '<span class="badge badge-pill bg-warning">PENDIENTE</span>';
+                            } else if (estado === 2) {
+                                badge = '<span class="badge badge-pill bg-info">EN PROCESO</span>';
+                            } else if (estado === 3) {
+                                badge = '<span class="badge badge-pill bg-success">COMPLETADO</span>';
+                            }
+
+                            return badge;
+                        }
+                    },
+                    {
+                        data: 'estado',
+                        className: 'text-center',
+                        render: function (data, type, row) {
+                            var badge = "";
+                            if (data == 3) {
+                                badge +=
+                                    '<span class="badge badge-pill custom-red">DESHABILITADO</span>';
+                            } else {
+                                badge +=
+                                    '<span class="badge badge-pill bg-success">ACTIVO</span>';
+                            }
+
+                            return badge;
+                        },
+                    },
+                    {
+                        data: null,
+                        width: '2%',
+                        title: "Acciones",
+                        render: function (data, type, row) {
+                            let botones = `
+                            <div class="text-center">
+                                <div class="btn-group">
+
+                                    <!-- Ver detalles -->
+                                    <button class="btn btn-info btn-sm verDetalles rounded-pill shadow-sm" title="Ver Detalles" data-id="${row.id_requisicion}">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+
+                                    <!-- Imprimir -->
+                                    <button class="btn btn-success btn-sm imprimirRequisicion rounded-pill shadow-sm" title="Imprimir Requisición" data-id="${row.id_requisicion}">
+                                        <i class="fas fa-print"></i> 
+                                    </button>
+
+                                    <!-- Estado -->
+                                    <button class="btn btn-warning btn-sm estadoR rounded-pill shadow-sm" title="Cambiar Estado" data-id="${row.id_requisicion}" data-estado="${row.estado_requisicion}">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </button> 
+
+                                    <!-- Editar -->
+                                    <button class="btn btn-primary btn-sm editarRequisicion rounded-pill shadow-sm" title="Editar Requisición" data-id="${row.id_requisicion}" data-nombre="${row.PKUsuario}" data-categoria="${row.id_categoria}" data-proveedores="${row.id_proveedor}" data-grupos="${row.PKgrupo}" data-estado="${row.estado}">
+                                        <i class="fas fa-edit"></i>
+                                    </button> 
+                            `;
+
+                            if (row.estado_requisicion === 1) {
+                                botones += `
+                                    <button class="btn btn-danger btn-sm anularRequisicion rounded-pill shadow-sm" title="Anular/Habilitar" data-id="${row.id_requisicion}" data-estado="${row.estado}">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </button>
+                                `;
+                            }
+
+                            botones += `
+                                </div>
+                            </div>
+                            `;
+
+                            return botones;
+                        }
+                    }
+                ],
+            });
+        
+        }
+
+        // ========================= NUEVA REQUISICIÓN =========================
+        $(document).off('click', '#btnNuevo');
+        $(document).on('click', '#btnNuevo', function (e) {
+            e.preventDefault();
+
+            opcion = 1;
+            requisicion_id = null;
+
+            $('#formRequisicion')[0].reset();
+            $('#tabla-articulos').html('');
+            $('#costo-total').text('0.00');
+
+            $('#modalRequisicionLabel').html('<strong>Crear Nueva Requisición</strong>');
+            $('#modalRequisicion').modal('show');
+        });
+
+
+        // ========================= GUARDAR REQUISICIÓN =========================
+    $(document).off('submit', '#formRequisicion');
+    $(document).on('submit', '#formRequisicion', function (e) {
+    e.preventDefault();
+
+    // 1) Validar que haya artículos
+    if ($('#tabla-articulos tr').length === 0) {
+        Swal.fire("", "Debes agregar al menos un artículo a la requisición.", "warning");
+        return;
+    }
+
+    // 2) Tomar datos encabezado
+    const PKUsuario   = $('#nombre_completo').val();
+    const PKgrupo     = $('#grupos').val();
+    const id_proveedor= $('#acreedor').val();
+    const fecha_pedido= $('#fecha_pedido').val();
+    const fecha_pago  = $('#fecha_pago').val();
+    const costo_total = ($('#costo-total').text() || "0").replace(/,/g, '').trim();
+
+    // 3) Validar campos obligatorios
+    if (!PKUsuario || !PKgrupo || PKgrupo === "#" || !id_proveedor || id_proveedor === "#" || !fecha_pedido || !fecha_pago) {
+        Swal.fire("", "Debes llenar todos los campos obligatorios.", "warning");
+        return;
+    }
+
+    // 4) Guardar encabezado
+   $.ajax({
+    url: "{% url 'insertar_actualizar_requisicion_data' %}",
+    type: "POST",
+    dataType: "json",
+    data: {
+        id_requisicion: requisicion_id,
+        PKUsuario: PKUsuario,
+        PKgrupo: PKgrupo,
+        id_proveedor: id_proveedor,
+        fecha_pedido: fecha_pedido,
+        fecha_pago: fecha_pago,
+        costo_total: costo_total.replace(/,/g, ''), 
+
+        estado_requisicion: 1,
+        estado: 1,
+
+        csrfmiddlewaretoken: csrfToken
+    },
+    success: function (data) {
+        if (data.save == 1) {
+            insertarDetallesRequisicion(data.id_requisicion);
+        } else {
+            Swal.fire("", "Error: " + (data.error || "No se pudo guardar la requisición"), "error");
+        }
+    },
+    error: function (xhr) {
+        Swal.fire("", "Error al guardar requisición. Código: " + xhr.status, "error");
+    }
+});
+});
+
+// ========================= EDITAR REQUISICIÓN =========================
+$(document).on('click', '.editarRequisicion', function () {
+
+    requisicion_id = $(this).data('id');
+
+    // limpiar formulario
+    $('#formRequisicion')[0].reset();
+    $('#tabla-articulos').html('');
+    $('#costo-total').text('0.00');
+
+    // habilitar campos
+    $('#formRequisicion input, #formRequisicion select, #formRequisicion textarea')
+        .prop('disabled', false)
+        .prop('readonly', false);
+
+    $('#agregar-articulo').prop('disabled', false);
+    $('button[type="submit"]').show();
+
+    // traer datos de la requisición
+    $.ajax({
+        url: "{% url 'obtener_requisicion_y_detalle_data' %}",
+        type: "GET",
+        data: { id_requisicion: requisicion_id },
+
+        success: function (data) {
+
+            if (data.requisicion) {
+
+                const req = data.requisicion;
+
+                $('#id_requisicion').val(req.id_requisicion || '');
+                $('#nombre_completo').val(req.PKUsuario).change();
+
+                id_grupo_seleccionado = req.PKgrupo;
+                id_acreedor_seleccionado = req.id_proveedor;
+
+                $('#fecha_pedido').val(req.fecha_pedido || '');
+                $('#fecha_pago').val(req.fecha_pago || '');
+
+                setTimeout(function(){
+                    $('#grupos').val(req.PKgrupo).change();
+                    $('#acreedor').val(req.id_proveedor).change();
+                },500);
+
+                $('#costo-total').text(parseFloat(req.costo_total || 0).toFixed(2));
+            }
+
+            // cargar artículos
+            if (data.detalles && data.detalles.length > 0) {
+
+                let html = '';
+                let total = 0;
+
+                data.detalles.forEach(function (item) {
+
+                    const cantidad = parseFloat(item.cantidad || 0);
+                    const precio = parseFloat(item.precio_unitario || 0);
+                    const subtotal = cantidad * precio;
+
+                    total += subtotal;
+
+                    html += `
+                        <tr data-id-suministro="${item.id_suministros}" data-justificacion="${item.justificacion}">
+                            <td>${item.nombre_suministro}</td>
+                            <td>${cantidad}</td>
+                            <td>${precio.toFixed(2)}</td>
+                            <td>${subtotal.toFixed(2)}</td>
+                            <td>
+                                <button class="btn btn-danger btn-sm eliminarFila">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                $('#tabla-articulos').html(html);
+                $('#costo-total').text(total.toFixed(2));
+            }
+
+            $('#modalRequisicionLabel').html('<strong>Editar Requisición #' + requisicion_id + '</strong>');
+            $('#modalRequisicion').modal('show');
+        },
+
+        error: function (xhr) {
+            Swal.fire("Error", "No se pudo cargar la requisición.", "error");
+            console.log(xhr.responseText);
+        }
+    });
+
+});
+
+    // ========================= INSERTAR DETALLES =========================
+function insertarDetallesRequisicion(id_requisicion) {
+
+    const detalles = [];
+
+    $('#tabla-articulos tr').each(function () {
+
+        const idSuministro = ($(this).attr('data-id-suministro') || '').toString().trim();
+        const justificacion = ($(this).attr('data-justificacion') || '').toString().trim();
+
+        const cantidadTxt = ($(this).find('td:eq(1)').text() || '0').replace(/,/g, '').trim();
+        const precioTxt   = ($(this).find('td:eq(2)').text() || '0').replace(/,/g, '').trim();
+
+        const cantidad = parseFloat(cantidadTxt) || 0;
+        const precio_unitario = parseFloat(precioTxt) || 0;
+
+        if (!idSuministro || cantidad <= 0 || precio_unitario < 0 || justificacion === "") return;
+
+        detalles.push({
+            id_suministros: idSuministro,
+            cantidad: cantidad,
+            precio_unitario: precio_unitario,
+            justificacion: justificacion
+        });
+    });
+
+    if (detalles.length === 0) {
+        Swal.fire("", "No se detectaron artículos válidos (revisa que cada fila tenga justificación).", "warning");
+        return;
+    }
+
+    $.ajax({
+        url: "{% url 'insertar_actualizar_detalle_requisicion_data' %}",
+        type: "POST",
+        dataType: "json",
+        data: {
+            id_requisicion: id_requisicion,
+            detalles: JSON.stringify(detalles),
+            csrfmiddlewaretoken: csrfToken
+        },
+        success: function (data) {
+            if (data.save == 1) {
+                toastMixin.fire({ animation: true, title: '¡Requisición guardada correctamente!' });
+
+                $('#modalRequisicion').modal('hide');
+                Tabla_Requisiciones.ajax.reload(null, false);
+            } else {
+                Swal.fire("", "Error guardando detalles: " + (data.error || "desconocido"), "error");
+            }
+        },
+        error: function (xhr) {
+            Swal.fire("", "Error al guardar detalles. Código: " + xhr.status + " - " + xhr.responseText, "error");
+        }
+    });
+}
+
+            // ------------------------------------------------------------------------------------------------------------------------------- //
+
+            // CAMBIAR EL ESTADO DE CADA REQUISICION
+            $(document).on('click', '.estadoR', function () {
+                $('#formRequisicion').trigger('reset');
+
+                // Obtener datos de la fila seleccionada
+                filaRequisicion = $(this).closest('tr');
+                id_requisicion = $(this).data('id');
+                estado_actual = $(this).data('estado'); 
+
+                if (!id_requisicion) {
+                    Swal.fire("", " ID de requisición no proporcionado.", "warning");
+                    return;
+                }
+
+                estado_actual = Number(estado_actual); 
+                console.log("Estado Actual Convertido a Número:", estado_actual);  
+
+                let siguienteEstado = "";
+                let mensajeSiguienteEstado = "";
+
+                switch (estado_actual) {
+                    case 1: 
+                        mensajeSiguienteEstado = "¿Estás seguro de cambiar el estado de Pendiente a En Proceso?";
+                        siguienteEstado = 2; 
+                        break;
+                    case 2: 
+                        mensajeSiguienteEstado = "¿Estás seguro de cambiar el estado de En Proceso a Completada?";
+                        siguienteEstado = 3; 
+                        break;
+                    case 3: 
+                        mensajeSiguienteEstado = "¿Estás seguro de cambiar el estado de Completada a Pendiente?";
+                        siguienteEstado = 1; 
+                        break;
+                    default:
+                        Swal.fire("", "Estado no reconocido.", "warning");
+                        return;
+                }
+
+                Swal.fire({
+                    title: "Estás Seguro de Cambiar el Estado?",
+                    text: mensajeSiguienteEstado,
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Confirmar!',
+                    didOpen: () => {
+                        Swal.getConfirmButton().addEventListener('click', function () {
+                            this.disabled = true;
+                        });
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: "{% url 'actualizar_estado' %}",
+                            type: "POST",
+                            data: {
+                                id_requisicion: id_requisicion,
+                                estado: siguienteEstado, 
+                                csrfmiddlewaretoken: csrfToken
+                            },
+                            success: function (data) {
+                                console.log(data); 
+
+                                if (data.success) {  
+                                    toastMixin.fire({
+                                        animation: true,
+                                        title: 'Estado de Requisición Editado!'
+                                    });
+                                    Tabla_Requisiciones.ajax.reload(null, false);
+                                } else {
+                                    Swal.fire("", "Error: " + data.error, "error");
+                                }
+                            },
+                            error: function (xhr, status, error) {
+                                console.error("Error en la solicitud Ajax:", xhr, status, error); 
+                                Swal.fire("", "Error al cambiar el estado. Código: " + xhr.status, "error");
+                            }
+                        });
+                    }
+                });
+            });
+
+
+        // ------------------------------------------------------------------------------------------------------------------------------- //
+
+        $(document).on('click', '.anularRequisicion', function () {
+            var id_requisicion = $(this).data('id');
+            var estado_actual = $(this).data('estado'); 
+l
+            var mensaje = estado_actual == 3
+                ? '¿Estás seguro de que quieres activar esta requisición?'
+                : '¿Estás seguro de que quieres deshabilitar esta requisición?';
+            var confirmButtonText = estado_actual == 3
+                ? 'Sí, activar'
+                : 'Sí, deshabilitar';
+            var action = estado_actual == 3
+                ? 1 
+                : 3;  
+
+            Swal.fire({
+                title: estado_actual == 3 ? 'Activar Requisición' : 'Deshabilitar Requisición',
+                text: mensaje,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: confirmButtonText,
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: "{% url 'actualizar_estado_requisicion' %}", 
+                        type: "POST",
+                        data: {
+                            id_requisicion: id_requisicion,
+                            estado: action,  
+                            csrfmiddlewaretoken: csrfToken
+                        },
+                        success: function (data) {
+                            if (data.success) {
+                                var mensajeExito = estado_actual == 3
+                                    ? 'La requisición ha sido activada.'
+                                    : 'La requisición ha sido deshabilitada.';
+                                Swal.fire(estado_actual == 3 ? 'Activada!' : 'Deshabilitada!', mensajeExito, 'success');
+
+                                
+                                var row = $('tr[data-id="' + id_requisicion + '"]');
+                                row.find('.estado').html(
+                                    estado_actual == 3
+                                        ? '<span class="badge badge-pill bg-success">ACTIVO</span>'
+                                        : '<span class="badge badge-pill bg-danger">DESHABILITADO</span>'
+                                );
+
+                                
+                                Tabla_Requisiciones.ajax.reload(null, false);
+                            } else {
+                                Swal.fire('Error!', data.error || 'No se pudo actualizar el estado de la requisición.', 'error');
+                            }
+                        },
+                        error: function () {
+                            Swal.fire('Error!', 'Ocurrió un error al intentar cambiar el estado de la requisición.', 'error');
+                        }
+                    });
+                }
+            });
+        });
+
+        // ------------------------------------------------------------------------------------------------------------------------------- //
+
+        $('#estadoFiltro').change(function (e) {
+            e.preventDefault();
+
+
+            select_estado_requisicion = $("#estadoFiltro").val();
+            fillRequisicion();
+        });
+
+        // ------------------------------------------------------------------------------------------------------------------------------- //
+
+        $(document).on('click', '.verDetalles', function () {
+            requisicion_id = $(this).data('id');
+            $('#formRequisicion')[0].reset();  
+            $('#tabla-articulos').html('');  
+            $('#costo-total').text('0.00');  
+
+           
+            $('#formRequisicion input, #formRequisicion select, #formRequisicion textarea').prop('disabled', true).prop('readonly', true);
+
+            $('#agregar-articulo').prop('disabled', true);
+
+            $('button[type="submit"]').hide();
+
+            $('#precio_unitario').prop('disabled', true);
+
+            Swal.fire({
+                title: 'Cargando detalles...',
+                didOpen: () => {
+                    Swal.showLoading();
+                },
+                allowOutsideClick: false
+            });
+
+            $.ajax({
+                url: "{% url 'obtener_requisicion_y_detalle_data' %}",
+                type: "GET",
+                data: { 'id_requisicion': requisicion_id },
+                success: function (data) {
+                    Swal.close();
+                    console.log("Respuesta de la requisición:", data);
+                    if (data.requisicion) {
+                        const requisicion = data.requisicion;
+                        console.log("Datos de requisición:", requisicion);
+
+                        $('#id_requisicion').val(requisicion.id_requisicion || '');
+                        $('#nombre_completo').val(requisicion.PKUsuario || '').prop('disabled', true).change();
+
+                        id_grupo_seleccionado = requisicion.PKgrupo;
+                        $('#grupos').prop('disabled', true);
+
+                        $('#categoria').val(requisicion.id_categoria || '').prop('disabled', true).change();
+
+                        $('#acreedor').val(requisicion.id_proveedor || '').prop('disabled', true).change();
+
+                        $('#fecha_pedido').val(requisicion.fecha_pedido || '').prop('readonly', true);
+                        $('#fecha_pago').val(requisicion.fecha_pago || '').prop('readonly', true);
+                        $('#costo-total').text(parseFloat(requisicion.costo_total || 0).toFixed(2));
+                    }
+
+                    // Mostrar los detalles de los artículos en la tabla
+                    if (data.detalles && Array.isArray(data.detalles) && data.detalles.length > 0) {
+                        let tablaArticulos = '';
+                        let costoTotal = 0;
+                        data.detalles.forEach(function (articulo) {
+                            const cantidad = articulo.cantidad || 0;
+                            const precioUnitario = parseFloat(articulo.precio_unitario || 0);
+                            const precioTotal = cantidad * precioUnitario;
+
+                            tablaArticulos += `
+                        <tr>
+                            <td>${articulo.nombre_suministro || ''}</td>
+                            <td>${cantidad}</td>
+                            <td>L\u00A0${dollarUSLocale.format(precioUnitario)}</td>
+                            <td>L\u00A0${dollarUSLocale.format(precioTotal)}</td>
+                            <td>${articulo.justificacion || ''}</td>
+                        </tr>
+                    `;
+                            costoTotal += precioTotal;
+                        });
+
+                        $('#tabla-articulos').html(tablaArticulos);
+                        $('#costo-total').text('L\u00A0' + dollarUSLocale.format(costoTotal));  // Actualiza el costo total y lo formatea
+                    } else {
+                        Swal.fire("", "No se encontraron artículos para esta requisición.", "warning");
+                    }
+
+                    // Mostrar el modal con los detalles
+                    $('#modalRequisicionLabel').html('<strong>Ver Detalles de Requisición #' + requisicion_id + '</strong>');
+                    $('#modalRequisicion').modal('show');
+                },
+                error: function (xhr) {
+                    Swal.close();
+                    Swal.fire("", "Error al cargar los detalles. " + xhr.statusText, "error");
+                }
+            });
+        });
+
+        // ------------------------------------------------------------------------------------------------------------------------------- //
+        $(document).on('click', '.imprimirRequisicion', function () {
+            const requisicionId = $(this).data('id'); 
+            $.ajax({
+                url: "{% url 'obtener_requisicion_y_detalle_data' %}",
+                type: "GET",
+                data: { 'id_requisicion': requisicionId },
+                success: function (data) {
+                    if (data.requisicion) {
+                        const requisicion = data.requisicion;
+                        const detalles = data.detalles;
+                        let totalCalc = 0;
+                        (detalles || []).forEach(d => {
+                        const cant = parseFloat(d.cantidad) || 0;
+                        const pu   = parseFloat(d.precio_unitario) || 0;
+                        totalCalc += cant * pu;
+                    });
+                        const { jsPDF } = window.jspdf;
+                        const doc = new jsPDF();
+                        const logoUrl = '/static/app/controlsum/images/carbajal.png';
+                        fetch(logoUrl)
+                            .then(response => response.blob())
+                            .then(blob => {
+                                const imageUrl = URL.createObjectURL(blob);
+                                const pageWidth = doc.internal.pageSize.width; 
+                                const logoWidth = 70; 
+                                const xPos = pageWidth - logoWidth - 10; 
+                                doc.addImage(imageUrl, 'PNG', xPos, 10, logoWidth, 30);
+                                doc.setFont("Arial", "normal");
+                                doc.setFont("Arial", "bold");
+                                doc.setFontSize(12);
+                                doc.text(`Solicitud de Requisición #${requisicionId}`, 20, 20);
+                                doc.setFont("Arial", "bold");
+                                doc.setFontSize(10);
+                                doc.text("Solicitante:", 20, 30);
+                                doc.setFont("Arial", "normal");
+                                doc.text(requisicion.nombre_completo, 55, 30);
+
+                                doc.setFont("Arial", "bold");
+                                doc.setFontSize(10);
+                                doc.text("Grupo/Área:", 20, 40);
+                                doc.setFont("Arial", "normal");
+                                doc.text(requisicion.GrupoNombre, 55, 40);
+
+                                doc.setFont("Arial", "bold");
+                                doc.text("Proveedor:", 20, 50);
+                                doc.setFont("Arial", "normal");
+                                doc.text(requisicion.nombre_proveedor, 55, 50);
+
+                                doc.setFont("Arial", "bold");
+                                doc.text("Fecha de Pedido:", 20, 60);
+                                doc.setFont("Arial", "normal");
+                                doc.text(requisicion.fecha_pedido, 55, 60);
+
+                                doc.setFont("Arial", "bold");
+                                doc.text("Fecha de Pago:", 20, 70);
+                                doc.setFont("Arial", "normal");
+                                doc.text(requisicion.fecha_pago, 55, 70);
+
+                                doc.setFont("Arial", "bold");
+                                doc.text("Costo Total:", 20, 80);
+                                doc.setFont("Arial", "bold");
+                                doc.setFontSize(10);
+
+                                doc.text('L ' + dollarUSLocale.format(totalCalc), 55, 80);
+                                doc.autoTable({
+                                    startY: 90, 
+                                    head: [['Suministro', 'Cantidad', 'Precio Unitario', 'Precio Total']],
+                                    body: detalles.map(detalle => [
+                                        detalle.nombre_suministro,
+                                        detalle.cantidad,
+                                        'L ' + dollarUSLocale.format(detalle.precio_unitario),
+                                        'L ' + dollarUSLocale.format(detalle.cantidad * detalle.precio_unitario),
+                                    ]),
+                                    margin: { top: 10, left: 20, right: 20 },
+                                    styles: {
+                                        font: 'Arial',
+                                        fontSize: 10,
+                                        cellPadding: 5,
+                                        halign: 'center',
+                                    },
+                                });
+
+                                doc.save(`Solicitud_de_Requisicion_#${requisicionId}.pdf`);
+                            })
+                            .catch(error => {
+                                Swal.fire("Error", `No se pudo cargar el logo. Detalle del error: ${error}`, "error");
+                            });
+                    } else {
+                        Swal.fire("Advertencia", "No se encontraron detalles para esta requisición.", "warning");
+                    }
+                },
+                error: function (xhr) {
+                    Swal.fire("Error", `Hubo un problema al cargar los detalles de la requisición: ${xhr.statusText}`, "error");
+                }
+            });
+        });
+
+        $('#modalRequisicion').on('hidden.bs.modal', function () {
+            $('#formRequisicion')[0].reset();
+            $('#tabla-articulos').html('');
+            $('#costo-total').text('0.00');
+            $('#formRequisicion input, #formRequisicion select, #formRequisicion textarea').prop('disabled', false).prop('readonly', false);
+            $('#agregar-articulo').prop('disabled', false).prop('readonly', false);
+            $('button[type="submit"]').prop('disabled', false).prop('readonly', false);
+            $('#precio_unitario').prop('disabled', true);
+
+        });
+
+        $('#btnNuevaRequisicion').on('click', function () {
+            $('#formRequisicion')[0].reset();
+            $('#tabla-articulos').html('');
+            $('#costo-total').text('0.00');
+
+            $('#formRequisicion input, #formRequisicion select, #formRequisicion textarea').prop('disabled', false).prop('readonly', false);
+            $('#agregar-articulo').prop('disabled', false).prop('readonly', false);
+            $('button[type="submit"]').prop('disabled', false).prop('readonly', false);
+            $('#precio_unitario').prop('disabled', true);
+
+            $('#modalRequisicion').modal('show');
+        });
+
+        // ------------------------------------------------------------------------------------------------------------------------------- //
+
+        $.ajax({
+            url: '{% url "obtener_nombres_usuarios_data" %}',  
+            type: "GET",
+            dataType: 'json',
+            success: function (response) {
+                console.log("Usuarios:", response);
+
+                if (response.usuarios) {
+                    $('#nombre_completo').empty();
+                    $('#nombre_completo').append('<option value="#">Seleccione su nombre</option>');
+
+                    $.each(response.usuarios, function (index, usuario) {
+                        $('#nombre_completo').append('<option value="' + usuario.PKUsuario + '">' + usuario.Nombre + '</option>');
+                    });
+                } else {
+                    console.log("No se encontraron usuarios.");
+                    $('#nombre_completo').empty();
+                    $('#nombre_completo').append('<option value="#">No hay usuarios disponibles</option>');
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error("Error al obtener los nombres de los usuarios: ", error);
+            }
+        });
+
+       $('#nombre_completo').change(function () {
+
+        var usuario_id = $('#nombre_completo').val();
+        console.log("PKUsuario capturado:", usuario_id);
+
+        if (usuario_id && usuario_id !== "#" && usuario_id !== "") {
+
+            $.ajax({
+                url: '{% url "grupos_por_usuario_data" %}',
+                type: "GET",
+                data: {
+                    'pk_usuario': usuario_id
+                },
+                dataType: 'json',
+
+                success: function (response) {
+
+                    console.log("Grupos Obtenidos:", response);
+
+                    $('#grupos').empty();
+
+                    if (response.data && response.data.length > 0) {
+
+                        $('#grupos').append('<option value="">Seleccione el grupo:</option>');
+
+                        $.each(response.data, function (index, grupo) {
+
+                            $('#grupos').append(
+                                '<option value="' + grupo.id + '">' + grupo.nombre + '</option>'
+                            );
+
+                        });
+
+                        if (id_grupo_seleccionado != null) {
+                            $('#grupos').val(id_grupo_seleccionado).change();
+                        }
+
+                    } else {
+
+                        $('#grupos').append('<option value="">No hay grupos para este usuario</option>');
+
+                    }
+
+                },
+
+                error: function (xhr) {
+
+                    console.error("Error al obtener los grupos:", xhr.responseText);
+
+                    $('#grupos').empty();
+                    $('#grupos').append('<option value="">Error al cargar grupos</option>');
+
+                    Swal.fire("", "Ocurrió un error al obtener los grupos.", "error");
+
+                }
+
+            });
+
+        } else {
+
+            console.log("No se ha seleccionado un usuario.");
+
+            $('#grupos').empty();
+            $('#grupos').append('<option value="">Seleccione el grupo</option>');
+
+        }
+
+    });
+
+
+        $.ajax({
+            url: '{% url "obtener_acreedores" %}', 
+            type: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                if (data.acreedores && data.acreedores.length > 0) {
+                    $('#acreedor').empty();
+                    $('#acreedor').append('<option value="#">Seleccione el acreedor:</option>');  
+
+                    data.acreedores.forEach(function (acreedor) {
+                        $('#acreedor').append('<option value="' + acreedor.id_proveedor + '">' + acreedor.nombre_proveedor + '</option>');
+                    });
+                    if (id_acreedor_seleccionado != null) {
+                        $('#acreedor').val(id_acreedor_seleccionado).change();
+                    }
+                } else {
+                    $('#acreedor').append('<option value="#">No hay acreedores disponibles</option>');
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error('Error al obtener los acreedores:', error);
+            }
+        });
+
+        $('#categoria').change(function () {
+            var categoria_id = $('#categoria').val();  
+            console.log("Categoria ID seleccionada:", categoria_id); 
+
+            if (categoria_id && categoria_id !== "") {  
+                $.ajax({
+                    url: '{% url "obtener_suministros_por_categoria_data" %}', 
+                    type: "POST",
+                    data: {
+                        'categoria_id': categoria_id, 
+                        csrfmiddlewaretoken: csrfToken  
+                    },
+                    dataType: 'json',
+                    success: function (response) {
+                        console.log("Suministros obtenidos:", response);
+                        if (response.suministros && response.suministros.length > 0) {
+                            $('#suministro').empty();
+                            $('#suministro').append('<option value="">Seleccione el suministro:</option>');
+
+                            $.each(response.suministros, function (index, suministro) {
+                                $('#suministro').append('<option value="' + suministro.id_suministros + '">' + suministro.nombre + '</option>');
+                            });
+                            if (id_suministro_seleccionado != null) {
+                                $('#suministro').val(id_suministro_seleccionado).change();
+                            }
+
+                        } else {
+                            $('#suministro').empty();
+                            $('#suministro').append('<option value="">No hay suministros disponibles</option>');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Error al obtener los suministros: ", error);
+                        Swal.fire("", "Ocurrió un error al obtener los suministros.", "error");
+                    }
+                });
+            } else {
+                console.log("No se ha seleccionado una categoría válida.");
+            }
+        });
+
+    // ================= PRECIO UNITARIO (MODAL SEGURO) =================
+
+$(document).off('change', '#suministro');
+
+$(document).on('change', '#suministro', function () {
+
+    const idSuministro = ($(this).val() || '').toString().trim();
+    console.log("ID Suministro capturado:", idSuministro);
+
+    if (!idSuministro || idSuministro === "#") {
+        $('#precio_unitario').val('0.00');
+        return;
+    }
+    $.ajax({
+        url: "{% url 'obtener_precio_suministro_data' %}",
+        type: "GET",
+        dataType: "json",
+        data: { id: idSuministro },  // 
+        success: function (res) {
+            const precio = parseFloat(res.precio);
+            if (!isNaN(precio)) {
+                $('#precio_unitario').val(precio.toFixed(2));
+            } else {
+                $('#precio_unitario').val('0.00');
+                Swal.fire("Error", res.message || "No se encontró el precio unitario.", "error");
+            }
+        },
+        error: function (xhr) {
+            $('#precio_unitario').val('0.00');
+            Swal.fire("Error", "Ocurrió un error al obtener el precio unitario.", "error");
+            console.log(xhr.status, xhr.responseText);
+        }
+    });
+});
+
+    });
+
+</script>
+{% endblock %}

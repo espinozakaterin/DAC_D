@@ -1,0 +1,59 @@
+{% extends 'menu_control_suministros.html' %}
+{% load static %}
+
+{% block title %}Configuración - Control Suministros{% endblock %}
+
+{% block body %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h3 class="page-title"><i class="fas fa-cog me-2"></i><strong>Configuración del Sistema</strong></h3>
+        <p class="text-muted">Ajustes generales y preferencias del módulo de Control de Suministros.</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="dash-card p-4">
+            <h5 class="mb-3 text-primary"><i class="fas fa-desktop me-2"></i>Preferencias de Visualización</h5>
+            <div class="form-check form-switch mb-3">
+                <input class="form-check-input" type="checkbox" id="darkMode">
+                <label class="form-check-label" for="darkMode">Modo Oscuro (Beta)</label>
+            </div>
+            <div class="form-check form-switch mb-3">
+                <input class="form-check-input" type="checkbox" id="compactTable" checked>
+                <label class="form-check-label" for="compactTable">Tablas Compactas</label>
+            </div>
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="showNotifications" checked>
+                <label class="form-check-label" for="showNotifications">Mostrar Notificaciones en Tiempo Real</label>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="dash-card p-4">
+            <h5 class="mb-3 text-info"><i class="fas fa-database me-2"></i>Información del Sistema</h5>
+            <div class="mb-2 d-flex justify-content-between">
+                <span class="text-muted small">Versión del Módulo:</span>
+                <span class="fw-bold small">v2.1.0-stable</span>
+            </div>
+            <div class="mb-2 d-flex justify-content-between">
+                <span class="text-muted small">Última Sincronización:</span>
+                <span class="fw-bold small">{% now "d/m/Y H:i" %}</span>
+            </div>
+            <div class="mb-0 d-flex justify-content-between">
+                <span class="text-muted small">Estado de Conexión:</span>
+                <span class="badge bg-success">Conectado</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12 text-end">
+        <button class="btn btn-primary px-4 shadow-sm" onclick="Swal.fire('Éxito', 'Configuración guardada correctamente', 'success')">
+             <i class="fas fa-save me-2"></i><strong>Guardar Cambios</strong>
+        </button>
+    </div>
+</div>
+{% endblock %}

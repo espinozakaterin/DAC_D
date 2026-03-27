@@ -1,0 +1,379 @@
+{% extends 'menu_control_suministros.html' %}
+{% load static %}
+
+{% block title %}
+PANTALLA PRINCIPAL
+{% endblock %}
+
+{% block body %}
+
+<div class="dash-layout">
+    <!-- LEFT MAIN COLUMN -->
+    <div class="dash-left-col">
+        <!-- Banner Card -->
+        <div class="banner-card d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="fw-bold mb-2" style="font-size: 1.8rem;">Bienvenio, {{ userName }}</h2>
+                <p class="mb-3" style="font-size: 0.95rem; opacity: 0.9;">Gestión general del control de suministros y estados.</p>
+                <span class="badge bg-white text-primary px-3 py-2 fw-semibold border rounded-pill shadow-sm">
+                    <i class="far fa-calendar-alt me-1"></i> Hoy, {% now "d M Y" %}
+                </span>
+            </div>
+            <div style="font-size: 4rem; opacity: 0.9; text-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                <i class="fas fa-sun text-warning"></i>
+            </div>
+        </div>
+
+        <!-- 4 Stats Grid -->
+        <div class="dash-stats-grid">
+            <div class="dash-card p-4">
+                <div class="text-muted mb-3 d-flex align-items-center" style="font-size: 0.85rem; font-weight: 600;">
+                    <i class="fas fa-box text-primary me-2 fs-5"></i> Total de Productos
+                </div>
+                <div class="fw-bold text-dark" style="font-size: 1.8rem;" id="totalSuministros">...</div>
+            </div>
+            <div class="dash-card p-4">
+                <div class="text-muted mb-3 d-flex align-items-center" style="font-size: 0.85rem; font-weight: 600;">
+                    <i class="fas fa-layer-group text-success me-2 fs-5"></i> Categorías Registradas
+                </div>
+                <div class="fw-bold text-dark" style="font-size: 1.8rem;" id="totalCategoriasCounter">...</div>
+            </div>
+            <div class="dash-card p-4">
+                <div class="text-muted mb-3 d-flex align-items-center" style="font-size: 0.85rem; font-weight: 600;">
+                    <i class="fas fa-chart-line text-warning me-2 fs-5"></i> Valor del Inventario
+                </div>
+                <div class="fw-bold text-dark" style="font-size: 1.8rem; white-space: nowrap;" id="totalStock">TBD</div>
+            </div>
+            <div class="dash-card p-4">
+                <div class="text-muted mb-3 d-flex align-items-center" style="font-size: 0.85rem; font-weight: 600;">
+                    <i class="fas fa-exclamation-triangle text-danger me-2 fs-5"></i> Alertas de Stock Bajo
+                </div>
+                <div class="fw-bold text-danger" style="font-size: 1.8rem;" id="totalAlertas">0</div>
+            </div>
+        </div>
+
+        <!-- Lower Split Lists -->
+        <div class="dash-split-grid">
+            <!-- Top Categorías (Quick Tasks Eq.) -->
+            <div class="dash-card">
+                <h6 class="section-title border-0 mb-3">Resumen de Inventario</h6>
+                <div id="totalCategoriasList" style="max-height: 250px; overflow-y: auto; padding-right: 5px;">
+                    <!-- Dinámico -->
+                </div>
+            </div>
+
+            <!-- Calendario -->
+            <div class="dash-card">
+                <h6 class="section-title border-0 mb-3 ms-2">Calendario </h6>
+                <div class="text-center text-muted small">
+                    <div class="d-flex justify-content-between align-items-center mb-3 px-3">
+                        <i class="fas fa-chevron-left py-1 px-2 border rounded shadow-sm" style="cursor: pointer;"></i>
+                        <strong class="text-dark fs-6">Marzo 2026</strong>
+                        <i class="fas fa-chevron-right py-1 px-2 border rounded shadow-sm" style="cursor: pointer;"></i>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; font-size: 0.85rem; padding: 0 10px;">
+                        <span class="fw-bold text-dark">L</span><span class="fw-bold text-dark">M</span><span class="fw-bold text-dark">M</span><span class="fw-bold text-dark">J</span><span class="fw-bold text-dark">V</span><span class="fw-bold text-dark">S</span><span class="fw-bold text-dark">D</span>
+                        <span class="text-muted opacity-25">23</span><span class="text-muted opacity-25">24</span><span class="text-muted opacity-25">25</span><span class="text-muted opacity-25">26</span><span class="text-muted opacity-25">27</span><span class="text-muted opacity-25">28</span><span class="text-muted opacity-25">1</span>
+                        <span>2</span><span class="bg-primary text-white rounded-circle shadow fw-bold d-flex flex-column justify-content-center align-items-center" style="width:28px;height:28px;margin:auto;">3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span>
+                        <span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span>
+                        <span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analysis Indicators Grid -->
+        <div class="dash-analysis-grid">
+            <!-- Top Used Products -->
+            <div class="dash-card">
+                <h6 class="section-title border-0 mb-3"><i class="fas fa-fire-alt text-danger me-2"></i>Top Más Usados</h6>
+                <div id="topProductosList" style="max-height: 200px; overflow-y: auto;">
+                    <div class="text-muted small p-2">Cargando datos...</div>
+                </div>
+            </div>
+
+            <!-- No Movement Products -->
+            <div class="dash-card">
+                <h6 class="section-title border-0 mb-3"><i class="fas fa-history text-muted me-2"></i>Sin Movimiento</h6>
+                <div id="sinMovimientoList" style="max-height: 200px; overflow-y: auto;">
+                    <div class="text-muted small p-2">Cargando datos...</div>
+                </div>
+            </div>
+
+            <!-- Inventory Rotation -->
+            <div class="dash-card">
+                <h6 class="section-title border-0 mb-3"><i class="fas fa-sync-alt text-primary me-2"></i>Rotación</h6>
+                <div id="rotacionList" style="max-height: 200px; overflow-y: auto;">
+                    <div class="text-muted small p-2">Cargando datos...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT MAIN COLUMN -->
+    <div class="dash-right-col">
+        <!-- Insights Component (Doughnut + Lists) -->
+        <div class="dash-card d-flex flex-column h-100">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="section-title border-0 mb-0">Distribución del Inventario</h6>
+                <i class="fas fa-ellipsis-h text-muted" style="cursor: pointer;"></i>
+            </div>
+            
+            <!-- Circular Chart -->
+            <div style="height: 160px; position: relative;" class="my-3">
+                <canvas id="inventoryValuesChart"></canvas>
+            </div>
+            
+            <hr class="my-3 text-muted opacity-25">
+            
+            <!-- Real Alerts List inside Insights Card -->
+            <h6 class="fw-bold mb-3 text-dark" style="font-size: 0.9rem;">Últimas Alertas</h6>
+            <div id="alertasListRight" class="flex-grow-1" style="max-height: 200px; overflow-y: auto;">
+                <div class="text-muted small px-2">Cargando avisos...</div>
+            </div>
+        </div>
+
+        <!-- Revenue Analytics Eq. (Line Chart Bottom) -->
+        <div class="dash-card">
+            <h6 class="section-title border-0 mb-3 d-flex justify-content-between align-items-center">
+               Movimientos de Suministros
+                <span class="badge bg-light text-dark shadow-sm border p-2">Este Año <i class="fas fa-chevron-down ms-1"></i></span>
+            </h6>
+            <div style="height: 180px;">
+                <canvas id="suministrosChartBar"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        // ----------------------------
+        //  DASHBOARD DATA FETCHING
+        // ----------------------------
+        fetch(`{% url 'dashboard' %}`)
+            .then(response => response.json())
+            .then(data => {
+                // Main Stats
+                // --- Stats Highlights ---
+                $('#totalSuministros').text(data.total_suministros).hide().fadeIn(1000);
+                $('#totalCategoriasCounter').text(data.categorias.length).hide().fadeIn(1000);
+
+                // Real Inventory Value
+                const valorFormat = 'L\u00A0' + data.valor_inventario.toLocaleString('en-US', { 
+                    minimumFractionDigits: 2, 
+                    maximumFractionDigits: 2 
+                });
+                $('#totalStock').text(valorFormat).hide().fadeIn(1000);
+
+                // --- Chart 1: Expense vs Profit (Supply Inflow over 12 months) ---
+                const nombresMeses = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+                let datosMeses = new Array(12).fill(0);
+                if (data.suministros_mes && data.suministros_mes.length > 0) {
+                    data.suministros_mes.forEach(item => {
+                        datosMeses[item.mes - 1] = item.cantidad;
+                    });
+                }
+
+                const ctxBar = document.getElementById('suministrosChartBar').getContext('2d');
+                new Chart(ctxBar, {
+                    type: 'line',
+                    data: {
+                        labels: nombresMeses,
+                        datasets: [{
+                            label: 'Ingreso Suministros',
+                            data: datosMeses,
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            fill: true,
+                            pointBackgroundColor: '#3b82f6',
+                            pointRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    borderDash: [5, 5],
+                                    color: '#e2e8f0'
+                                },
+                                ticks: { color: '#64748b' }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: '#64748b' }
+                            }
+                        }
+                    }
+                });
+
+                // --- Chart 2: Inventory Value Distribution (Real Categories Doughnut) ---
+                const pieColors = ['#152238', '#2c4770', '#3498db', '#2ecc71', '#f1c40f', '#e74c3c'];
+                const totalItems = data.categorias.reduce((sum, c) => sum + c.count, 0);
+                const catLabels = data.categorias.slice(0, 5).map(c => {
+                    const pct = totalItems > 0 ? ((c.count / totalItems) * 100).toFixed(0) : 0;
+                    return `${c.categoria || 'Sin Categoría'} (${pct}%)`;
+                });
+                const catData = data.categorias.slice(0, 5).map(c => c.count);
+
+                const ctxPie = document.getElementById('inventoryValuesChart').getContext('2d');
+                new Chart(ctxPie, {
+                    type: 'doughnut',
+                    data: {
+                        labels: catLabels,
+                        datasets: [{
+                            data: catData,
+                            backgroundColor: pieColors,
+                            borderWidth: 0,
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '70%',
+                        plugins: {
+                            legend: {
+                                position: 'right',
+                                labels: {
+                                    usePointStyle: true,
+                                    boxWidth: 8,
+                                    padding: 15,
+                                    font: { size: 11 },
+                                    color: '#64748b'
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // --- Top Categories by Volume (Horizontal Bars) ---
+                const categoryList = $('#totalCategoriasList');
+                categoryList.empty();
+
+                // Sort and take top 5
+                const sortedCats = [...data.categorias].sort((a, b) => b.count - a.count).slice(0, 5);
+                const maxCount = sortedCats[0]?.count || 1;
+
+                sortedCats.forEach((cat, index) => {
+                    const percentage = (cat.count / maxCount) * 100;
+                    // Alternate blue and dark colors for visual variety
+                    const colorClass = index % 2 === 0 ? 'blue' : 'dark';
+                    const itemHTML = `
+                        <div class="progress-list-item">
+                            <div class="progress-list-header">
+                                <span class="progress-list-title">${cat.categoria || 'Uncategorized'}</span>
+                                <span class="progress-list-value">${cat.count} Unidades</span>
+                            </div>
+                            <div class="custom-progress">
+                                <div class="custom-progress-bar ${colorClass}" style="width: ${percentage}%"></div>
+                            </div>
+                        </div>
+                    `;
+                    categoryList.append(itemHTML);
+                });
+
+                // --- 1. POPULATE TOP USED ---
+                const topList = $('#topProductosList').empty();
+                if (data.top_productos && data.top_productos.length > 0) {
+                    data.top_productos.forEach(p => {
+                        topList.append(`
+                            <div class="py-2 border-bottom d-flex justify-content-between align-items-center">
+                                <span class="small text-dark fw-bold"><i class="fas fa-box-open me-2 text-muted"></i>${p.nombre}</span>
+                                <span class="badge bg-light text-primary border">${p.cantidad} mov.</span>
+                            </div>
+                        `);
+                    });
+                } else {
+                    topList.html('<div class="text-muted small p-2">Sin datos de uso</div>');
+                }
+
+                // --- 2. POPULATE SIN MOVIMIENTO ---
+                const sinMList = $('#sinMovimientoList').empty();
+                if (data.sin_movimiento && data.sin_movimiento.length > 0) {
+                    data.sin_movimiento.forEach(p => {
+                        sinMList.append(`
+                            <div class="py-2 border-bottom d-flex align-items-center">
+                                <i class="fas fa-exclamation-circle text-muted me-2" style="font-size: 0.8rem;"></i>
+                                <span class="small text-muted">${p.nombre}</span>
+                            </div>
+                        `);
+                    });
+                } else {
+                    sinMList.html('<div class="text-muted small p-2">Todo el inventario tiene flujo</div>');
+                }
+
+                // --- 3. POPULATE ROTATION ---
+                const rotList = $('#rotacionList').empty();
+                if (data.rotacion && data.rotacion.length > 0) {
+                    data.rotacion.forEach(p => {
+                        const badgeClass = p.status === 'Alta' ? 'badge-high' : p.status === 'Media' ? 'badge-medium' : 'badge-low';
+                        rotList.append(`
+                            <div class="py-2 border-bottom d-flex justify-content-between align-items-center">
+                                <span class="small text-dark fw-bold">${p.nombre}</span>
+                                <span class="badge-rotation ${badgeClass}">${p.status}</span>
+                            </div>
+                        `);
+                    });
+                } else {
+                    rotList.html('<div class="text-muted small p-2">Sin datos de rotación</div>');
+                }
+
+            })
+            .catch(error => console.error('Error dashboard:', error));
+
+        // ----------------------------
+        // NOTIFICACIONES (Integration with Top Bar)
+        // ----------------------------
+        fetch('{% url "obtener_stock_bajo_data" %}')
+            .then(response => response.json())
+            .then(data => {
+                const count = data.suministros_bajos ? data.suministros_bajos.length : 0;
+                // $('#notificationCount').text(count); // Comentado para evitar conflicto con lógica global
+                $('#totalAlertas').text(count); // Update the card too
+
+                if (count > 0) {
+                    // $('#notificationCount').show(); // Comentado
+                    $('#notificationIcon').addClass('shake');
+
+                    // Populate Real Alerts List
+                    const listContainer = $('#alertasListRight');
+                    listContainer.empty();
+                    data.suministros_bajos.slice(0, 5).forEach((item, index) => {
+                        // Alternate red/yellow dots based on severity (mocking severity by index)
+                        const dotColor = item.stock <= 5 ? 'var(--danger)' : 'var(--warning)';
+                        listContainer.append(`
+                            <div class="py-2 border-bottom d-flex align-items-center gap-3">
+                                <span style="display:inline-block; width:10px; height:10px; background:${dotColor}; border-radius:50%; flex-shrink:0;"></span>
+                                <div class="w-100">
+                                    <div class="fw-bold small text-dark">${item.nombre}</div>
+                                    <div class="text-muted" style="font-size: 0.75rem;">Stock: ${item.stock} | Mín: ${item.stockMinimo}</div>
+                                </div>
+                            </div>
+                        `);
+                    });
+                } else {
+                    // badge.hide(); // Comentado
+                    $('#alertasListRight').html('<div class="dash-card p-3 text-center small text-success"><i class="fas fa-check-circle me-1"></i> Todo en orden</div>');
+                }
+            })
+            .catch(error => console.error('Error notifications:', error));
+
+    });
+</script>
+
+{% endblock %}
