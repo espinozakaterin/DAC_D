@@ -112,9 +112,6 @@ def dashboard(request):
         """)
         suministros_mes = [{'mes': r[0], 'cantidad': r[1]} for r in cursor.fetchall()]
 
-        # --- High Frequency Analysis Indicators ---
-        
-        # 1. Top Used (Asignaciones)
         cursor.execute("""
             SELECT MAX(s.nombre) as display_name, SUM(a.cantidad_asignacion) as total 
             FROM universal_data_core.asignacion a 
@@ -125,7 +122,6 @@ def dashboard(request):
         """)
         top_productos = [{'nombre': r[0], 'cantidad': r[1]} for r in cursor.fetchall()]
 
-        # 2. No Movement (Not in Asignaciones)
         cursor.execute("""
             SELECT MAX(nombre) as display_name 
             FROM universal_data_core.suministros 
@@ -135,7 +131,6 @@ def dashboard(request):
         """)
         sin_movimiento = [{'nombre': r[0]} for r in cursor.fetchall()]
 
-        # 3. Rotation Frequency
         cursor.execute("""
             SELECT MAX(s.nombre) as display_name, COUNT(a.id_asignacion) as freq 
             FROM universal_data_core.suministros s 
@@ -150,7 +145,7 @@ def dashboard(request):
             lbl = 'Alta' if f > 10 else 'Media' if f > 4 else 'Baja'
             rotacion.append({'nombre': r[0], 'status': lbl, 'freq': f})
 
-        # 4. Total Inventory Value (Stock * Price)
+      
         cursor.execute("SELECT SUM(cantidad_stock * precio_unitario) FROM universal_data_core.suministros")
         valor_inventario = cursor.fetchone()[0] or 0
 
@@ -414,7 +409,6 @@ def obtener_stock_bajo_data(request):
     try:
         udcConn = connections['ctrlSum']
         with udcConn.cursor() as cursor:
-            # Consulta directa con alias que coinciden con lo que espera el frontend
             cursor.execute("""
                 SELECT s.nombre AS nombre,
                        s.cantidad_stock AS stock,
@@ -426,11 +420,9 @@ def obtener_stock_bajo_data(request):
             column_names = [desc[0] for desc in cursor.description]
             stock_bajo = [dict(zip(column_names, row)) for row in cursor.fetchall()]
 
-        # Si no se encontraron resultados, se devuelve un mensaje adecuado
         if not stock_bajo:
             return JsonResponse({'message': 'No se encontraron suministros con stock bajo.'}, status=404)
         
-        # Devolver los resultados en formato JSON
         return JsonResponse({'suministros_bajos': stock_bajo}, status=200)
     
     except Exception as e:
@@ -440,7 +432,6 @@ def obtener_stock_bajo_data(request):
 
 def obtener_acreedores(request):
     try:
-        # Conexión a la base de datos usando el alias 'ctrlSum' (puedes usar el alias que necesites)
         udcConn = connections['ctrlSum']
         with udcConn.cursor() as cursor:
             # Ejecutamos la consulta SQL para obtener los acreedores
@@ -450,15 +441,12 @@ def obtener_acreedores(request):
                 WHERE cp.acreedor = 1;
             """)
             
-            # Obtener los nombres de las columnas
             column_names = [desc[0] for desc in cursor.description]
             
-            # Obtener los resultados y convertirlos a un diccionario
             acreedores_data = [
                 dict(zip(map(str, column_names), row)) for row in cursor.fetchall()
             ]
             
-            # Si hay datos, devolverlos como un JsonResponse
             return JsonResponse({'acreedores': acreedores_data})
     
     except Exception as e:
@@ -476,24 +464,20 @@ def listado_asignaciones_data(request):
     usuarios_data = ""
 
     try:
-        # TOMA LOS LOS DATOS DE LA TABLA SUMINISTROS
         udcConn = connections['ctrlSum']
         with udcConn.cursor() as cursor:
             cursor.callproc("SUM_GET_ASIGNACIONES", [0])
             column_names = [desc[0] for desc in cursor.description]
             asignaciones_data = [dict(zip(map(str, column_names), row)) for row in cursor.fetchall()]
         
-        # Cierra la conexión
         udcConn.close()
 
-        # TOMA LOS DATOS DE LA TABLA CATEGORIAS PARA EL SELECT CATEGORIAS DEL HTML
         udcConn = connections['ctrlSum']
         with udcConn.cursor() as cursor:
             cursor.callproc("SUM_GET_CATEGORIAS", [])
             column_names = [desc[0] for desc in cursor.description]
             categorias_data = [dict(zip(map(str, column_names), row)) for row in cursor.fetchall()]
 
-        # Cierra la conexión
         udcConn.close()
 
         # TOMA LOS DATOS DE LA TABLA USUARIOS PARA EL SELECT USUARIOS DEL HTML
@@ -503,11 +487,9 @@ def listado_asignaciones_data(request):
             column_names = [desc[0] for desc in cursor.description]
             usuarios_data = [dict(zip(map(str, column_names), row)) for row in cursor.fetchall()]
 
-        # Cierra la conexión
         udcConn.close()
 
-    except Exception as e:
-        # Manejo de excepciones, puedes personalizar esto según tus necesidades
+    except Exception as e:s
         return JsonResponse({'error': str(e)})
     
     context = {
@@ -526,15 +508,14 @@ def insertar_actualizar_asignacion(request):
         existe = 0
 
         id_asignacion = request.POST.get('id_asignacion')
-        pk_usuario = request.POST.get('nombre_completo')   # este select trae el PKUsuario
-        nombre_usuario = request.POST.get('usuario')       # este campo trae ADMIN
+        pk_usuario = request.POST.get('nombre_completo')   
+        nombre_usuario = request.POST.get('usuario')       
         grupos = request.POST.get('grupos')
         categoria = request.POST.get('categoria')
         suministro = request.POST.get('suministro')
         cantidad = request.POST.get('cantidad')
         comentario = request.POST.get('comentario')
 
-        # Si la sesión no trae userName, usar el usuario del formulario
         userName = request.session.get('userName') or nombre_usuario or 'SISTEMA'
 
         if not id_asignacion or str(id_asignacion).strip() == "":
@@ -545,7 +526,6 @@ def insertar_actualizar_asignacion(request):
         if not pk_usuario or str(pk_usuario).strip() == "":
             return JsonResponse({'save': 0, 'error': 'PKUsuario vacío'})
 
-        # --- VALIDACIÓN DE STOCK PARA EVITAR NEGATIVOS EN KARDEX ---
         try:
             val_cantidad = float(cantidad or 0)
             udcConn = connections['ctrlSum']
@@ -564,16 +544,15 @@ def insertar_actualizar_asignacion(request):
                 nombre_sum = row_sum[0]
                 stock_actual = float(row_sum[1] or 0)
 
-                # 2. Validar disponibilidad según sea Nuevo o Edición
+                
                 if id_asignacion == 0:
-                    # Caso Nuevo: La cantidad no debe superar el stock actual
                     if val_cantidad > stock_actual:
                         return JsonResponse({
                             'save': 0, 
                             'error': f'⚠️ Stock insuficiente para "{nombre_sum}". Disponible: {stock_actual}'
                         })
                 else:
-                    # Caso Edición: Debemos recuperar la cantidad previa asignada
+                  
                     cursor.execute("""
                         SELECT cantidad_asignacion 
                         FROM universal_data_core.asignacion 
@@ -582,7 +561,6 @@ def insertar_actualizar_asignacion(request):
                     row_old = cursor.fetchone()
                     cant_previa = float(row_old[0] or 0) if row_old else 0
                     
-                    # La cantidad disponible real es el stock actual + lo que ya habíamos "tomado" antes
                     disponible_total = stock_actual + cant_previa
                     
                     if val_cantidad > disponible_total:
@@ -761,10 +739,9 @@ def obtener_asignacion_data(request):
     try:
         udcConn = connections['ctrlSum']
         with udcConn.cursor() as cursor:
-            cursor.callproc('SUM_GET_ASIGNACIONES', [0])  # Ajusta el filtro según lo necesario
+            cursor.callproc('SUM_GET_ASIGNACIONES', [0]) 
             resultado = cursor.fetchall()
 
-        # Buscar la asignación específica en los resultados
         asignacion = next(({
             'id_asignacion': row[0],
             'PKUsuario': row[1],
@@ -838,7 +815,7 @@ def listar_asignaciones(request):
 
 # Obtiene los datos de la tabla Asignaciones
 def get_asignaciones_data (request):
-    varEstado = int(request.POST.get('varEstado'))  # Convertir a entero, por defecto es 0
+    varEstado = int(request.POST.get('varEstado'))  
     asignaciones_data = ''
 
     try:
@@ -857,46 +834,37 @@ def get_asignaciones_data (request):
 #----------------------------------------------------------------------------------------------------#
 
 def obtener_usuario_por_nombre_data(request):
-    pk_usuario = request.POST.get('PKUsuario')  # Obtener el PKUsuario desde el request
-    print(f"PKUsuario recibido en el backend: {pk_usuario}")  # Depuración
+    pk_usuario = request.POST.get('PKUsuario')  
+    print(f"PKUsuario recibido en el backend: {pk_usuario}")
 
-    # Verificar si se recibió un PKUsuario válido
     if not pk_usuario or not pk_usuario.isdigit():
         return JsonResponse({'error': 'No se recibió un PKUsuario válido.'})
 
     try:
-        # Convertir pk_usuario a entero
         pk_usuario = int(pk_usuario)
 
-        # Conexión a la base de datos usando el alias 'ctrlSum'
         udcConn = connections['ctrlSum']
         with udcConn.cursor() as cursor:
-            # Llamamos al procedimiento almacenado con el PKUsuario como parámetro
             cursor.callproc("SUM_GET_NOMBREC_USUARIOS", [pk_usuario])
 
-            # Obtener los resultados del procedimiento almacenado
             column_names = [desc[0] for desc in cursor.description]
             usuario_data = [
                 dict(zip(map(str, column_names), row)) for row in cursor.fetchall()
             ]
 
-            # Depuración: Ver qué datos se obtienen
             print(f"Datos recibidos del procedimiento almacenado: {usuario_data}")
 
-            # Si hay datos, extraemos el nombre de usuario
             if usuario_data:
                 usuario = usuario_data[0].get('Usuario')  # Suponiendo que 'Usuario' es el nombre de la columna
             else:
                 usuario = None
 
-        # Si se encontró el usuario, lo devolvemos; si no, retornamos un error
         if usuario:
             return JsonResponse({'usuario': usuario})
         else:
             return JsonResponse({'error': 'Usuario no encontrado.'})
 
     except Exception as e:
-        # Manejo de excepciones y errores en la ejecución
         print(f"Error en la ejecución del procedimiento o conexión: {str(e)}")
         return JsonResponse({'error': f'Ocurrió un error: {str(e)}'})
 
@@ -905,15 +873,14 @@ def obtener_usuario_por_nombre_data(request):
 def actualizar_estado_asignacion(request):
     if request.method == "POST":
         asignacion_id = request.POST.get('id_asignacion')
-        estadoA = request.POST.get('estado')  # Obtener el estado nuevo
+        estadoA = request.POST.get('estado')  
 
         # Validación de los parámetros
         if not asignacion_id or not estadoA:
             return JsonResponse({'success': False, 'error': 'Faltan parámetros requeridos.'})
 
         try:
-            # Llamamos al procedimiento almacenado para actualizar el estado de la requisición
-            udcConn = connections['ctrlSum']  # Usa la conexión correcta para la base de datos
+            udcConn = connections['ctrlSum']  
             with udcConn.cursor() as cursor:
                 cursor.callproc('ACTUALIZAR_ESTADO_ASIGNACION', [asignacion_id, estadoA])
 
@@ -933,27 +900,22 @@ def listado_requisicion_data(request):
     usuarios_data = ""
 
     try:
-        # TOMA LOS LOS DATOS DE LA TABLA REQUISICION
         udcConn = connections['ctrlSum']
         with udcConn.cursor() as cursor:
             cursor.callproc("GET_REQUISICIONES", [0])
             column_names = [desc[0] for desc in cursor.description]
             requisicion_data = [dict(zip(map(str, column_names), row)) for row in cursor.fetchall()]
-        
-        # Cierra la conexión
         udcConn.close()
 
-        # TOMA LOS DATOS DE LA TABLA CATEGORIAS PARA EL SELECT CATEGORIAS DEL HTML
         udcConn = connections['ctrlSum']
         with udcConn.cursor() as cursor:
             cursor.callproc("SUM_GET_CATEGORIAS", [])
             column_names = [desc[0] for desc in cursor.description]
             categorias_data = [dict(zip(map(str, column_names), row)) for row in cursor.fetchall()]
 
-        # Cierra la conexión
+     
         udcConn.close()
 
-        # TOMA LOS DATOS DE LOS ACREEDORES
         udcConn = connections['ctrlSum']
         with udcConn.cursor() as cursor:
             cursor.execute("""
@@ -989,25 +951,20 @@ def listado_requisicion_data(request):
 # ----------------------------------------------------------------------------------------------------------------------------- #
 
 def obtener_detalles_requisicion_data(request):
-    # Obtener el ID de la requisición desde la solicitud
     id_requisicion = request.GET.get('id_requisicion')
 
     if not id_requisicion:
         return JsonResponse({'error': 'No se proporcionó un ID de requisición válido.'})
 
     try:
-        # Conectar a la base de datos y ejecutar el procedimiento almacenado
         udcConn = connections['ctrlSum']
         with udcConn.cursor() as cursor:
             cursor.callproc('GET_DETALLES_REQUISICION', [id_requisicion])
             
-            # Obtener los resultados
             column_names = [desc[0] for desc in cursor.description]
             detalles_requisicion = [
                 dict(zip(column_names, row)) for row in cursor.fetchall()
             ]
-        
-        # Retornar la respuesta en formato JSON
         return JsonResponse({'detalles': detalles_requisicion})
 
     except Exception as e:
@@ -1016,22 +973,18 @@ def obtener_detalles_requisicion_data(request):
 
 # ----------------------------------------------------------------------------------------------------------------------------- #
 def obtener_requisicion_y_detalle_data(request):
-    # Obtener el ID de la requisición desde la solicitud
     id_requisicion = request.GET.get('id_requisicion')
 
     if not id_requisicion:
         return JsonResponse({'error': 'No se proporcionó un ID de requisición válido.'})
 
     try:
-        # Conectar a la base de datos y ejecutar el procedimiento almacenado
         udcConn = connections['ctrlSum']
         with udcConn.cursor() as cursor:
-            # Llamar al procedimiento almacenado que obtiene la requisición y los detalles
             cursor.callproc('GET_REQUISICION_Y_DETALLES', [id_requisicion])
             
-            # Obtener los resultados de la requisición
             column_names = [desc[0] for desc in cursor.description]
-            requisicion_data = dict(zip(column_names, cursor.fetchone()))  # solo un resultado para la requisición
+            requisicion_data = dict(zip(column_names, cursor.fetchone()))  
 
             # Obtener los resultados de los detalles
             cursor.nextset()  # Mover al siguiente conjunto de resultados (detalles)
@@ -1040,7 +993,6 @@ def obtener_requisicion_y_detalle_data(request):
                 dict(zip(column_names, row)) for row in cursor.fetchall()
             ]
         
-        # Retornar la respuesta en formato JSON con los datos de la requisición y los detalles
         return JsonResponse({
             'requisicion': requisicion_data,
             'detalles': detalles_requisicion
@@ -1051,9 +1003,8 @@ def obtener_requisicion_y_detalle_data(request):
 
 # ----------------------------------------------------------------------------------------------------------------------------- #
 
-# Obtiene los datos de la tabla requisicion
 def get_requisicion_data (request):
-    varEstado = int(request.POST.get('varEstado'))  # Convertir a entero, por defecto es 0
+    varEstado = int(request.POST.get('varEstado'))  
     requisicion_data = ''
 
     try:
@@ -1072,14 +1023,11 @@ def get_requisicion_data (request):
     
 # --------------------------------------------------------------------------------------------------------------- #
 
-# Obtiene los datos de la tabla usuarios
 def obtener_nombres_usuarios_data (request):
     
     try:
-        # Conexión a la base de datos y ejecución del procedimiento almacenado
         udcConn = connections['ctrlSum']
         with udcConn.cursor() as cursor:
-            # Llamar al procedimiento almacenado
             cursor.callproc("GET_NOMBRES", [])
             column_names = [desc[0] for desc in cursor.description]
             usuarios_data = [
@@ -1098,12 +1046,11 @@ def insertar_actualizar_requisicion_data(request):
     try:
         existe = 0
 
-        # Verificar qué datos están llegando
         print(request.POST)
 
         id_requisicion = request.POST.get('id_requisicion')
         if not id_requisicion:
-            id_requisicion = None  # Esto permitirá al procedimiento almacenado insertar una nueva requisición
+            id_requisicion = None  
 
         # Recuperar los demás datos del formulario
         PKUsuario = request.POST.get('PKUsuario')
@@ -1117,15 +1064,13 @@ def insertar_actualizar_requisicion_data(request):
 
         userName = request.session.get('userName', '')
 
-        # Validar que los valores esenciales no estén vacíos
         if not PKUsuario or not PKgrupo or not id_proveedor or not fecha_pedido or not fecha_pago or not costo_total:
             raise ValueError("Faltan datos requeridos en la requisición.")
         
-        # Validar que los valores numéricos sean positivos
         if float(costo_total) <= 0:
             raise ValueError("El costo total debe ser un valor positivo.")
 
-        with transaction.atomic():  # Usar transacción para asegurar que todo sea consistente
+        with transaction.atomic():  
             udcConn = connections['ctrlSum']
             with udcConn.cursor() as cursor:
                 args = [
@@ -1143,7 +1088,6 @@ def insertar_actualizar_requisicion_data(request):
                 ]
                 cursor.callproc('SUM_INSERT_UPDATE_REQUISICION', args)
 
-                # Recuperar el valor OUT después de la ejecución
                 cursor.execute('SELECT @_SUM_INSERT_UPDATE_REQUISICION_9')
                 p_result_id_requisicion = cursor.fetchone()[0]
 
@@ -1180,7 +1124,6 @@ def insertar_actualizar_detalle_requisicion_data(request):
                     if not detalle['justificacion'].strip():
                         raise ValueError("La justificación no puede estar vacía.")
 
-                    # Llamar al procedimiento almacenado incluyendo la justificación
                     cursor.callproc('SUM_INSERT_UPDATE_DETALLE_REQUISICION', [
                         detalle.get('id_detalle_requisicion', 0), 
                         id_requisicion,
@@ -1202,7 +1145,6 @@ def insertar_actualizar_detalle_requisicion_data(request):
 
 # CAMBIAR EL ESTADO DE REQUISICION
 
-# Función para ejecutar el procedimiento almacenado que cambia el estado
 def ejecutar_procedimiento(requisicion_id):
     try:
         # Conexión a la base de datos
@@ -1210,56 +1152,45 @@ def ejecutar_procedimiento(requisicion_id):
         with udcConn.cursor() as cursor:
             # Llamar al procedimiento almacenado 'CAMBIAR_ESTADO_REQUISICION'
             cursor.callproc('universal_data_core.CAMBIAR_ESTADO_REQUISICION', [requisicion_id])
-            # Si deseas capturar el resultado, puedes usar fetchall() o fetchone()
             cursor.fetchall()
     except Exception as e:
-        # En caso de error, imprimir y lanzar la excepción
+        # En caso de error, 
         raise Exception(f"Error al ejecutar el procedimiento almacenado: {str(e)}")
 
 
-# Vista que se llama desde el frontend para cambiar el estado
+# Vista que se llama desde elo
 def actualizar_estado(request):
     if request.method == "POST":
-        # Obtener el id de la requisición desde la solicitud
         id_requisicion = request.POST.get("id_requisicion")
 
-        # Verifica que el id_requisicion sea válido
         if not id_requisicion:
             return JsonResponse({"success": False, "error": "ID de requisición no proporcionado."})
 
         try:
-            # Ejecutar el procedimiento almacenado para cambiar el estado de la requisición
             ejecutar_procedimiento(id_requisicion)
 
-            # Si no hay errores, se confirma el éxito
             return JsonResponse({"success": True})
 
         except Exception as e:
-            # En caso de error, se maneja la excepción
             return JsonResponse({"success": False, "error": f"Error al ejecutar el procedimiento: {str(e)}"})
 
 # --------------------------------------------------------------------------------------- #
 
 def obtener_detalles_data(request):
-    # Obtener el ID de la requisición desde la solicitud
     id_requisicion = request.GET.get('id_requisicion')
 
     if not id_requisicion:
         return JsonResponse({'error': 'No se proporcionó un ID de requisición válido.'})
 
     try:
-        # Conectar a la base de datos y ejecutar el procedimiento almacenado
         udcConn = connections['ctrlSum']
         with udcConn.cursor() as cursor:
-            # Verificar si la requisición existe
             cursor.execute('SELECT COUNT(*) FROM universal_data_core.requisicion WHERE id_requisicion = %s', [id_requisicion])
             if cursor.fetchone()[0] == 0:
                 return JsonResponse({'error': 'No se encontró la requisición con el ID proporcionado.'})
 
-            # Llamar al procedimiento almacenado
             cursor.callproc('GET_DETALLES_REQUISICION', [id_requisicion])
 
-            # Obtener los resultados
             column_names = [desc[0] for desc in cursor.description]
             rows = cursor.fetchall()
 
@@ -1313,8 +1244,6 @@ def get_almacenes_por_usuario(request):
     try:
         udcConn = connections['ctrlSum']
         with udcConn.cursor() as cursor:
-            # Seleccionamos todas las columnas para no dejar nada por fuera
-            # Eliminamos el WHERE y el INNER JOIN
             cursor.execute("""
                 SELECT id_almacen, nombre_almacen 
                 FROM universal_data_core.almacen
@@ -1322,7 +1251,6 @@ def get_almacenes_por_usuario(request):
 
             rows = cursor.fetchall()
 
-            # Mapeamos los datos para que el JavaScript los reconozca
             almacenes = [{
                 "id": r[0],
                 "nombre": r[1],
@@ -1333,7 +1261,6 @@ def get_almacenes_por_usuario(request):
         return JsonResponse({"data": almacenes})
 
     except Exception as e:
-        # Si hay un error (ej. nombre de tabla mal escrito), lo veremos aquí
         return JsonResponse({"data": [], "error": str(e)}, status=500)
 
 
@@ -1346,7 +1273,7 @@ def get_grupos_data(request):
             cursor.execute("""
                 SELECT id_grupo, nombre_grupo
                 FROM universal_data_core.grupos
-            """)
+           frontend para cambiar el estad  """)
 
             rows = cursor.fetchall()
 
@@ -1369,7 +1296,6 @@ def verificar_detalles_requisicion_data(request):
         return JsonResponse({"error": "ID de requisición no proporcionado"}, status=400)
 
     try:
-        # Establece la conexión a la base de datos
         udcConn = connections['ctrlSum']
         with udcConn.cursor() as cursor:
             cursor.callproc("universal_data_core.GET_DETALLES_REQUISICION", [id_requisicion])
@@ -1382,7 +1308,6 @@ def verificar_detalles_requisicion_data(request):
         return JsonResponse({"error": str(e)}, status=500)
 
 # ---------------------------------------------------------------------------------------------------------------------- #
-# ESTO HACE QUE EL GRUPO SALGA AUTOMÁTICO (Línea 525 aprox)
 def grupos_por_usuario_data(request):
     id_usuario = request.GET.get('pk_usuario') or request.GET.get('usuario_id')
 
@@ -1422,8 +1347,7 @@ def actualizar_estado_requisicion(request):
             return JsonResponse({'success': False, 'error': 'Faltan parámetros requeridos.'})
 
         try:
-            # Llamamos al procedimiento almacenado para actualizar el estado de la requisición
-            udcConn = connections['ctrlSum']  # Usa la conexión correcta para la base de datos
+            udcConn = connections['ctrlSum']  
             with udcConn.cursor() as cursor:
                 cursor.callproc('ACTUALIZAR_ESTADO_REQUISICION', [requisicion_id, estadoR])
 
@@ -1437,15 +1361,14 @@ def actualizar_estado_requisicion(request):
 def actualizar_estado_detalle_requisicion_data(request):
     if request.method == "POST":
         detalle_requisicion_id = request.POST.get('id_detalle_requisicion')
-        estadoDR = request.POST.get('estado')  # Obtener el estado nuevo
+        estadoDR = request.POST.get('estado')  
 
         # Validación de los parámetros
         if not detalle_requisicion_id or not estadoDR:
             return JsonResponse({'success': False, 'error': 'Faltan parámetros requeridos.'})
 
         try:
-            # Llamamos al procedimiento almacenado para actualizar el estado de la requisición
-            udcConn = connections['ctrlSum']  # Usa la conexión correcta para la base de datos
+            udcConn = connections['ctrlSum']  
             with udcConn.cursor() as cursor:
                 cursor.callproc('ACTUALIZAR_ESTADO_DETALLE_REQUISICION', [detalle_requisicion_id, estadoDR])
 
@@ -1459,15 +1382,13 @@ def actualizar_estado_detalle_requisicion_data(request):
 def actualizar_estado_sum(request):
     if request.method == "POST":
         suministro_id = request.POST.get('id_suministros')
-        estadoS = request.POST.get('estado')  # Obtener el estado nuevo
+        estadoS = request.POST.get('estado')  
 
-        # Validación de los parámetros
         if not suministro_id or not estadoS:
             return JsonResponse({'success': False, 'error': 'Faltan parámetros requeridos.'})
 
         try:
-            # Llamamos al procedimiento almacenado para actualizar el estado de la requisición
-            udcConn = connections['ctrlSum']  # Usa la conexión correcta para la base de datos
+            udcConn = connections['ctrlSum'] 
             with udcConn.cursor() as cursor:
                 cursor.callproc('ACTUALIZAR_ESTADO_SUMINISTRO', [suministro_id, estadoS])
 
@@ -1600,18 +1521,15 @@ def listado_almacenes_data(request):
     almacenes_data = ""
 
     try:
-        # TOMA LOS DATOS DE LA TABLA ALMACEN
         udcConn = connections['ctrlSum']
         with udcConn.cursor() as cursor:
             cursor.callproc("SUM_GET_ALMACENES", [0,0])
             column_names = [desc[0] for desc in cursor.description]
             almacenes_data = [dict(zip(map(str, column_names), row)) for row in cursor.fetchall()]
         
-        # Cierra la conexión
         udcConn.close()
 
-    except Exception as e:
-        # Manejo de excepciones, puedes personalizar esto según tus necesidades
+    except Exception as e
         return JsonResponse({'error': str(e)})
     
     context = {
@@ -1668,20 +1586,17 @@ def insertar_actualizar_almacen_data(request):
     try:
         existe = 0
 
-        # Obtener los valores del POST
         id_almacen = request.POST.get('id_almacen')
         nombre_almacen = request.POST.get('nombre_almacen')
         ubicacion_almacen = request.POST.get('ubicacion_almacen')
         fkgrupo = request.POST.get('fkgrupo')
         userName = request.session.get('userName', '')
 
-        # Si viene vacío, mandarlo como None
         if not id_almacen or id_almacen == '':
             id_almacen = None
         else:
             id_almacen = int(id_almacen)
 
-        # Conexión a la base de datos
         udcConn = connections['ctrlSum']
         with udcConn.cursor() as cursor:
             cursor.callproc('SUM_INSERT_UPDATE_ALMACEN', [
@@ -1717,13 +1632,11 @@ def actualizar_estado_almacenes(request):
         almacen_id = request.POST.get('id_almacen')
         estadoAlmacen = request.POST.get('estado')  # Obtener el estado nuevo
 
-        # Validación de los parámetros
         if not almacen_id or not estadoAlmacen:
             return JsonResponse({'success': False, 'error': 'Faltan parámetros requeridos.'})
 
         try:
-            # Llamamos al procedimiento almacenado para actualizar el estado de la requisición
-            udcConn = connections['ctrlSum']  # Usa la conexión correcta para la base de datos
+            udcConn = connections['ctrlSum']  
             with udcConn.cursor() as cursor:
                 cursor.callproc('ACTUALIZAR_ESTADO_ALMACEN', [almacen_id, estadoAlmacen])
 
@@ -1746,11 +1659,9 @@ def listado_adquisicion_data(request):
             column_names = [desc[0] for desc in cursor.description]
             adquisicion_data = [dict(zip(map(str, column_names), row)) for row in cursor.fetchall()]
         
-        # Cierra la conexión
         udcConn.close()
 
     except Exception as e:
-        # Manejo de excepciones, puedes personalizar esto según tus necesidades
         return JsonResponse({'error': str(e)})
     
     context = {
@@ -1763,7 +1674,7 @@ def listado_adquisicion_data(request):
 
 # Obtiene los datos de la tabla Adquisicion
 def get_adquisicion_data (request):
-    varEstado = int(request.POST.get('varEstado'))  # Convertir a entero, por defecto es 0
+    varEstado = int(request.POST.get('varEstado'))  
     adquisicion_data = ''
 
     try:
@@ -1786,8 +1697,6 @@ def obtener_requisiciones_usuario(request):
     try:
         udcConn = connections['ctrlSum']
         with udcConn.cursor() as cursor:
-            # Consulta directa para obtener todas las requisiciones activas
-            # con los campos que el frontend necesita para llenar el select
             cursor.execute("""
                 SELECT
                     r.id_requisicion,
@@ -1830,7 +1739,6 @@ def obtener_requisicion_detalles_usuario(request):
         udcConn = connections['ctrlSum']
         with udcConn.cursor() as cursor:
 
-            # 1. Obtener encabezado de la requisición
             cursor.execute("""
                 SELECT
                     r.id_requisicion,
@@ -1906,23 +1814,20 @@ def obtener_requisicion_detalles_usuario(request):
 
 def obtener_metodos_pago(request):
     try:
-        # Conexión a la base de datos usando el alias 'ctrlSum' (puedes usar el alias que necesites)
         udcConn = connections['ctrlSum']
         with udcConn.cursor() as cursor:
-            # Llamamos al procedimiento almacenado 'OBTENER_METODOS_PAGO'
+            
             cursor.callproc('OBTENER_METODOS_PAGO')
             
-            # Obtener los resultados del procedimiento almacenado
-            column_names = [desc[0] for desc in cursor.description]  # Obtener nombres de columnas
+            column_names = [desc[0] for desc in cursor.description]  
             metodos_pago_data = [
                 dict(zip(map(str, column_names), row)) for row in cursor.fetchall()
             ]
             
-            # Si hay datos, devolverlos como un JsonResponse
             return JsonResponse({'metodos_pago': metodos_pago_data})
     
     except Exception as e:
-        # Manejo de excepciones y errores en la ejecución
+        
         print(f"Error en la ejecución del procedimiento o conexión: {str(e)}")
         return JsonResponse({'error': f'Ocurrió un error: {str(e)}'})
     
@@ -1931,11 +1836,9 @@ def obtener_metodos_pago(request):
 def insertar_actualizar_adquisicion_data(request):
     try:
         existe = 0
-
-        # Valores obtenidos del formulario o petición POST
         id_adquisicion = request.POST.get('id_adquisicion')
         if not id_adquisicion:
-            id_adquisicion = None  # Esto permitirá al procedimiento almacenado insertar una nueva requisición 
+            id_adquisicion = None 
 
 
         id_requisicion = request.POST.get('id_requisicion')
@@ -1960,12 +1863,11 @@ def insertar_actualizar_adquisicion_data(request):
                     id_metodo_pago,
                     costo_total,
                     estado,
-                    0,         # guardado (valor de salida)
-                    userName   # userName (valor adicional)
+                    0,         
+                    userName  
                 ]
                 cursor.callproc('universal_data_core.SUM_INSERT_UPDATE_ADQUISICION', args)
 
-                # Obtener el valor del parámetro de salida (guardado)
                 cursor.execute('SELECT @_universal_data_core.SUM_INSERT_UPDATE_ADQUISICION_8')
                 guardado = cursor.fetchone()[0]
 
@@ -1985,16 +1887,14 @@ def insertar_actualizar_adquisicion_data(request):
 
 def insertar_actualizar_detalle_adquisicion_data(request):
     try:
-        # Obtenemos el ID de la adquisición y detalles desde el POST
-        id_adquisicion = request.POST.get('id_adquisicion')  # Corregido el nombre del campo a 'id_adquisicion'
+        id_adquisicion = request.POST.get('id_adquisicion')  
         id_requisicion = request.POST.get('id_requisicion')
-        detalles = json.loads(request.POST.get('detalles'))  # Los detalles se pasan como un JSON
+        detalles = json.loads(request.POST.get('detalles'))  
 
         # Verificar que los detalles no estén vacíos
         if not detalles:
             raise ValueError("No se han agregado detalles para la adquisición.")
 
-        # Validar parámetros requeridos fuera del bucle para mejor diagnóstico
         try:
             id_adq = int(id_adquisicion)
         except (ValueError, TypeError):
@@ -2006,24 +1906,16 @@ def insertar_actualizar_detalle_adquisicion_data(request):
             raise ValueError(f"ID Requisición inválido: '{id_requisicion}'")
 
 
-        with transaction.atomic():  # Aseguramos que todos los cambios en la base de datos se realicen correctamente
-            udcConn = connections['ctrlSum']  # Conexión a la base de datos
+        with transaction.atomic():  
+            udcConn = connections['ctrlSum']  
             with udcConn.cursor() as cursor:
-                # Iteramos sobre los detalles que hemos recibido
                 for detalle in detalles:
-                    # Validamos que los datos esenciales estén presentes
                     if not detalle.get('id_detalle_requisicion') or not detalle.get('id_suministros') or detalle.get('cantidad') is None or detalle.get('precio_unitario') is None:
                         raise ValueError("Faltan datos en los detalles de la adquisición.")
-                    
-                    # Validar que cantidad y precio_unitario sean mayores a cero para NUEVOS registros
-                    # En edición de registros existentes (id_detalle_adquisicion > 0), se permiten negativos
                     id_da_temp = int(detalle.get('id_detalle_adquisicion', 0))
                     if id_da_temp == 0:
                         if float(detalle.get('cantidad', 0)) <= 0 or float(detalle.get('precio_unitario', 0)) <= 0:
                             raise ValueError("La cantidad y el precio unitario deben ser mayores a cero.")
-
-
-                    # Convertir a tipos de datos correctos antes de llamar al SP
                     try:
                         id_da = int(detalle.get('id_detalle_adquisicion', 0))
                         id_dr = int(detalle.get('id_detalle_requisicion', 0))
@@ -2033,7 +1925,6 @@ def insertar_actualizar_detalle_adquisicion_data(request):
                     except (ValueError, TypeError):
                         raise ValueError(f"Formato numérico inválido en detalle: {detalle}")
 
-                    # Llamamos al procedimiento almacenado con los parámetros correspondientes
                     cursor.callproc('SUM_INSERT_UPDATE_DETALLE_ADQUISICION', [
                         id_da,
                         id_adq,
@@ -2044,12 +1935,9 @@ def insertar_actualizar_detalle_adquisicion_data(request):
                         prec,
                     ])
 
-
-        # Si todo va bien, retornamos una respuesta de éxito
         datos = {'save': 1, 'message': 'Detalles de adquisición guardados correctamente.'}
 
     except Exception as e:
-        # En caso de error, retornamos el mensaje de error
         datos = {'save': 0, 'error': f'⚠️ Error: {str(e)}'}
 
     return JsonResponse(datos)
@@ -2059,15 +1947,14 @@ def insertar_actualizar_detalle_adquisicion_data(request):
 def actualizar_estado_adquisicion(request):
     if request.method == "POST":
         adquisicion_id = request.POST.get('id_adquisicion')
-        estadoAd = request.POST.get('estado')  # Obtener el estado nuevo
+        estadoAd = request.POST.get('estado')  
 
         # Validación de los parámetros
         if not adquisicion_id or not estadoAd:
             return JsonResponse({'success': False, 'error': 'Faltan parámetros requeridos.'})
 
         try:
-            # Llamamos al procedimiento almacenado para actualizar el estado de la requisición
-            udcConn = connections['ctrlSum']  # Usa la conexión correcta para la base de datos
+            udcConn = connections['ctrlSum']  
             with udcConn.cursor() as cursor:
                 cursor.callproc('ACTUALIZAR_ESTADO_ADQUISICION', [adquisicion_id, estadoAd])
 
@@ -2079,31 +1966,25 @@ def actualizar_estado_adquisicion(request):
 # ----------------------------------------------------------------------------------------------------------------- #
 
 def obtener_adquisicion_y_detalle_data(request):
-    # Obtener el ID de la adquisición desde la solicitud
     id_adquisicion = request.GET.get('id_adquisicion')
 
     if not id_adquisicion:
         return JsonResponse({'error': 'No se proporcionó un ID de adquisición válido.'})
 
     try:
-        # Conectar a la base de datos y ejecutar el procedimiento almacenado
         udcConn = connections['ctrlSum']
         with udcConn.cursor() as cursor:
-            # Llamar al procedimiento almacenado que obtiene la adquisición y los detalles
             cursor.callproc('GET_ADQUISICION_Y_DETALLES', [id_adquisicion])
             
-            # Obtener los resultados de la adquisición
             column_names = [desc[0] for desc in cursor.description]
             adquisicion_data = dict(zip(column_names, cursor.fetchone()))  # solo un resultado para la adquisición
 
-            # Obtener los resultados de los detalles de la adquisición
-            cursor.nextset()  # Mover al siguiente conjunto de resultados (detalles)
+            cursor.nextset() 
             column_names = [desc[0] for desc in cursor.description]
             detalles_adquisicion = [
                 dict(zip(column_names, row)) for row in cursor.fetchall()
             ]
         
-        # Retornar la respuesta en formato JSON con los datos de la adquisición y los detalles
         return JsonResponse({
             'adquisicion': adquisicion_data,
             'detalles': detalles_adquisicion
@@ -2125,21 +2006,16 @@ def obtener_detalle_adquisicion(request):
         udcConn = connections['ctrlSum']
         with udcConn.cursor() as cursor:
             cursor.callproc('universal_data_core.OBTENER_DETALLE_ADQUISICION', [id_adquisicion, id_requisicion])
-            
-            # Obtener nombres de columnas dinámicamente
+    
             if cursor.description:
                 columns = [col[0].lower() for col in cursor.description]
                 results = cursor.fetchall()
                 
-                # Deduplicar resultados si el SP devuelve filas idénticas
-                unique_results = list(dict.fromkeys(results)) # dict.fromkeys preserva el orden
+                unique_results = list(dict.fromkeys(results)) 
                 
                 detalles = []
                 for row in unique_results:
                     d = dict(zip(columns, row))
-                    # Normalizar nombres de campos para el frontend
-                    # Estricto: Solo usar IDs de detalle reales (pk_detalle_requisicion o id_detalle_requisicion)
-                    # SE ELIMINAN: fkrequisicion e id_requisicion para evitar errores de llave foránea
                     id_det_req = d.get('pk_detalle_requisicion') or d.get('id_detalle_requisicion') or d.get('fk_detalle_requisicion')
                     
                     if id_det_req:
@@ -2157,7 +2033,6 @@ def obtener_detalle_adquisicion(request):
             else:
                 detalles = []
 
-        # Si no se encuentran resultados, devolver un error
         if not detalles:
             return JsonResponse({'success': False, 'message': 'No se encontraron detalles para esta adquisición.'})
 
@@ -2172,18 +2047,15 @@ def listado_devoluciones_data(request):
     devoluciones_data = ""
 
     try:
-        # TOMA LOS DATOS DE LA TABLA ALMACEN
         udcConn = connections['ctrlSum']
         with udcConn.cursor() as cursor:
             cursor.callproc("GET_DEVOLUCIONES", [0])
             column_names = [desc[0] for desc in cursor.description]
             devoluciones_data = [dict(zip(map(str, column_names), row)) for row in cursor.fetchall()]
         
-        # Cierra la conexión
         udcConn.close()
 
     except Exception as e:
-        # Manejo de excepciones, puedes personalizar esto según tus necesidades
         return JsonResponse({'error': str(e)})
     
     context = {
@@ -2199,10 +2071,9 @@ def insertar_actualizar_devolucion_data(request):
     try:
         existe = 0
 
-        # Obtener los datos del formulario
         id_devolucion = request.POST.get('id_devolucion')
         if not id_devolucion:
-            id_devolucion = None  # Esto permitirá al procedimiento almacenado insertar una nueva requisición 
+            id_devolucion = None   
 
         IDadquisicion = request.POST.get('id_adquisicion')
         IDDetalleRequisicion = request.POST.get('id_detalle_requisicion')
@@ -2214,15 +2085,12 @@ def insertar_actualizar_devolucion_data(request):
         motivo_devolucion = request.POST.get('motivo_devolucion')
         IDproveedor = request.POST.get('id_proveedor')
         total_devolucion = request.POST.get('total_devolucion')
-        estado = request.POST.get('estado')  # Estado de la devolución (1 = Creado, 2 = Editado, 3 = Anulado)
+        estado = request.POST.get('estado')  
 
-        # Obtener el nombre del usuario desde la sesión
         userName = request.session.get('userName', '')
 
-        # Conexión a la base de datos
         udcConn = connections['ctrlSum']
         with udcConn.cursor() as cursor:
-            # Llamar al procedimiento almacenado
             cursor.callproc('universal_data_core.SUM_INSERT_UPDATE_DEVOLUCION', [
                 id_devolucion,
                 IDadquisicion,
@@ -2236,24 +2104,20 @@ def insertar_actualizar_devolucion_data(request):
                 motivo_devolucion,
                 IDproveedor,
                 estado,
-                0,  # Parámetro OUT (guardado)
+                0,  
                 userName
             ])
 
-            # Obtener el valor del parámetro OUT (guardado)
             cursor.execute('SELECT @_universal_data_core.SUM_INSERT_UPDATE_DEVOLUCION_12')
             guardado = cursor.fetchone()[0]
 
-            # Definir el estado de la operación
             if guardado == 1:
-                existe = 0  # Indica que se insertó un nuevo registro
+                existe = 0  
             else:
-                existe = 2  # Indica que se actualizó un registro existente
+                existe = 2  
         
-        # Cerrar la conexión
         udcConn.close()
 
-        # Retornar la respuesta como JSON
         datos = {'save': 1, 'existe': existe}
     except Exception as e:
         datos = {'save': 0, 'error': str(e)}
@@ -2262,9 +2126,8 @@ def insertar_actualizar_devolucion_data(request):
 
 #-----------------------------------------------------------------------------------------------------#
 
-# Obtiene los datos de la tabla devolucion
 def get_devoluciones_data (request):
-    varEstado = int(request.POST.get('varEstado'))  # Convertir a entero, por defecto es 0
+    varEstado = int(request.POST.get('varEstado'))  
     devoluciones_data = ''
 
     try:
@@ -2284,15 +2147,14 @@ def get_devoluciones_data (request):
 def actualizar_estado_devolucion(request):
     if request.method == "POST":
         devolucion_id = request.POST.get('id_devolucion')
-        estadoDev = request.POST.get('estado')  # Obtener el estado nuevo
+        estadoDev = request.POST.get('estado')  
 
         # Validación de los parámetros
         if not devolucion_id or not estadoDev:
             return JsonResponse({'success': False, 'error': 'Faltan parámetros requeridos.'})
 
         try:
-            # Llamamos al procedimiento almacenado para actualizar el estado de la requisición
-            udcConn = connections['ctrlSum']  # Usa la conexión correcta para la base de datos
+            udcConn = connections['ctrlSum']  
             with udcConn.cursor() as cursor:
                 cursor.callproc('ACTUALIZAR_ESTADO_DEVOLUCION', [devolucion_id, estadoDev])
 
@@ -2305,23 +2167,18 @@ def actualizar_estado_devolucion(request):
 
 def obtener_motivos_devoluciones_data(request):
     try:
-        # Conexión a la base de datos usando el alias 'ctrlSum' (puedes usar el alias que necesites)
         udcConn = connections['ctrlSum']
         with udcConn.cursor() as cursor:
-            # Llamamos al procedimiento almacenado 'OBTENER_METODOS_PAGO'
             cursor.callproc('OBTENER_MOTIVOS_DEVOLUCIONES')
             
-            # Obtener los resultados del procedimiento almacenado
-            column_names = [desc[0] for desc in cursor.description]  # Obtener nombres de columnas
+            column_names = [desc[0] for desc in cursor.description]  
             motivoD_data = [
                 dict(zip(map(str, column_names), row)) for row in cursor.fetchall()
             ]
             
-            # Si hay datos, devolverlos como un JsonResponse
             return JsonResponse({'motivoD': motivoD_data})
     
     except Exception as e:
-        # Manejo de excepciones y errores en la ejecución
         print(f"Error en la ejecución del procedimiento o conexión: {str(e)}")
         return JsonResponse({'error': f'Ocurrió un error: {str(e)}'})
 
@@ -2331,7 +2188,6 @@ def movimientos_suministros_data(request):
     categorias_data = ""
 
     try:
-        # TOMA LOS DATOS DE LA TABLA CATEGORIAS PARA EL SELECT CATEGORIAS DEL HTML
         udcConn = connections['ctrlSum']
         with udcConn.cursor() as cursor:
             cursor.callproc("SUM_GET_CATEGORIAS", [])
@@ -2342,7 +2198,6 @@ def movimientos_suministros_data(request):
         udcConn.close()
 
     except Exception as e:
-        # Manejo de excepciones, puedes personalizar esto según tus necesidades
         return JsonResponse({'error': str(e)})
     
     context = {
@@ -2386,7 +2241,6 @@ def historial_suministros_data(request):
             print("DEBUG: Todos los filtros están vacíos, retornando vacío")
             return JsonResponse({'success': True, 'data': []})
 
-        # NUEVO: si hay suministro, no filtrar por fechas
         if id_suministro is not None:
             fecha_desde = None
             fecha_hasta = None
@@ -2414,7 +2268,6 @@ def historial_suministros_data(request):
             print(f"DEBUG: Columnas: {columnas}")
             if result:
                 print(f"DEBUG: Primera fila: {result[0]}")
-            # Obtener mapeo de usuarios responsables desde la tabla de movimientos
             cursor.execute(
                 "SELECT fecha_movimiento, detalle_movimiento, creado_por FROM universal_data_core.suministros_movimientos WHERE id_suministros = %s",
                 [id_suministro]
@@ -2425,7 +2278,6 @@ def historial_suministros_data(request):
                 f_key = (str(r_user[0]).split(' ')[0], r_user[1])
                 mapa_usuarios[f_key] = r_user[2]
 
-            # --- SONDA DE DIAGNOSTICO PARA EL USUARIO ---
             with open('check_db_results.txt', 'w') as f_debug:
                 f_debug.write(f"REPORTE DE DATOS CRUDOS EN BD (Suministro {id_suministro})\n")
                 f_debug.write("-" * 50 + "\n")
@@ -2447,8 +2299,6 @@ def historial_suministros_data(request):
                 if 'costo_total' in item and item['costo_total'] is not None:
                     item['costo_total'] = abs(float(item['costo_total']))
 
-                # ENRIQUECIMIENTO: Inyectar el usuario buscando en el mapa generado
-                # Si no se encuentra de forma exacta, intentamos con lo que venga del SP o vacío
                 search_key = (orig_fecha.split(' ')[0], orig_detalle)
                 item['creado_por'] = mapa_usuarios.get(search_key) or item.get('creado_por') or ''
                 
@@ -2464,13 +2314,11 @@ def historial_suministros_data(request):
 def obtener_movimientos_x_suministro(request):
     if request.method == 'POST': 
         try:
-            # Capturamos el ID del suministro
             suministro_id = request.POST.get('id_suministros') or request.POST.get('suministro_id')
 
             if not suministro_id:
                 return JsonResponse({'success': False, 'error': 'Falta el ID del suministro.'}, status=400)
 
-            # Usamos int() estándar de Python, sin funciones raras
             suministro_id = int(suministro_id)
 
             udcConn = connections['ctrlSum']
@@ -2484,13 +2332,11 @@ def obtener_movimientos_x_suministro(request):
             if not result:
                 return JsonResponse({'success': False, 'error': 'No hay movimientos registrados.'})
 
-            # Formateamos los datos para enviarlos al navegador
             movimientos = [dict(zip(columns, row)) for row in result]
 
             return JsonResponse({'success': True, 'data': movimientos})
 
         except Exception as e:
-            # Si algo falla, esto nos dirá qué es en la consola
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
     
     return JsonResponse({'success': False, 'error': 'Método no permitido.'}, status=405)
@@ -2633,7 +2479,6 @@ def actualizar_perfil(request):
                     WHERE PKUsuario = %s
                 """, [full_name, user_name, user_id])
                 
-                # Para la empresa, comprobamos si la columna Empresa_Nombre existe
                 try:
                     cursor.execute("""
                         UPDATE usuarios 
@@ -2641,7 +2486,6 @@ def actualizar_perfil(request):
                         WHERE PKUsuario = %s
                     """, [empresa, user_id])
                 except Exception as ex:
-                    # Si la columna no existe o falla, ignorar el error SQL y crearla
                     try:
                         cursor.execute("ALTER TABLE usuarios ADD Empresa_Nombre VARCHAR(255) NULL")
                         cursor.execute("""
@@ -2675,12 +2519,10 @@ def subir_foto_perfil(request):
                 
             avatar = request.FILES['avatar']
             
-            # Validación de tipo de archivo
             extension = avatar.name.split('.')[-1].lower()
             if extension not in ['jpg', 'jpeg', 'png']:
                 return JsonResponse({'success': False, 'message': 'Formato no válido. Solo JPG y PNG permitidos.'})
                 
-            # Validación de tamaño (< 2MB)
             if avatar.size > 2 * 1024 * 1024:
                 return JsonResponse({'success': False, 'message': 'La imagen excede el límite de 2MB.'})
                 
@@ -2764,7 +2606,6 @@ def obtener_notificaciones_sistema(request):
             except Exception as e_stock:
                 print(f"Error en notificaciones de stock: {str(e_stock)}")
 
-            # 2. Requisiciones Pendientes (Estado 1)
             try:
                 cursor.callproc("GET_REQUISICIONES", [1])
                 results_req = cursor.fetchall()
@@ -2824,8 +2665,7 @@ def notificaciones_page_view(request):
 
     userName = request.session.get('userName', 'Usuario')
     notifications = []
-    
-    # Reutilizamos la lógica de obtención pero para renderizar en el server
+
     try:
         udcConn = connections['ctrlSum']
         with udcConn.cursor() as cursor:
@@ -2874,7 +2714,7 @@ def notificaciones_page_view(request):
     except Exception as e:
         print(f"Error cargando página de notificaciones: {e}")
 
-    # Marcar todas como vistas al entrar a la página
+   
     all_ids = [n['id'] for n in notifications]
     vistas = request.session.get('notificaciones_vistas', [])
     request.session['notificaciones_vistas'] = list(set(vistas + all_ids))

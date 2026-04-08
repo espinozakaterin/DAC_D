@@ -351,7 +351,6 @@ GESTION DE ADQUISICIONES
                 }
             }
 
-            // Establecer valores iniciales sin disparar .change()
             $('#id_requisicion').val(id_requisicion);  
             $('#solicitante').val(id_requisicion); // Sin .change() para evitar el error de "usuario"
             $('#proveedor').val(id_proveedor);
@@ -365,7 +364,6 @@ GESTION DE ADQUISICIONES
                 data: { id_adquisicion: global_adquisicion_id },
                 success: function(response) {
                     if (response.adquisicion) {
-                        // Llamar a la función en el modal para cargar detalles
                         if (typeof CargarDetallesAdquisicion === 'function') {
                             CargarDetallesAdquisicion(response);
                         } else {
@@ -695,7 +693,7 @@ GESTION DE ADQUISICIONES
 
         // Función para actualizar la fila en la tabla
         function actualizarFilaDevolucion(IDAdquisicion, IdDetalleRequisicion, suministroDetalle, cantidad_devuelto, precioUnitarioDetalle) {
-            // Buscar si la fila ya existe en la tabla
+
             const tablaDevolucion = $('#tabla-devolucion');
             const filaExistente = tablaDevolucion.find(`tr[data-id-adquisicion="${IDAdquisicion}"]`);
 

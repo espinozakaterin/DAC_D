@@ -65,7 +65,6 @@ GESTIONAR OTROS
         </div>
     </div>
 
-    <!-- Div a la derecha (la tabla) -->
     <div class="col-md-8">
         <div class="table-responsive bg-white shadow rounded-4 p-3">
             <table id="Tabla_Kardex"
@@ -124,7 +123,6 @@ GESTIONAR OTROS
             width: '100%'
         });
 
-        // Cargar la tabla solo cuando el usuario presione el botón "Cargar Datos"
         $('#cargarDatos').click(function () {
             var id_categoria = $('#categoria').val();
             var id_suministro = $('#suministro').val();
@@ -135,11 +133,9 @@ GESTIONAR OTROS
         });
 
         function fillKardex(id_categoria = null, id_suministro = null, fecha_desde = null, fecha_hasta = null) {
-            // Usar los parámetros recibidos, o leer del DOM como respaldo
             fecha_desde = fecha_desde || document.getElementById('fecha_desde')?.value || null;
             fecha_hasta = fecha_hasta || document.getElementById('fecha_hasta')?.value || null;
 
-            // Mostrar Swal de carga
             Swal.fire({
                 title: 'Cargando datos...',
                 text: 'Por favor espera',
@@ -150,12 +146,10 @@ GESTIONAR OTROS
                 }
             });
 
-            // Destruir cualquier instancia previa de la tabla
             if ($.fn.dataTable.isDataTable('#Tabla_Kardex')) {
                 $('#Tabla_Kardex').DataTable().clear().destroy();
             }
 
-            // Inicializar la tabla con los datos
             Tabla_Kardex = $("#Tabla_Kardex").DataTable({
                 autoWidth: false,
                 scrollX: true,
@@ -367,7 +361,6 @@ GESTIONAR OTROS
             }
         });
 
-        // --- DEEP LINKING LOGIC ---
         const urlParams = new URLSearchParams(window.location.search);
         const urlMes = urlParams.get('mes');
         const urlFecha = urlParams.get('fecha');

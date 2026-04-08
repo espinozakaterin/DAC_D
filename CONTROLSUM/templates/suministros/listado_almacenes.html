@@ -307,7 +307,7 @@ GESTIONAR OTROS
             $('#ubicacion').val(ubicacion_almacen); 
             $('#area').val(fkgrupo).change();
 
-            // Actualizar el estado del almacén a "Editado" (suponiendo que el estado es 2 para editar)
+            // Actualizar el estado del almacén a "Editado" 
             cambiar_estado_actual = 2;
 
             $.ajax({
@@ -319,18 +319,15 @@ GESTIONAR OTROS
                     csrfmiddlewaretoken: csrfToken
                 },
                 success: function (response) {
-                    // Aquí puedes manejar la respuesta, como mostrar un mensaje de éxito
                     console.log("Estado actualizado correctamente");
                 },
                 error: function (xhr, status, error) {
-                    // Aquí puedes manejar errores, como mostrar un mensaje de error
                     console.error("Hubo un problema al actualizar el estado:", error);
                 }
             });
 
-            // Mostrar el modal con el título adecuado
             $('#modalAlmacenLabel').html('<strong>Editar Almacen #' + id_almacen +'</strong>'); 
-            $('#modalAlmacen').modal('show'); // Mostrar el modal
+            $('#modalAlmacen').modal('show'); 
         });
 
         // AGREGAR NUEVO ALMACÉN
@@ -359,7 +356,6 @@ GESTIONAR OTROS
                         csrfmiddlewaretoken: csrfToken
                     },
                     success: function (data) {
-                        // Verificar si el dato fue guardado correctamente
                         if (data.save == 1) {
                             if (opcion == 1) {  
                                 if (data.existe == 0) {
@@ -394,12 +390,10 @@ GESTIONAR OTROS
             }
         });
 
-        // CAMBIAR ESTADO DEL ALMACEN (DESHABILITAR O ACTIVAR)
         $(document).on('click', '.anularAlmacen', function () {
             var id_almacen = $(this).data('id');
             var estado_actual = $(this).data('estado');  
 
-            // Definir mensaje y acción según el estado actual
             var mensaje = estado_actual == 3
                 ? '¿Estás seguro de que quieres activar esta requisición?'
                 : '¿Estás seguro de que quieres deshabilitar esta requisición?';
@@ -442,7 +436,6 @@ GESTIONAR OTROS
                                         : '<span class="badge badge-pill bg-danger">DESHABILITADO</span>'
                                 );
 
-                                // Recargar la tabla de requisiciones después de actualizar el estado
                                 Tabla_Almacenes.ajax.reload(null, false);
                             } else {
                                 Swal.fire('Error!', data.error || 'No se pudo actualizar el estado de la requisición.', 'error');

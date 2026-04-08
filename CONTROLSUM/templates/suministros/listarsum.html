@@ -221,8 +221,6 @@ GESTION DE SUMINISTROS
                 body[0][12].text = 'Estado\nStock';
                 body[0][13].text = 'Estado';
 
-                // ESTA PARTE ES LA IMPORTANTE
-                // suma 100 para que quede parejo a ambos lados
                 doc.content[1].table.widths = [
                     '4%',  // No.
                     '10%', // Nombre
@@ -496,7 +494,6 @@ GESTION DE SUMINISTROS
             }
         });
 
-        // --- DEEP LINKING LOGIC ---
         const urlParams = new URLSearchParams(window.location.search);
         const productId = urlParams.get('id');
         const productName = urlParams.get('name');
@@ -504,18 +501,14 @@ GESTION DE SUMINISTROS
         if (productId || productName) {
             console.log("Deep link detected:", { productId, productName });
             
-            // Si tenemos nombre, filtramos la tabla de inmediato
             if (productName) {
                 console.log("Filtering table by name:", productName);
                 Tabla_Suministros.search(productName).draw();
             }
 
-            // Esperar a que la tabla se dibuje y los datos estén listos
             setTimeout(function() {
                 let editBtn = productId ? $(`.editarSuministro[data-id="${productId}"]`) : [];
                 
-                // Si no se encuentra por ID exacto (tal vez cambió), pero tenemos el nombre filtrado, 
-                // podemos intentar con el primer resultado de la tabla.
                 if ((!editBtn || !editBtn.length) && productName) {
                     editBtn = $('#Tabla_Suministros tbody tr:first .editarSuministro');
                 }
@@ -570,7 +563,7 @@ $('#Tabla_Suministros tbody').on('click', '.verImagenSuministro', function () {
 
 // ==========================================
 
-} // CIERRA function fillSuministro 
+} 
         // Agregar nuevo suministro 
         $('#btnNuevo').click(function (e) {
             e.preventDefault();
@@ -607,18 +600,14 @@ $('#Tabla_Suministros tbody').on('click', '.verImagenSuministro', function () {
             cantidad_minima = filaSuministro.find("td:eq(6)").text();
             precio_unitario = filaSuministro.find("td:eq(7)").text();
 
-            // Eliminar las comas y convertir a número
             precio_unitario = parseFloat(precio_unitario.replace(/,/g, ''));
 
-            // Obtener la fecha desde la tabla 
             var fecha_adquisicion = filaSuministro.find("td:eq(8)").text();  
 
-            // Verificar que la fecha no esté vacía
             if (fecha_adquisicion) {
               
                 var fechaConvertida = new Date(fecha_adquisicion);
 
-                // Comprobar si la fecha se ha convertido correctamente
                 if (!isNaN(fechaConvertida)) {
                     var fechaFormateada = fechaConvertida.toISOString().split('T')[0]; 
 
@@ -659,7 +648,6 @@ $('#Tabla_Suministros tbody').on('click', '.verImagenSuministro', function () {
             $('#imagen_actual').val(imagen);
 
 
-            // Actualizar el estado del almacén a "Editado" (suponiendo que el estado es 2 para editar)
             cambiar_estado_actual = 2;
 
             $.ajax({
@@ -671,16 +659,13 @@ $('#Tabla_Suministros tbody').on('click', '.verImagenSuministro', function () {
                     csrfmiddlewaretoken: csrfToken
                 },
                 success: function (response) {
-                    // Aquí puedes manejar la respuesta, como mostrar un mensaje de éxito
                     console.log("Estado actualizado correctamente");
                 },
                 error: function (xhr, status, error) {
-                    // Aquí puedes manejar errores, como mostrar un mensaje de error
                     console.error("Hubo un problema al actualizar el estado:", error);
                 }
             });
 
-            // Mostrar el modal con el título adecuado
             $('#modalSuministroLabel').html('<strong>Editar Suministro #' + id_suministros + '</strong>');
             $('#modalSuministro').modal('show');
 
@@ -859,7 +844,6 @@ $('#Tabla_Suministros tbody').on('click', '.verImagenSuministro', function () {
                 return;
             }
 
-            // Si el ID ya no es undefined, el AJAX funcionará correctamente
             $.ajax({
                 url: "{% url 'historial_suministros_data' %}",
                 type: "POST",
@@ -932,7 +916,6 @@ $('#Tabla_Suministros tbody').on('click', '.verImagenSuministro', function () {
 
             let assignedDetalle = '';
 
-            // PUEDE PONER 3 PARA ELIMINAR Y 1 PARA HABILITAR</input>
             if (status == 1) {
 
                 assignedDetalle = [
@@ -1115,7 +1098,7 @@ $('#Tabla_Suministros tbody').on('click', '.verImagenSuministro', function () {
 
 
         function aplicarcambio_estado_suministroTokenAutorizado(id_suministros, num_documento, id_tipo_token, id_modulo, usuario, status) {
-            // RECIBE EL VALOR DEL NUEVO ESTADO
+           
             showLoadingScreen('Token Autorizado: Cambio de Estado del Suministro!');
            
             $.ajax({
