@@ -99,8 +99,10 @@
                         <a href="#" class="dropdown-toggle nav-link d-flex align-items-center"
                             data-bs-toggle="dropdown">
                             <div class="user-img me-2">
-                                <img class="rounded-circle" src="{% static 'app/ticketit/images/avatar-01.png' %}"
-                                    width="31" alt="Avatar">
+                                <img class="rounded-circle" src="{% if avatar_url %}{{ avatar_url }}{% else %}https://ui-avatars.com/api/?name={{ fullName }}&background=2c4770&color=fff&bold=true{% endif %}"
+                                    width="31" alt="Avatar"
+                                    style="object-fit: cover;"
+                                    onerror="this.src='https://ui-avatars.com/api/?name={{ fullName }}&background=2c4770&color=fff&bold=true'">
                             </div>
                             <div class="user-info">
                                 <h6 class="mb-0 ">{{ fullName }}</h6>
@@ -109,8 +111,10 @@
                         <div class="dropdown-menu custom-dropdown-width">
                             <div class="user-header text-center p-3">
                                 <div class="avatar avatar-lg">
-                                    <img src="{% static 'app/ticketit/images/avatar-01.png' %}"
-                                        class="avatar-img rounded-circle" width="60">
+                                    <img src="{% if avatar_url %}{{ avatar_url }}{% else %}https://ui-avatars.com/api/?name={{ fullName }}&background=2c4770&color=fff&bold=true{% endif %}"
+                                        class="avatar-img rounded-circle" width="60"
+                                        style="object-fit: cover;"
+                                        onerror="this.src='https://ui-avatars.com/api/?name={{ fullName }}&background=2c4770&color=fff&bold=true'">
                                 </div>
                                 <div class="user-text mt-2">
                                     <h5 class="mb-0">{{ fullName }}</h5>

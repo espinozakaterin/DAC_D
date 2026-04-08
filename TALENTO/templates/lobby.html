@@ -29,7 +29,7 @@
     <link href="https://cdn.datatables.net/select/1.7.0/css/select.dataTables.css" rel="stylesheet">
     <link rel="icon" type="image/png" sizes="16x16" href="{% static 'app/cws/images/favicon-16x16.png' %}">
 
-    <script src="https://kit.fontawesome.com/e716b78aa6.js" crossorigin="anonymous"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
 
     <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 
@@ -304,7 +304,10 @@
                 <li class="nav-item dropdown has-arrow new-user-menus">
                     <a href="#" class="dropdown-toggle nav-link d-flex align-items-center" data-bs-toggle="dropdown">
                         <div class="user-img me-2">
-                            <img class="rounded-circle" src="{% static 'app/ticketit/images/avatar-01.png' %}" width="31" alt="Avatar">
+                            <img class="rounded-circle" src="{% if avatar_url %}{{ avatar_url }}{% else %}https://ui-avatars.com/api/?name={{ fullName }}&background=2c4770&color=fff&bold=true{% endif %}"
+                                width="31" alt="Avatar"
+                                style="object-fit: cover;"
+                                onerror="this.src='https://ui-avatars.com/api/?name={{ fullName }}&background=2c4770&color=fff&bold=true'">
                         </div>
                         <div class="user-info">
                             <h6 class="mb-0 text-white">{{ fullName }}</h6>
@@ -314,7 +317,10 @@
                     <div class="dropdown-menu custom-dropdown-width">
                         <div class="user-header text-center p-3">
                             <div class="avatar avatar-lg">
-                                <img src="{% static 'app/ticketit/images/avatar-01.png' %}" class="avatar-img rounded-circle" width="60">
+                                <img src="{% if avatar_url %}{{ avatar_url }}{% else %}https://ui-avatars.com/api/?name={{ fullName }}&background=2c4770&color=fff&bold=true{% endif %}"
+                                    class="avatar-img rounded-circle" width="60"
+                                    style="object-fit: cover;"
+                                    onerror="this.src='https://ui-avatars.com/api/?name={{ fullName }}&background=2c4770&color=fff&bold=true'">
                             </div>
                             <div class="user-text mt-2">
                                 <h5 class="mb-0">{{ fullName }}</h5>

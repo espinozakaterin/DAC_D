@@ -140,43 +140,133 @@ GESTION DE ASIGNACIONES
             columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 10]
         }
     },
+   {
+    extend: 'pdfHtml5',
+    text: '<i class="fas fa-file-pdf"></i> PDF',
+    titleAttr: 'Exportar a PDF',
+    className: 'btn btn-danger btn-sm',
+
+    pageSize: 'A4',
+    orientation: 'portrait',
+
+    exportOptions: {
+        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    },
+
+    customize: function (doc) {
+
+        doc.content[0].text = 'REPORTE DE ASIGNACIONES';
+        doc.content[0].alignment = 'center';
+        doc.content[0].fontSize = 14;
+        doc.content[0].bold = true;
+        doc.content[0].margin = [0, 0, 0, 10];
+
+        doc.pageMargins = [10, 20, 10, 20];
+
+        doc.defaultStyle.alignment = 'center';
+        doc.defaultStyle.fontSize = 5;
+
+        doc.styles.tableHeader.fillColor = '#2c4770';
+        doc.styles.tableHeader.color = 'white';
+        doc.styles.tableHeader.alignment = 'center';
+        doc.styles.tableHeader.fontSize = 6;
+        doc.styles.tableHeader.bold = true;
+
+        var table = doc.content[1].table;
+        var colCount = table.body[0].length;
+
+        table.widths = Array(colCount).fill('*');
+
+        for (var i = 0; i < table.body.length; i++) {
+            for (var j = 0; j < table.body[i].length; j++) {
+                table.body[i][j].margin = [1, 2, 1, 2];
+            }
+        }
+
+        doc.content[1].layout = {
+            hLineWidth: function () { return 0; },
+            vLineWidth: function () { return 0; }
+        };
+    }
+},
     {
-        extend: 'pdfHtml5',
-        text: '<i class="fas fa-file-pdf"></i> PDF',
-        titleAttr: 'Exportar a PDF',
-        className: 'btn btn-danger btn-sm',
-        pageSize: 'A4',
-        orientation: 'portrait',
-        exportOptions: {
-            columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 10]
-        },
-        customize: function (doc) {
-            doc.content[1].table.widths = Array(doc.content[1].table.body[0].length).fill('*');
-            doc.styles.tableHeader.fillColor = '#2c4770';
-            doc.styles.tableHeader.color = 'white';
-            doc.styles.tableHeader.alignment = 'center';
-            doc.styles.tableHeader.fontSize = 9;
-            doc.defaultStyle.alignment = 'center';
-            doc.defaultStyle.fontSize = 7;
-            doc.pageMargins = [15, 20, 15, 20];
-            doc.content[0].text = "REPORTE DE ASIGNACIONES";
-            doc.content[0].alignment = 'center';
-            doc.content[0].margin = [0, 0, 0, 10];
+    extend: 'pdfHtml5',
+    text: '<i class="fas fa-print"></i> Imprimir',
+    titleAttr: 'Imprimir',
+    className: 'btn btn-secondary btn-sm',
+    pageSize: 'A4',
+    orientation: 'portrait',
+
+    exportOptions: {
+        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        modifier: {
+            page: 'all',
+            search: 'applied',
+            order: 'applied'
         }
     },
-    {
-        extend: 'print',
-        text: '<i class="fas fa-print"></i> Imprimir',
-        titleAttr: 'Imprimir',
-        className: 'btn btn-secondary btn-sm',
-        exportOptions: {
-            columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 10]
-        },
-        customize: function (win) {
-            $(win.document.body).find('table').addClass('compact').css('font-size', '8pt');
-            $(win.document.body).find('h1').css('text-align', 'center').text('ASIGNACIONES - CONTROL SUMINISTROS');
+
+    action: function (e, dt, button, config) {
+        var oldPdfMake = window.pdfMake.createPdf;
+        try {
+            window.pdfMake.createPdf = function (doc) {
+                var pdf = oldPdfMake(doc);
+                return {
+                    download: function () { pdf.print(); },
+                    open: function () { pdf.print(); },
+                    print: function () { pdf.print(); }
+                };
+            };
+
+            $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
+
+        } finally {
+            window.pdfMake.createPdf = oldPdfMake;
         }
+    },
+
+    customize: function (doc) {
+
+        // título
+        doc.content[0].text = "REPORTE DE ASIGNACIONES";
+        doc.content[0].alignment = 'center';
+        doc.content[0].fontSize = 14;
+        doc.content[0].bold = true;
+        doc.content[0].margin = [0, 0, 0, 10];
+
+        // márgenes
+        doc.pageMargins = [10, 20, 10, 20];
+
+        // estilo general
+        doc.defaultStyle.alignment = 'center';
+        doc.defaultStyle.fontSize = 5;
+
+        // encabezado azul
+        doc.styles.tableHeader.fillColor = '#2c4770';
+        doc.styles.tableHeader.color = 'white';
+        doc.styles.tableHeader.alignment = 'center';
+        doc.styles.tableHeader.fontSize = 6;
+        doc.styles.tableHeader.bold = true;
+
+        // anchos automáticos
+        var table = doc.content[1].table;
+        var colCount = table.body[0].length;
+        table.widths = Array(colCount).fill('*');
+
+        // espacio interno
+        for (var i = 0; i < table.body.length; i++) {
+            for (var j = 0; j < table.body[i].length; j++) {
+                table.body[i][j].margin = [1, 2, 1, 2];
+            }
+        }
+
+        // quitar líneas grises
+        doc.content[1].layout = {
+            hLineWidth: function () { return 0; },
+            vLineWidth: function () { return 0; }
+        };
     }
+}
 ],
                 columns: [
                     {
@@ -428,7 +518,13 @@ if (!nombre_completo || !id_categoria || !suministro) {
 
                 Tabla_Asignaciones.ajax.reload(null, false);
             } else {
-                Swal.fire("", "Error D: " + data.error, "error");
+                var esStockError = data.error && data.error.includes('Stock insuficiente');
+                Swal.fire({
+                    title: esStockError ? 'Stock insuficiente' : 'Error al guardar',
+                    text: data.error || 'Ocurrió un error inesperado.',
+                    icon: esStockError ? 'warning' : 'error',
+                    confirmButtonText: 'Entendido'
+                });
             }
         },
         error: function () {
@@ -969,17 +1065,17 @@ $(document).on('change', '#categoria', function () {
         type: "GET",
         dataType: "json",
         data: {
-            id_categoria: id_categoria
+            categoria_id: id_categoria
         },
         success: function (response) {
             console.log("Respuesta del servidor:", response);
 
-            const lista = response.data || [];
+            const lista = response.suministros || [];
             let html = '<option value="">Seleccione el suministro:</option>';
 
             if (lista.length > 0) {
                 lista.forEach(function(item) {
-                    html += `<option value="${item.id}">${item.nombre}</option>`;
+                    html += `<option value="${item.id_suministros}">${item.nombre}</option>`;
                 });
             } else {
                 html += '<option value="">No hay suministros disponibles</option>';

@@ -208,16 +208,16 @@
                         <td>${id_da || id_dr || ''}</td>
                         <td style="display: none">${id_sum}</td>
                         <td>${detalle.nombre_suministro || detalle.NombreSuministro || ''}</td>
-                        <td>${cantidadVal}</td>
-                        <td>L\u00A0${dollarUSLocale.format(precioUnitarioVal)}</td>
-                        <td>L\u00A0${dollarUSLocale.format(precioTotalVal)}</td>
+                        <td data-original-cantidad="${cantidadVal}">${Math.abs(cantidadVal)}</td>
+                        <td data-original-precio="${precioUnitarioVal}">L\u00A0${dollarUSLocale.format(Math.abs(precioUnitarioVal))}</td>
+                        <td>L\u00A0${dollarUSLocale.format(Math.abs(precioTotalVal))}</td>
                     </tr>
                 `;
                 costoTotal += precioTotalVal;
             });
 
             $('#tabla-articulos').html(tablaArticulos);
-            $('#costo-total').html('<strong>' + dollarUSLocale.format(costoTotal) + '</strong>');
+            $('#costo-total').html('<strong>' + dollarUSLocale.format(Math.abs(costoTotal)) + '</strong>');
         }
     }
 

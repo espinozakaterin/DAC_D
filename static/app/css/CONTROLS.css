@@ -35,6 +35,62 @@
     padding: 0;
 }
 
+/* ================= UI CURSOR & SELECTION RESET ================= */
+/* 1. Base cursor for the entire application is default (arrow) */
+html, body {
+    cursor: default !important;
+    user-select: text;
+}
+
+/* 2. Remove I-beam/text cursor from common structural UI elements that are NOT inputs */
+h1, h2, h3, h4, h5, h6,
+.sidebar, .top-navbar, .card-header, .brand-box, .stat-card-overview,
+.dashboard-header, .banner-card, .section-title, .badge, .user-info {
+    cursor: default !important;
+}
+
+/* 3. Explicitly disable text selection ONLY on strictly visual/navigational components 
+      (Keeping it enabled for tables and data rows as requested) */
+.sidebar, .top-navbar, .brand-box, .stat-card-overview .icon-box, 
+.action-icon, .nav-link i, .material-icons {
+    user-select: none !important;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+/* 4. Ensure interactive elements ALWAYS show the pointer cursor */
+a, button, select, label[for], .pointer, .btn, .nav-link, .dropdown-item, 
+.interactive-card, .list-interactive-item, .cal-nav-btn {
+    cursor: pointer !important;
+}
+
+/* 5. Mantain the text cursor ONLY in real editable fields */
+input, textarea, [contenteditable], [contenteditable] * {
+    cursor: text !important;
+}
+
+/* 6. Explicitly allow selection in tables and data areas */
+.table, .table *, .dataTables_wrapper, .dash-card .count-up {
+    user-select: text !important;
+    -webkit-user-select: text !important;
+}
+
+/* 7. Definitive Fix for the Caret (|): Hide it everywhere except in real editable fields */
+* {
+    caret-color: transparent !important;
+}
+
+input, textarea, [contenteditable], [contenteditable] * {
+    caret-color: auto !important;
+}
+
+/* Ensure common UI headers don't accidentally capture focus/caret */
+h1, h2, h3, h4, h5, h6, .card-title, .brand-text, .nav-link span {
+    caret-color: transparent !important;
+}
+/* ============================================================== */
+
 body {
     font-family: 'Inter', 'Nunito', sans-serif;
     font-size: 15px;

@@ -1,0 +1,8 @@
+REPORTE DE DATOS CRUDOS EN BD (Suministro 13)
+--------------------------------------------------
+Fecha: 2025-05-05 | Detalle: Salida de stock - Asignación | Usuario en BD: []
+Fecha: 2025-05-05 | Detalle: Salida de stock - Devolución | Usuario en BD: []
+Fecha: 2025-05-05 | Detalle: Entrada de stock - Devolución | Usuario en BD: []
+Fecha: 2026-03-25 | Detalle: Entrada de stock por adquisición | Usuario en BD: []
+Fecha: 2026-04-08 | Detalle: Salida de stock - Asignación | Usuario en BD: [PASANTEIT]
+Fecha: 2026-04-08 | Detalle: Entrada de stock por adquisición | Usuario en BD: []

@@ -161,53 +161,216 @@ GESTION DE SUMINISTROS
     },
 
     colReorder: { realtime: false },
-buttons: [
-    {
-        extend: 'excelHtml5',
-        text: '<i class="fas fa-file-excel"></i> Excel',
-        titleAttr: 'Exportar a Excel',
-        className: 'btn btn-success btn-sm',
-        exportOptions: {
-            columns: [0, 1, 2, 3, 5, 7, 8, 9, 10, 11]
+    buttons: [
+        {
+            extend: 'excelHtml5',
+            text: '<i class="fas fa-file-excel"></i> Excel',
+            titleAttr: 'Exportar a Excel',
+            className: 'btn btn-success btn-sm',
+            exportOptions: {
+                columns: [0, 1, 2, 3, 5, 7, 8, 9, 10, 11]
+            }
+        },
+        {
+            extend: 'pdfHtml5',
+            text: '<i class="fas fa-file-pdf"></i> PDF',
+            titleAttr: 'Exportar a PDF',
+            className: 'btn btn-danger btn-sm',
+            pageSize: 'A4',
+            orientation: 'portrait',
+            exportOptions: {
+                columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
+                modifier: {
+                    page: 'all'
+                }
+            },
+            customize: function (doc) {
+
+                doc.content[0].text = "REPORTE DE SUMINISTROS";
+                doc.content[0].alignment = 'center';
+                doc.content[0].fontSize = 16;
+                doc.content[0].bold = false;
+                doc.content[0].margin = [0, 0, 0, 10];
+
+                // mismo margen a izquierda y derecha
+                doc.pageMargins = [15, 20, 15, 20];
+
+                doc.styles.tableHeader.fillColor = '#2c4770';
+                doc.styles.tableHeader.color = 'white';
+                doc.styles.tableHeader.alignment = 'center';
+                doc.styles.tableHeader.fontSize = 5;
+                doc.styles.tableHeader.bold = true;
+
+                doc.defaultStyle.alignment = 'center';
+                doc.defaultStyle.fontSize = 4.5;
+
+                var body = doc.content[1].table.body;
+
+                body[0][0].text  = 'No.';
+                body[0][1].text  = 'Nombre';
+                body[0][2].text  = 'Descripción';
+                body[0][3].text  = 'Categoría';
+                body[0][4].text  = 'Cant.\nInicial';
+                body[0][5].text  = 'Cant.\nStock';
+                body[0][6].text  = 'Cant.\nMin';
+                body[0][7].text  = 'Precio\nUnitario';
+                body[0][8].text  = 'Fecha';
+                body[0][9].text  = 'Acreedor';
+                body[0][10].text = 'Almacén';
+                body[0][11].text = 'Grupo';
+                body[0][12].text = 'Estado\nStock';
+                body[0][13].text = 'Estado';
+
+                // ESTA PARTE ES LA IMPORTANTE
+                // suma 100 para que quede parejo a ambos lados
+                doc.content[1].table.widths = [
+                    '4%',  // No.
+                    '10%', // Nombre
+                    '11%', // Descripción
+                    '10%', // Categoría
+                    '5%',  // Cant. Inicial
+                    '5%',  // Cant. Stock
+                    '5%',  // Cant. Min
+                    '7%',  // Precio Unitario
+                    '8%',  // Fecha
+                    '10%', // Acreedor
+                    '8%',  // Almacén
+                    '5%',  // Grupo
+                    '7%',  // Estado Stock
+                    '5%'   // Estado
+                ];
+
+                for (var i = 0; i < body.length; i++) {
+                    for (var j = 0; j < body[i].length; j++) {
+                        body[i][j].margin = [1, 3, 1, 3];
+                        body[i][j].noWrap = false;
+                        body[i][j].alignment = 'center';
+                    }
+                }
+
+                for (var r = 1; r < body.length; r++) {
+                    for (var c = 0; c < body[r].length; c++) {
+                        body[r][c].fillColor = (r % 2 === 0) ? '#f2f2f2' : '#ffffff';
+                    }
+                }
+
+                doc.content[1].layout = {
+                    hLineWidth: function () { return 0; },
+                    vLineWidth: function () { return 0; },
+                    paddingLeft: function () { return 1; },
+                    paddingRight: function () { return 1; },
+                    paddingTop: function () { return 2; },
+                    paddingBottom: function () { return 2; }
+                };
+            }
+        },
+   
+        {
+    extend: 'pdfHtml5',
+    text: '<i class="fas fa-print"></i> Imprimir',
+    titleAttr: 'Imprimir',
+    className: 'btn btn-secondary btn-sm',
+    pageSize: 'A4',
+    orientation: 'portrait',
+    exportOptions: {
+        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
+        modifier: {
+            page: 'all'
         }
     },
-    {
-        extend: 'pdfHtml5',
-        text: '<i class="fas fa-file-pdf"></i> PDF',
-        titleAttr: 'Exportar a PDF',
-        className: 'btn btn-danger btn-sm',
-        pageSize: 'A4',
-        orientation: 'portrait',
-        exportOptions: {
-            columns: [0, 1, 2, 3, 5, 7, 8, 9, 10, 11]
-        },
-        customize: function (doc) {
-            doc.content[1].table.widths = Array(doc.content[1].table.body[0].length).fill('*');
-            doc.styles.tableHeader.fillColor = '#2c4770';
-            doc.styles.tableHeader.color = 'white';
-            doc.styles.tableHeader.alignment = 'center';
-            doc.styles.tableHeader.fontSize = 9;
-            doc.defaultStyle.alignment = 'center';
-            doc.defaultStyle.fontSize = 7;
-            doc.pageMargins = [15, 20, 15, 20];
-            doc.content[0].text = "REPORTE DE INVENTARIO (SUMINISTROS)";
-            doc.content[0].alignment = 'center';
-            doc.content[0].margin = [0, 0, 0, 10];
+    action: function (e, dt, button, config) {
+        var oldPdfMake = window.pdfMake.createPdf;
+        try {
+            window.pdfMake.createPdf = function(doc) {
+                var pdf = oldPdfMake(doc);
+                return {
+                    download: function() { pdf.print(); },
+                    open: function() { pdf.print(); },
+                    print: function() { pdf.print(); }
+                };
+            };
+            $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
+        } finally {
+            window.pdfMake.createPdf = oldPdfMake;
         }
     },
-    {
-        extend: 'print',
-        text: '<i class="fas fa-print"></i> Imprimir',
-        titleAttr: 'Imprimir',
-        className: 'btn btn-secondary btn-sm',
-        exportOptions: {
-            columns: [0, 1, 2, 3, 5, 7, 8, 9, 10, 11]
-        },
-        customize: function (win) {
-            $(win.document.body).find('table').addClass('compact').css('font-size', '8pt');
-            $(win.document.body).find('h1').css('text-align', 'center').text('INVENTARIO - CONTROL SUMINISTROS');
+    customize: function (doc) {
+
+        doc.content[0].text = "REPORTE DE SUMINISTROS";
+        doc.content[0].alignment = 'center';
+        doc.content[0].fontSize = 16;
+        doc.content[0].bold = false;
+        doc.content[0].margin = [0, 0, 0, 10];
+
+        doc.pageMargins = [15, 20, 15, 20];
+
+        doc.styles.tableHeader.fillColor = '#2c4770';
+        doc.styles.tableHeader.color = 'white';
+        doc.styles.tableHeader.alignment = 'center';
+        doc.styles.tableHeader.fontSize = 5;
+        doc.styles.tableHeader.bold = true;
+
+        doc.defaultStyle.alignment = 'center';
+        doc.defaultStyle.fontSize = 4.5;
+
+        var body = doc.content[1].table.body;
+
+        body[0][0].text  = 'No.';
+        body[0][1].text  = 'Nombre';
+        body[0][2].text  = 'Descripción';
+        body[0][3].text  = 'Categoría';
+        body[0][4].text  = 'Cant.\nInicial';
+        body[0][5].text  = 'Cant.\nStock';
+        body[0][6].text  = 'Cant.\nMin';
+        body[0][7].text  = 'Precio\nUnitario';
+        body[0][8].text  = 'Fecha';
+        body[0][9].text  = 'Acreedor';
+        body[0][10].text = 'Almacén';
+        body[0][11].text = 'Grupo';
+        body[0][12].text = 'Estado\nStock';
+        body[0][13].text = 'Estado';
+
+        doc.content[1].table.widths = [
+            '4%',
+            '10%',
+            '11%',
+            '10%',
+            '5%',
+            '5%',
+            '5%',
+            '7%',
+            '8%',
+            '10%',
+            '8%',
+            '5%',
+            '7%',
+            '5%'
+        ];
+
+        for (var i = 0; i < body.length; i++) {
+            for (var j = 0; j < body[i].length; j++) {
+                body[i][j].margin = [1, 3, 1, 3];
+                body[i][j].noWrap = false;
+                body[i][j].alignment = 'center';
+            }
         }
+
+        for (var r = 1; r < body.length; r++) {
+            for (var c = 0; c < body[r].length; c++) {
+                body[r][c].fillColor = (r % 2 === 0) ? '#f2f2f2' : '#ffffff';
+            }
+        }
+
+        doc.content[1].layout = {
+            hLineWidth: function () { return 0; },
+            vLineWidth: function () { return 0; },
+            paddingLeft: function () { return 1; },
+            paddingRight: function () { return 1; },
+            paddingTop: function () { return 2; },
+            paddingBottom: function () { return 2; }
+        };
     }
+}
 ],
 
     columns: [
@@ -269,7 +432,7 @@ buttons: [
                         <div class="btn-group">
                             <button class="btn btn-danger btn-sm anularSuministro rounded-pill shadow-sm"
                                 title="Cambiar estado Suministro"
-                                data-id="${row.id}" data-name="${row.nombre}" data-estado="${row.estado}">
+                                data-id="${row.id_suministros}" data-name="${row.nombre}" data-estado="${row.estado}">
                                 <i class="fas fa-sync-alt"></i>
                             </button>
                         </div>
@@ -281,7 +444,7 @@ buttons: [
                 <div class="d-flex flex-row justify-content-center align-items-center gap-1">
                     <button class="btn btn-warning btn-sm editarSuministro rounded-pill shadow-sm"
                             title="Editar Suministro"
-                            data-id="${row.id}"
+                            data-id="${row.id_suministros}"
                             data-almacenes="${row.id_almacen}"
                             data-categoria="${row.id_categoria}"
                             data-imagen_suministro="${row.imagen_url}"
@@ -293,7 +456,7 @@ buttons: [
 
                     <button class="btn btn-info btn-sm historialSuministro rounded-pill shadow-sm"
                             title="Historial del Suministro" 
-                            data-id="${row.id}">  
+                            data-id="${row.id_suministros}">  
                         <i class="fas fa-list"></i>
                     </button>
                     <button class="btn btn-primary btn-sm verImagenSuministro rounded-pill shadow-sm"
@@ -711,24 +874,34 @@ $('#Tabla_Suministros tbody').on('click', '.verImagenSuministro', function () {
                     if (response.data.length === 0) {
                         $('#tabla-movimientos').append('<tr><td colspan="8" class="text-center">No hay movimientos registrados</td></tr>');
                     } else {
-                       response.data.forEach(function (movimiento) {
-                        var total = (parseFloat(movimiento.entrada || 0) - parseFloat(movimiento.salida || 0)) * parseFloat(movimiento.precio_unitario || 0);
+                        response.data.forEach(function (movimiento) {
+                            var total = (parseFloat(movimiento.entrada || 0) - parseFloat(movimiento.salida || 0)) * parseFloat(movimiento.precio_unitario || 0);
+                            
+                            // Determinar el Tipo de Movimiento con un distintivo visual
+                            var tipoBadge = '';
+                            if (parseFloat(movimiento.entrada || 0) > 0) {
+                                tipoBadge = '<span class="badge bg-success">ENTRADA</span>';
+                            } else if (parseFloat(movimiento.salida || 0) > 0) {
+                                tipoBadge = '<span class="badge bg-danger">SALIDA</span>';
+                            } else {
+                                tipoBadge = '<span class="badge bg-secondary">OTRO</span>';
+                            }
 
-                        var fila = `
-                            <tr>
-                                <td>${movimiento.fecha_movimiento || ''}</td>
-                                <td>${movimiento.detalle_movimiento || ''}</td>
-                                <td>${movimiento.entrada || 0}</td>
-                                <td>${movimiento.salida || 0}</td>
-                                <td>L\u00A0${movimiento.precio_unitario || 0}</td>
-                                <td>L\u00A0${total.toFixed(2)}</td>
-                                <td>${movimiento.detalle_movimiento || ''}</td>
-                                <td>${movimiento.creado_por || ''}</td>
-                            </tr>
-                        `;
+                            var fila = `
+                                <tr>
+                                    <td>${movimiento.fecha_movimiento || ''}</td>
+                                    <td class="text-center">${tipoBadge}</td>
+                                    <td>${movimiento.entrada || 0}</td>
+                                    <td>${movimiento.salida || 0}</td>
+                                    <td>L\u00A0${movimiento.precio_unitario || 0}</td>
+                                    <td>L\u00A0${Math.abs(total).toFixed(2)}</td>
+                                    <td>${movimiento.detalle_movimiento || ''}</td>
+                                    <td>${movimiento.creado_por || ''}</td>
+                                </tr>
+                            `;
 
-                        $('#tabla-movimientos').append(fila);
-                    });
+                            $('#tabla-movimientos').append(fila);
+                        });
                     }
 
                     $('#modalHistorialLabel').html('<strong>Historial de Suministro #' + suministro_id + '</strong>');
@@ -815,18 +988,23 @@ $('#Tabla_Suministros tbody').on('click', '.verImagenSuministro', function () {
                             console.log('Ver msj cancelar o dejar ahi!');
 
                             Swal.fire({
-                                title: "Ya Existe una Solicitud de Token Pendiente!",
-                                text: "¿Deseas Esperar que sea Gestionada o Cancelar la Solicitud Previa?",
+                                title: "¡Ya existe una solicitud de token pendiente!",
+                                text: "¿Deseas esperar a que un administrador la apruebe o prefieres cancelar la solicitud anterior para generar una nueva?",
                                 icon: "warning",
                                 showCancelButton: true,
-                                confirmButtonText: "No Realizar Ninguna Accion",
-                                cancelButtonText: "Cancelar Solicitud Anterior",
+                                confirmButtonText: "Esperar aprobación",
+                                cancelButtonText: "Cancelar anterior y pedir nueva",
                                 reverseButtons: true
                             }).then((result) => {
                                 if (result.isConfirmed) {
                                     console.log('No se cancela el token, sigue en lista de espera!');
                                 } else {
-                                    tokenCancelarSolicitud(sucursal, num_documento, id_tipo_token, id_modulo, usuario, tabla, 'El usuario decidio cancelar esta solicitud!');
+                                    // AUTOMATIZACIÓN: Cancelar y solicitar uno nuevo de inmediato
+                                    showLoadingScreen('Cancelando solicitud previa y generando nueva...');
+                                    tokenCancelarSolicitud(sucursal, num_documento, id_tipo_token, id_modulo, usuario, tabla, 'El usuario decidió cancelar esta solicitud para generar una nueva!', function() {
+                                        // Este callback se ejecuta tras cancelar con éxito
+                                        tokenGenerarSolicitud(sucursal, num_documento, id_tipo_token, id_modulo, usuario, tabla, assignedDetalle);
+                                    });
                                 }
                             });
 
@@ -901,7 +1079,7 @@ $('#Tabla_Suministros tbody').on('click', '.verImagenSuministro', function () {
             });
         }
 
-        function tokenCancelarSolicitud(sucursal, num_documento, id_tipo_token, id_modulo, usuario, tabla, comentario) {
+        function tokenCancelarSolicitud(sucursal, num_documento, id_tipo_token, id_modulo, usuario, tabla, comentario, callback = null) {
             $.ajax({
                 url: "http://3.230.160.184:81/API/token/cancelar/solicitud", // Cambia esto a tu endpoint Django
                 type: "POST",
@@ -917,7 +1095,12 @@ $('#Tabla_Suministros tbody').on('click', '.verImagenSuministro', function () {
                 },
                 success: function (data) {
                     if (data.save == 1) {
-                        Swal.fire("", "Solicitud de Token Cancelada!", "success");
+                        if (callback && typeof callback === 'function') {
+                            // Si hay callback, lo ejecutamos (para automatizar el re-solicitud)
+                            callback();
+                        } else {
+                            Swal.fire("", "Solicitud de Token Cancelada!", "success");
+                        }
                     } else {
                         Swal.fire({
                             icon: 'error',
@@ -947,17 +1130,13 @@ $('#Tabla_Suministros tbody').on('click', '.verImagenSuministro', function () {
                     if (data.success) {
                         tokenMarcarComoUtilizado(num_documento, id_tipo_token, id_modulo, usuario); 
 
-                        var mensajeExito = status == 3
-                            ? 'El suministro ha sido activada.'
-                            : 'El suministro ha sido deshabilitada.';
-                        Swal.fire(status == 3 ? 'Deshabilitado!' : 'Activado!', mensajeExito, 'success');
-
-                        var row = $('tr[data-id="' + id_suministros + '"]');
-                        row.find('.estado').html(
-                            status == 3
-                                ? '<span class="badge badge-pill bg-success">ACTIVO</span>'
-                                : '<span class="badge badge-pill bg-danger">DESHABILITADO</span>'
-                        );
+                        var msgTitle = status == 1 ? '¡Activado!' : '¡Deshabilitado!';
+                        var msgText = status == 1 
+                            ? 'El suministro ha sido activado correctamente.'
+                            : 'El suministro ha sido deshabilitado correctamente.';
+                        
+                        Swal.fire(msgTitle, msgText, 'success');
+                        
                         Tabla_Suministros.ajax.reload(null, false);
                     } else {
                         Swal.fire('Error!', data.error || 'No se pudo actualizar el estado del suministro.', 'error');

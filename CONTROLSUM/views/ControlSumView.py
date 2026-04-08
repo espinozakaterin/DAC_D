@@ -545,7 +545,54 @@ def insertar_actualizar_asignacion(request):
         if not pk_usuario or str(pk_usuario).strip() == "":
             return JsonResponse({'save': 0, 'error': 'PKUsuario vacío'})
 
-        udcConn = connections['ctrlSum']
+        # --- VALIDACIÓN DE STOCK PARA EVITAR NEGATIVOS EN KARDEX ---
+        try:
+            val_cantidad = float(cantidad or 0)
+            udcConn = connections['ctrlSum']
+            with udcConn.cursor() as cursor:
+                # 1. Obtener stock actual del suministro
+                cursor.execute("""
+                    SELECT nombre, cantidad_stock 
+                    FROM universal_data_core.suministros 
+                    WHERE id_suministros = %s
+                """, [suministro])
+                row_sum = cursor.fetchone()
+                
+                if not row_sum:
+                    return JsonResponse({'save': 0, 'error': '⚠️ Suministro no encontrado.'})
+                
+                nombre_sum = row_sum[0]
+                stock_actual = float(row_sum[1] or 0)
+
+                # 2. Validar disponibilidad según sea Nuevo o Edición
+                if id_asignacion == 0:
+                    # Caso Nuevo: La cantidad no debe superar el stock actual
+                    if val_cantidad > stock_actual:
+                        return JsonResponse({
+                            'save': 0, 
+                            'error': f'⚠️ Stock insuficiente para "{nombre_sum}". Disponible: {stock_actual}'
+                        })
+                else:
+                    # Caso Edición: Debemos recuperar la cantidad previa asignada
+                    cursor.execute("""
+                        SELECT cantidad_asignacion 
+                        FROM universal_data_core.asignacion 
+                        WHERE id_asignacion = %s
+                    """, [id_asignacion])
+                    row_old = cursor.fetchone()
+                    cant_previa = float(row_old[0] or 0) if row_old else 0
+                    
+                    # La cantidad disponible real es el stock actual + lo que ya habíamos "tomado" antes
+                    disponible_total = stock_actual + cant_previa
+                    
+                    if val_cantidad > disponible_total:
+                        return JsonResponse({
+                            'save': 0, 
+                            'error': f'⚠️ Stock insuficiente para "{nombre_sum}". Máximo permitido (incluyendo lo ya asignado): {disponible_total:.2f}'
+                        })
+        except Exception as e_stock:
+            return JsonResponse({'save': 0, 'error': f'Error validando stock: {str(e_stock)}'})
+
         with udcConn.cursor() as cursor:
             cursor.callproc('SUM_INSERT_UPDATE_ASIGNACION', [
                 id_asignacion,    # p_id_asignacion
@@ -655,12 +702,7 @@ def get_suministros_data(request):
 # ----------------------------------------------------------------------------------------------------- #
 def obtener_suministros_por_categoria_data(request):
     try:
-        categoria_id = request.POST.get('categoria_id')
-
-        print("======== DEPURACION SUMINISTROS ========")
-        print("METODO:", request.method)
-        print("POST:", request.POST)
-        print("CATEGORIA ID:", categoria_id)
+        categoria_id = request.POST.get('categoria_id') or request.GET.get('categoria_id')
 
         if not categoria_id or categoria_id in ('', '#'):
             return JsonResponse({"suministros": []})
@@ -670,13 +712,11 @@ def obtener_suministros_por_categoria_data(request):
             sql = """
                 SELECT id_suministros, nombre, id_categoria
                 FROM universal_data_core.suministros
-                WHERE id_categoria = %s
+                WHERE id_categoria = %s AND estado != 3
                 ORDER BY nombre ASC
             """
             cursor.execute(sql, [categoria_id])
             filas = cursor.fetchall()
-
-        print("FILAS ENCONTRADAS:", filas)
 
         suministros = []
         for row in filas:
@@ -685,13 +725,9 @@ def obtener_suministros_por_categoria_data(request):
                 "nombre": row[1]
             })
 
-        print("RESPUESTA FINAL:", suministros)
-        print("=======================================")
-
         return JsonResponse({"suministros": suministros})
 
     except Exception as e:
-        print("ERROR EN VIEW:", str(e))
         return JsonResponse({"suministros": [], "error": str(e)}, status=500)
 # ----------------------------------------------------------------------------------------------------- #
 #--------NUEVA Asignacion - SUMINISTROS----------#
@@ -894,6 +930,7 @@ def listado_requisicion_data(request):
     requisicion_data = ""
     categorias_data = ""
     acreedores_data = ""
+    usuarios_data = ""
 
     try:
         # TOMA LOS LOS DATOS DE LA TABLA REQUISICION
@@ -916,6 +953,26 @@ def listado_requisicion_data(request):
         # Cierra la conexión
         udcConn.close()
 
+        # TOMA LOS DATOS DE LOS ACREEDORES
+        udcConn = connections['ctrlSum']
+        with udcConn.cursor() as cursor:
+            cursor.execute("""
+                SELECT * 
+                FROM universal_data_core.ct_proveedores cp
+                WHERE cp.acreedor = 1;
+            """)
+            column_names = [desc[0] for desc in cursor.description]
+            acreedores_data = [dict(zip(map(str, column_names), row)) for row in cursor.fetchall()]
+        udcConn.close()
+
+        # TOMA LOS DATOS DE LOS USUARIOS
+        udcConn = connections['ctrlSum']
+        with udcConn.cursor() as cursor:
+            cursor.callproc("SUM_GET_USUARIOS", [])
+            column_names = [desc[0] for desc in cursor.description]
+            usuarios_data = [dict(zip(map(str, column_names), row)) for row in cursor.fetchall()]
+        udcConn.close()
+
     except Exception as e:
         # Manejo de excepciones, puedes personalizar esto según tus necesidades
         return JsonResponse({'error': str(e)})
@@ -923,9 +980,11 @@ def listado_requisicion_data(request):
     context = {
         "requisicion": requisicion_data,
         "categorias": categorias_data,
-        "acreedores": acreedores_data
+        "acreedores": acreedores_data,
+        "usuarios": usuarios_data
     }
-    return render(request, 'suministros/listado_requisiciones.html', context)  
+    return render(request, 'suministros/listado_requisiciones.html', context)
+  
 
 # ----------------------------------------------------------------------------------------------------------------------------- #
 
@@ -1725,88 +1784,123 @@ def get_adquisicion_data (request):
 
 def obtener_requisiciones_usuario(request):
     try:
-        # Conexión a la base de datos usando el alias 'ctrlSum'
         udcConn = connections['ctrlSum']
         with udcConn.cursor() as cursor:
-            # Llamamos al procedimiento almacenado que a su vez llama a OBTENER_REQUISICION_USUARIO
-            cursor.callproc('OBTENER_REQUISICION_USUARIO')
-
-            # Obtener los resultados del procedimiento almacenado
+            # Consulta directa para obtener todas las requisiciones activas
+            # con los campos que el frontend necesita para llenar el select
+            cursor.execute("""
+                SELECT
+                    r.id_requisicion,
+                    COALESCE(u.Nombre, 'Sin nombre')       AS Nombre,
+                    r.PKUsuario,
+                    r.PKgrupo,
+                    COALESCE(g.Nombre, 'Sin grupo')        AS GrupoNombre,
+                    COALESCE(p.nombre_proveedor, '')       AS nombre_proveedor,
+                    r.id_proveedor
+                FROM universal_data_core.requisicion r
+                LEFT JOIN global_security.usuarios u
+                    ON u.PKUsuario = r.PKUsuario
+                LEFT JOIN global_security.grupos g
+                    ON g.PKgrupo = r.PKgrupo
+                LEFT JOIN universal_data_core.ct_proveedores p
+                    ON p.id_proveedor = r.id_proveedor
+                WHERE r.estado = 1
+                ORDER BY r.id_requisicion DESC
+            """)
             column_names = [desc[0] for desc in cursor.description]
             requisiciones_data = [
                 dict(zip(map(str, column_names), row)) for row in cursor.fetchall()
             ]
 
-            # Si hay datos, devolverlos como un JsonResponse
-            return JsonResponse({'requisiciones': requisiciones_data})
+        return JsonResponse({'requisiciones': requisiciones_data})
 
     except Exception as e:
-        # Manejo de excepciones y errores en la ejecución
-        print(f"Error en la ejecución del procedimiento o conexión: {str(e)}")
+        print(f"Error en obtener_requisiciones_usuario: {str(e)}")
         return JsonResponse({'error': f'Ocurrió un error: {str(e)}'})
     
 # ----------------------------------------------------------------------------------------------------------------- #
 
 def obtener_requisicion_detalles_usuario(request):
-    # Asegúrate de que los parámetros 'pk_usuario' y 'id_requisicion' estén presentes en la solicitud
-    pk_usuario = request.GET.get('pk_usuario')
     id_requisicion = request.GET.get('id_requisicion')
 
-    if id_requisicion is not None:
-        try:
-            # Llamar al procedimiento almacenado con los valores de pk_usuario e id_requisicion
-            udcConn = connections['ctrlSum']
-            with udcConn.cursor() as cursor:
-                # Ejecutamos el procedimiento almacenado
-                cursor.callproc('GET_REQUISICIONES_Y_DETALLES_USUARIO', [id_requisicion])
-                
-                # Obtener los resultados de la requisición
-                requisicion_result = cursor.fetchall()
+    if not id_requisicion:
+        return JsonResponse({'success': False, 'message': 'Falta el parámetro id_requisicion'})
 
-                if requisicion_result:
-                    # Obtener los valores del grupo y proveedor de la primera fila de resultados
-                    id_requisicion = requisicion_result[0][0]  # 'id_requisicion' está en la columna 0
-                    grupo_id = requisicion_result[0][3]  # 'GrupoNombre' está en la columna 4
-                    grupo_nombre = requisicion_result[0][4]  # 'GrupoNombre' está en la columna 4
-                    id_proveedor = requisicion_result[0][5]  # 'nombre_proveedor' está en la columna 6
-                    nombre_proveedor = requisicion_result[0][6]  # 'nombre_proveedor' está en la columna 6
-                    
-                    # Ahora obtenemos los detalles de la requisición
-                    cursor.nextset()  # Mover al siguiente conjunto de resultados (detalles de requisición)
-                    detalles_result = cursor.fetchall()
+    try:
+        udcConn = connections['ctrlSum']
+        with udcConn.cursor() as cursor:
 
-                    detalles = []
-                    for detalle in detalles_result:
-                        detalles.append({
-                            'id_detalle_requisicion': detalle[0],  # 'nombre_suministro' está en la columna 3
-                            'id_suministros': detalle[2],
-                            'nombre_suministro': detalle[3],  # 'nombre_suministro' está en la columna 3
-                            'cantidad': detalle[4],            # 'cantidad' está en la columna 4
-                            'precio_unitario': detalle[5],     # 'precio_unitario' está en la columna 5
-                            'precio_total': detalle[6]         # 'precio_total' está en la columna 6
-                        })
-                    
-                    # Devolver la respuesta en formato JSON
-                    return JsonResponse({
-                        'success': True,
-                        'data': {
-                            'id_requisicion': id_requisicion,
-                            'grupo_id': grupo_id,
-                            'grupo': grupo_nombre,
-                            'id_proveedor': id_proveedor,
-                            'proveedor': nombre_proveedor,
-                            'detalles': detalles
-                        }
-                    })
-                else:
-                    return JsonResponse({'success': False, 'message': 'No se encontraron datos.'})
+            # 1. Obtener encabezado de la requisición
+            cursor.execute("""
+                SELECT
+                    r.id_requisicion,
+                    COALESCE(u.Nombre, '')           AS Nombre,
+                    r.PKUsuario,
+                    r.PKgrupo,
+                    COALESCE(g.Nombre, '')           AS GrupoNombre,
+                    r.id_proveedor,
+                    COALESCE(p.nombre_proveedor, '') AS nombre_proveedor
+                FROM universal_data_core.requisicion r
+                LEFT JOIN global_security.usuarios u  ON u.PKUsuario = r.PKUsuario
+                LEFT JOIN global_security.grupos g    ON g.PKgrupo   = r.PKgrupo
+                LEFT JOIN universal_data_core.ct_proveedores p ON p.id_proveedor = r.id_proveedor
+                WHERE r.id_requisicion = %s
+                LIMIT 1
+            """, [id_requisicion])
+            header = cursor.fetchone()
 
-        except Exception as e:
-            # Si ocurre un error durante la ejecución del procedimiento
-            return JsonResponse({'success': False, 'message': str(e)})
-    
-    # Si el parámetro pk_usuario no está presente
-    return JsonResponse({'success': False, 'message': 'Falta el parámetro pk_usuario'})
+            if not header:
+                return JsonResponse({'success': False, 'message': 'No se encontró la requisición.'})
+
+            grupo_id       = header[3]
+            grupo_nombre   = header[4]
+            id_proveedor   = header[5]
+            nombre_proveedor = header[6]
+
+            # 2. Obtener detalles (artículos) de la requisición
+            cursor.execute("""
+                SELECT
+                    dr.id_detalle_requisicion,
+                    dr.id_requisicion,
+                    dr.id_suministros,
+                    COALESCE(s.nombre, '')  AS nombre_suministro,
+                    dr.cantidad,
+                    dr.precio_unitario,
+                    (dr.cantidad * dr.precio_unitario) AS precio_total
+                FROM universal_data_core.detalle_requisicion dr
+                LEFT JOIN universal_data_core.suministros s ON s.id_suministros = dr.id_suministros
+                WHERE dr.id_requisicion = %s
+                ORDER BY dr.id_detalle_requisicion ASC
+            """, [id_requisicion])
+            rows = cursor.fetchall()
+
+            detalles = []
+            for detalle in rows:
+                detalles.append({
+                    'id_detalle_requisicion': detalle[0],
+                    'id_suministros':         detalle[2],
+                    'nombre_suministro':      detalle[3],
+                    'cantidad':               detalle[4],
+                    'precio_unitario':        detalle[5],
+                    'precio_total':           detalle[6],
+                })
+
+        return JsonResponse({
+            'success': True,
+            'data': {
+                'id_requisicion': id_requisicion,
+                'grupo_id':       grupo_id,
+                'grupo':          grupo_nombre,
+                'id_proveedor':   id_proveedor,
+                'proveedor':      nombre_proveedor,
+                'detalles':       detalles
+            }
+        })
+
+    except Exception as e:
+        print(f"Error en obtener_requisicion_detalles_usuario: {str(e)}")
+        return JsonResponse({'success': False, 'message': str(e)})
+
 
 # ----------------------------------------------------------------------------------------------------------------- #
 
@@ -1900,6 +1994,18 @@ def insertar_actualizar_detalle_adquisicion_data(request):
         if not detalles:
             raise ValueError("No se han agregado detalles para la adquisición.")
 
+        # Validar parámetros requeridos fuera del bucle para mejor diagnóstico
+        try:
+            id_adq = int(id_adquisicion)
+        except (ValueError, TypeError):
+            raise ValueError(f"ID Adquisición inválido: '{id_adquisicion}'")
+
+        try:
+            id_req = int(id_requisicion)
+        except (ValueError, TypeError):
+            raise ValueError(f"ID Requisición inválido: '{id_requisicion}'")
+
+
         with transaction.atomic():  # Aseguramos que todos los cambios en la base de datos se realicen correctamente
             udcConn = connections['ctrlSum']  # Conexión a la base de datos
             with udcConn.cursor() as cursor:
@@ -1909,21 +2015,23 @@ def insertar_actualizar_detalle_adquisicion_data(request):
                     if not detalle.get('id_detalle_requisicion') or not detalle.get('id_suministros') or detalle.get('cantidad') is None or detalle.get('precio_unitario') is None:
                         raise ValueError("Faltan datos en los detalles de la adquisición.")
                     
-                    # Validar que cantidad y precio_unitario sean mayores a cero
-                    if detalle['cantidad'] <= 0 or detalle['precio_unitario'] <= 0:
-                        raise ValueError("La cantidad y el precio unitario deben ser mayores a cero.")
+                    # Validar que cantidad y precio_unitario sean mayores a cero para NUEVOS registros
+                    # En edición de registros existentes (id_detalle_adquisicion > 0), se permiten negativos
+                    id_da_temp = int(detalle.get('id_detalle_adquisicion', 0))
+                    if id_da_temp == 0:
+                        if float(detalle.get('cantidad', 0)) <= 0 or float(detalle.get('precio_unitario', 0)) <= 0:
+                            raise ValueError("La cantidad y el precio unitario deben ser mayores a cero.")
+
 
                     # Convertir a tipos de datos correctos antes de llamar al SP
                     try:
                         id_da = int(detalle.get('id_detalle_adquisicion', 0))
-                        id_adq = int(id_adquisicion)
-                        id_req = int(id_requisicion)
-                        id_dr = int(detalle['id_detalle_requisicion'])
-                        id_sum = int(detalle['id_suministros'])
-                        cant = float(detalle['cantidad'])
-                        prec = float(detalle['precio_unitario'])
+                        id_dr = int(detalle.get('id_detalle_requisicion', 0))
+                        id_sum = int(detalle.get('id_suministros', 0))
+                        cant = float(detalle.get('cantidad', 0))
+                        prec = float(detalle.get('precio_unitario', 0))
                     except (ValueError, TypeError):
-                        raise ValueError(f"Formato de datos inválido en detalle: {detalle}")
+                        raise ValueError(f"Formato numérico inválido en detalle: {detalle}")
 
                     # Llamamos al procedimiento almacenado con los parámetros correspondientes
                     cursor.callproc('SUM_INSERT_UPDATE_DETALLE_ADQUISICION', [
@@ -1935,6 +2043,7 @@ def insertar_actualizar_detalle_adquisicion_data(request):
                         cant,
                         prec,
                     ])
+
 
         # Si todo va bien, retornamos una respuesta de éxito
         datos = {'save': 1, 'message': 'Detalles de adquisición guardados correctamente.'}
@@ -2254,7 +2363,7 @@ def convertir_a_int(valor):
 
 def historial_suministros_data(request):
     try:
-        id_recibido = request.POST.get('id_suministro') or request.GET.get('id_suministro')
+        id_recibido = request.POST.get('id_suministro') or request.POST.get('id_suministros') or request.GET.get('id_suministro') or request.GET.get('id_suministros')
         id_categoria = request.POST.get('id_categoria') or request.GET.get('id_categoria')
         fecha_desde = request.POST.get('fecha_desde') or request.GET.get('fecha_desde')
         fecha_hasta = request.POST.get('fecha_hasta') or request.GET.get('fecha_hasta')
@@ -2305,16 +2414,43 @@ def historial_suministros_data(request):
             print(f"DEBUG: Columnas: {columnas}")
             if result:
                 print(f"DEBUG: Primera fila: {result[0]}")
-            
+            # Obtener mapeo de usuarios responsables desde la tabla de movimientos
+            cursor.execute(
+                "SELECT fecha_movimiento, detalle_movimiento, creado_por FROM universal_data_core.suministros_movimientos WHERE id_suministros = %s",
+                [id_suministro]
+            )
+            mapa_usuarios = {}
+            for r_user in cursor.fetchall():
+                # Creamos una llave compuesta por fecha (YYYY-MM-DD) y detalle
+                f_key = (str(r_user[0]).split(' ')[0], r_user[1])
+                mapa_usuarios[f_key] = r_user[2]
+
+            # --- SONDA DE DIAGNOSTICO PARA EL USUARIO ---
+            with open('check_db_results.txt', 'w') as f_debug:
+                f_debug.write(f"REPORTE DE DATOS CRUDOS EN BD (Suministro {id_suministro})\n")
+                f_debug.write("-" * 50 + "\n")
+                for key, val in mapa_usuarios.items():
+                    f_debug.write(f"Fecha: {key[0]} | Detalle: {key[1]} | Usuario en BD: [{val}]\n")
+            # --------------------------------------------
+
             data = []
             for row in result:
                 item = dict(zip(columnas, row))
                 
+                orig_fecha = str(item.get('fecha_movimiento', ''))
+                orig_detalle = item.get('detalle_movimiento', '')
+
+                # Normalizar fecha para el retorno
                 if item.get('fecha_movimiento'):
-                    item['fecha_movimiento'] = str(item['fecha_movimiento']).split(' ')[0]
+                    item['fecha_movimiento'] = orig_fecha.split(' ')[0]
                 
                 if 'costo_total' in item and item['costo_total'] is not None:
                     item['costo_total'] = abs(float(item['costo_total']))
+
+                # ENRIQUECIMIENTO: Inyectar el usuario buscando en el mapa generado
+                # Si no se encuentra de forma exacta, intentamos con lo que venga del SP o vacío
+                search_key = (orig_fecha.split(' ')[0], orig_detalle)
+                item['creado_por'] = mapa_usuarios.get(search_key) or item.get('creado_por') or ''
                 
                 data.append(item)
 

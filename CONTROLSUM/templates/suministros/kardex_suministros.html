@@ -206,36 +206,64 @@ GESTIONAR OTROS
         pageSize: 'A4',
         orientation: 'portrait',
         exportOptions: {
-            columns: [0, 1, 2, 3, 4, 5, 6, 7]
+        columns: [0, 1, 2, 3, 4, 5, 6, 7]
         },
         customize: function (doc) {
-            doc.content[1].table.widths = Array(doc.content[1].table.body[0].length).fill('*');
-            doc.styles.tableHeader.fillColor = '#2c4770';
-            doc.styles.tableHeader.color = 'white';
-            doc.styles.tableHeader.alignment = 'center';
-            doc.styles.tableHeader.fontSize = 9;
-            doc.defaultStyle.alignment = 'center';
-            doc.defaultStyle.fontSize = 7;
-            doc.pageMargins = [15, 20, 15, 20];
-            doc.content[0].text = "REPORTE DE MOVIMIENTOS (KARDEX)";
-            doc.content[0].alignment = 'center';
-            doc.content[0].margin = [0, 0, 0, 10];
+        doc.content[1].table.widths = Array(doc.content[1].table.body[0].length).fill('*');
+        doc.styles.tableHeader.fillColor = '#2c4770';
+        doc.styles.tableHeader.color = 'white';
+        doc.styles.tableHeader.alignment = 'center';
+        doc.styles.tableHeader.fontSize = 9;
+        doc.defaultStyle.alignment = 'center';
+        doc.defaultStyle.fontSize = 7;
+        doc.pageMargins = [15, 20, 15, 20];
+        doc.content[0].text = "REPORTE DE MOVIMIENTOS (KARDEX)";
+        doc.content[0].alignment = 'center';
+        doc.content[0].margin = [0, 0, 0, 10];
         }
     },
     {
-        extend: 'print',
-        text: '<i class="fas fa-print"></i> Imprimir',
-        titleAttr: 'Imprimir',
-        className: 'btn btn-secondary btn-sm',
-        exportOptions: {
-            columns: [0, 1, 2, 3, 4, 5, 6, 7]
-        },
-        customize: function (win) {
-            $(win.document.body).find('table').addClass('compact').css('font-size', '8pt');
-            $(win.document.body).find('h1').css('text-align', 'center').text('HISTORIAL DE MOVIMIENTOS (KARDEX) - CONTROL SUMINISTROS');
-        }
-    }
-],
+                        extend: 'pdfHtml5', 
+                        text: '<i class="fas fa-print"></i> Imprimir',
+                        titleAttr: 'Imprimir',
+                        className: 'btn btn-secondary btn-sm',
+                        pageSize: 'A4',
+                        orientation: 'portrait',
+                        exportOptions: {
+                            columns: [0, 1, 2, 3, 4, 5, 6, 7]
+                        },
+                        action: function ( e, dt, button, config ) {
+                            var oldPdfMake = window.pdfMake.createPdf;
+                            try {
+                                window.pdfMake.createPdf = function(doc) {
+                                    var pdf = oldPdfMake(doc);
+                                    return {
+                                        download: function() { pdf.print(); },
+                                        open: function() { pdf.print(); },
+                                        print: function() { pdf.print(); }
+                                    };
+                                };
+                                $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
+                            } finally {
+                                window.pdfMake.createPdf = oldPdfMake;
+                            }
+                        },
+                        customize: function (doc) {
+                            // Mismas reglas exactas del PDF
+                            doc.content[1].table.widths = Array(doc.content[1].table.body[0].length).fill('*');
+                            doc.styles.tableHeader.fillColor = '#2c4770';
+                            doc.styles.tableHeader.color = 'white';
+                            doc.styles.tableHeader.alignment = 'center';
+                            doc.styles.tableHeader.fontSize = 9;
+                            doc.defaultStyle.alignment = 'center';
+                            doc.defaultStyle.fontSize = 7;
+                            doc.pageMargins = [15, 20, 15, 20];
+                            doc.content[0].text = "REPORTE DE MOVIMIENTOS (KARDEX)";
+                            doc.content[0].alignment = 'center';
+                            doc.content[0].margin = [0, 0, 0, 10];
+                        }
+                    }
+                ],
                 columns: [
                     {
                         data: 'fecha_movimiento'

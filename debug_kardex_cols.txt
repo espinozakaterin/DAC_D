@@ -1,0 +1,1 @@
+COLUMNAS RECIBIDAS: ['fecha_movimiento', 'detalle_movimiento', 'entrada', 'salida', 'stock_anterior', 'stock_actual', 'precio_unitario', 'costo_total']

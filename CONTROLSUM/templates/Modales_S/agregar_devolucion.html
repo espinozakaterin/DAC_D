@@ -169,8 +169,9 @@
             const IDDetalleRequisicion = document.getElementById("id_detalle_requisicion").value;
             const suministro = document.getElementById("suministro").value;
             const cantidadDevuelta = parseFloat(cantidadInput.value) || 0;
-            const precioUnitario = parseFloat(document.getElementById("precio_unitario").value) || 0;
-            const total = cantidadDevuelta * precioUnitario;
+            const precioUnitario = Math.abs(parseFloat(document.getElementById("precio_unitario").value)) || 0;
+            const total = Math.abs(cantidadDevuelta * precioUnitario);
+
 
             // Verificar que los datos estén completos
             if (suministro && cantidadDevuelta > 0 && precioUnitario > 0) {
@@ -218,7 +219,8 @@
                 }
             }
 
-            costoTotalSpan.innerHTML = `<strong>${dollarUSLocale.format(costoTotal)}</strong>`;
+            costoTotalSpan.innerHTML = `<strong>${dollarUSLocale.format(Math.abs(costoTotal))}</strong>`;
+
         }
         cantidadInput.addEventListener("input", calcularYAgregarFila);
     });

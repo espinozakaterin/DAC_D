@@ -110,7 +110,9 @@ GESTION DE ADQUISICIONES
         proveedor_ip = null;
 
         var global_adquisicion_id = null;
+        var global_id_requisicion = null;
         var global_nombre_proveedor = null;
+
         var global_id_proveedor = null;
         var global_nombre_suministro = null;
         var global_id_suministro = null;
@@ -312,6 +314,8 @@ GESTION DE ADQUISICIONES
             // Establecer valores por defecto para el nuevo suministro
             opcion = 1;
             global_adquisicion_id = null;
+            global_id_requisicion = null;
+
 
             // Limpieza del modal al cerrarlo
             $('#modalAdquisicion').on('hidden.bs.modal', function () {
@@ -328,6 +332,8 @@ GESTION DE ADQUISICIONES
 
             global_adquisicion_id = $(this).data('id');
             id_requisicion = $(this).data('id_requisicion');
+            global_id_requisicion = id_requisicion;
+
             id_solicitante_seleccionado = $(this).data('solicitante');
             PKgrupo = $(this).data('grupo');
             id_proveedor = $(this).data('proveedor');
@@ -390,6 +396,8 @@ GESTION DE ADQUISICIONES
 
 
             var id_requisicion = $('#id_requisicion').val();
+            global_id_requisicion = id_requisicion;
+
             var solicitante = $('#solicitante').val();
             var grupos = $('#grupos').val();
             id_grupo = $('#grupos').data('id');
@@ -422,26 +430,21 @@ GESTION DE ADQUISICIONES
                             if (opcion == 1) {  
                                 if (data.existe == 0) {
                                     $('#modalAdquisicion').modal('hide');
-
-                                    toastMixin.fire({
-                                        animation: true,
-                                        title: 'Adquisición Creada!'
-                                    });
+                                    // Toast se mostrará después de los detalles
                                 } else {
                                     Swal.fire("", "Esta adquisición ya existe.", "warning");
+                                    return; // No intentar guardar detalles si ya existe
                                 }
                             } else {  // Si es una edición
                                 $('#modalAdquisicion').modal('hide');
-
-                                toastMixin.fire({
-                                    animation: true,
-                                    title: 'Adquisición Editada!'
-                                });
+                                // Toast se mostrará después de los detalles
                             }
 
                             if (opcion == 1 || opcion == 2) {
-                                insertarDetallesAdquisicion(data.id_adquisicion);
+                                var msgFinal = (opcion == 1) ? '¡Adquisición Creada!' : '¡Adquisición Editada!';
+                                insertarDetallesAdquisicion(data.id_adquisicion, msgFinal);
                             }
+
 
                             Tabla_Adquisicion.ajax.reload(null, false);
                         } else {
@@ -455,7 +458,8 @@ GESTION DE ADQUISICIONES
             }
         });
 
-        function insertarDetallesAdquisicion(id_adquisicion_creada) {
+        function insertarDetallesAdquisicion(id_adquisicion_creada, msgFinal) {
+
             const detalles = [];
 
             $('#tabla-articulos tr').each(function () {
@@ -465,8 +469,11 @@ GESTION DE ADQUISICIONES
                 const cantidadText = $(this).find('td:eq(3)').text().trim();
                 const precioUnitarioText = $(this).find('td:eq(4)').text().trim();
 
-                const cantidad = parseFloat(cantidadText.replace(/,/g, '')) || 0;
-                const precioUnitario = parseFloat(precioUnitarioText.replace(/[^0-9.-]+/g, "")) || 0;
+                const $tdCantidad = $(this).find('td:eq(3)');
+                const $tdPrecioUnitario = $(this).find('td:eq(4)');
+
+                const cantidad = parseFloat($tdCantidad.data('original-cantidad')) || parseFloat(cantidadText.replace(/,/g, '')) || 0;
+                const precioUnitario = parseFloat($tdPrecioUnitario.data('original-precio')) || parseFloat(precioUnitarioText.replace(/[^0-9.-]+/g, "")) || 0;
 
                 console.log("Processing row:", { id_da, id_dr, id_sum, cantidad, precioUnitario });
 
@@ -497,9 +504,10 @@ GESTION DE ADQUISICIONES
                         if (data.save == 1) {
                             toastMixin.fire({
                                 animation: true,
-                                title: '¡Detalles de la adquisición guardados correctamente!'
+                                title: msgFinal
                             });
                             Tabla_Adquisicion.ajax.reload(null, false);
+
                         } else {
                             Swal.fire("", "Error: " + data.error, "error");
                         }
@@ -614,9 +622,9 @@ GESTION DE ADQUISICIONES
                             <td>${detalle.id_detalle_requisicion}</td>
                             <td style="display: none">${detalle.id_suministros}</td>
                             <td>${detalle.nombre_suministro}</td>
-                            <td>${detalle.cantidad}</td>
-                            <td>L\u00A0${detalle.precio_unitario}</td>
-                            <td>L\u00A0${detalle.precio_total}</td>
+                            <td>${Math.abs(detalle.cantidad)}</td>
+                            <td>L\u00A0${Math.abs(detalle.precio_unitario)}</td>
+                            <td>L\u00A0${Math.abs(detalle.precio_total)}</td>
                             <td class="estado">
                                     <span class="badge badge-pill bg-success">ACTIVO</span>
                             </td>
@@ -632,7 +640,7 @@ GESTION DE ADQUISICIONES
                             total_adquisicion += parseFloat(detalle.precio_total);
                         });
 
-                        $('#total-detalle').text('L\u00A0' + dollarUSLocale.format(total_adquisicion)).css('white-space', 'nowrap');
+                        $('#total-detalle').text('L\u00A0' + dollarUSLocale.format(Math.abs(total_adquisicion))).css('white-space', 'nowrap');
 
                         $('#modalDetallesLabel').html('<strong>Detalles de la Adquisicion #' + id_Dadquisicion + '</strong>');
                         $('#modalDetalles').modal('show');
@@ -652,8 +660,9 @@ GESTION DE ADQUISICIONES
             var IdDetalleRequisicion = filaDetalleAdquisicion.find("td:eq(1)").text().trim();
             var IDsuministro = filaDetalleAdquisicion.find("td:eq(2)").text().trim();
             var suministroDetalle = filaDetalleAdquisicion.find("td:eq(3)").text().trim();
-            var cantidad_devuelto = filaDetalleAdquisicion.find("td:eq(4)").text().trim().replace(/,/g, '');
-            var precioUnitarioDetalle = filaDetalleAdquisicion.find("td:eq(5)").text().trim().replace(/[^0-9.-]+/g, "");
+            var cantidad_devuelto = Math.abs(parseFloat(filaDetalleAdquisicion.find("td:eq(4)").text().trim().replace(/,/g, ''))) || 0;
+            var precioUnitarioDetalle = Math.abs(parseFloat(filaDetalleAdquisicion.find("td:eq(5)").text().trim().replace(/[^0-9.-]+/g, ""))) || 0;
+
 
             $('#id_adquisicion').val(IDAdquisicion);
             $('#id_detalle_requisicion').val(IdDetalleRequisicion);
@@ -697,7 +706,8 @@ GESTION DE ADQUISICIONES
                 filaExistente.find('td:eq(5)').text((parseFloat(cantidad_devuelto) * parseFloat(precioUnitarioDetalle)).toFixed(2)); 
             } else {
                 // Si la fila no existe, la agregamos
-                const totalFila = (parseFloat(cantidad_devuelto) * parseFloat(precioUnitarioDetalle)).toFixed(2);
+                const totalFila = Math.abs(parseFloat(cantidad_devuelto) * parseFloat(precioUnitarioDetalle)).toFixed(2);
+
                 const filaHtml = `
             <tr data-id-adquisicion="${IDAdquisicion}">
                 <td>${IDAdquisicion}</td>
@@ -724,7 +734,8 @@ GESTION DE ADQUISICIONES
             });
 
             // Mostrar el total actualizado
-            $('#total_devolucion').text(totalDevolucion.toFixed(2));
+            $('#total_devolucion').text(Math.abs(totalDevolucion).toFixed(2));
+
         }
 
         // Al cambiar la cantidad, actualizamos la fila en la tabla

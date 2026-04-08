@@ -4,4 +4,5 @@ def add_session_variables(request):
         'fullName': request.session.get('fullName', ''),
         'userName': request.session.get('userName', ''),
         'token': request.session.get('token', ''),
+        'avatar_url': request.session.get('avatar_url', ''),
     }

@@ -21,7 +21,7 @@
                                 <select id="nombre_completo" class="form-select" name="nombre_completo">
                                     <option value="">Seleccione su nombre</option>
                                     {% for us in usuarios %}
-                                    <option value="{{ us.PkUsuario }}">{{ us.Nombre }}</option>
+                                    <option value="{{ us.PKUsuario }}">{{ us.Nombre }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
@@ -195,6 +195,7 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("precio_unitario").value = "";
             document.getElementById("justificacion").value = "";
             document.getElementById("subtotal-dinamico").innerText = "0.00";
+            $('#categoria').val('').trigger('change');
             $('#suministro').val('').trigger('change');
 
         } else {
@@ -335,21 +336,6 @@ function cargarGruposPorUsuario(pkUsuario) {
 }
 
 
-/* =============================================
-   EVENTO CUANDO CAMBIA EL USUARIO
-   ============================================= */
-
-$(document).off('change', '#nombre_completo');
-
-$(document).on('change', '#nombre_completo', function () {
-
-    const usuario = $(this).val();
-
-    console.log("Usuario seleccionado:", usuario);
-
-    cargarGruposPorUsuario(usuario);
-
-});
 
 /* =============================================
    5) EVENTO CAMBIO DE CATEGORÍA

@@ -216,7 +216,7 @@ $("#nombre_completo").on('change', function () {
                         }
                     },
                     {
-                        extend: 'pdfHtml5', // Changed from 'print'
+                        extend: 'pdfHtml5', 
                         text: '<i class="fas fa-print"></i> Imprimir',
                         titleAttr: 'Imprimir',
                         className: 'btn btn-secondary btn-sm',
@@ -426,14 +426,15 @@ $("#nombre_completo").on('change', function () {
     // 2) Tomar datos encabezado
     const PKUsuario   = $('#nombre_completo').val();
     const PKgrupo     = $('#grupos').val();
-    const id_proveedor= $('#acreedor').val();
+    const id_proveedor= $('#formRequisicion #acreedor').val();
     const fecha_pedido= $('#fecha_pedido').val();
     const fecha_pago  = $('#fecha_pago').val();
     const costo_total = ($('#costo-total').text() || "0").replace(/[^\d.-]/g, '').trim();
 
-    // 3) Validar campos obligatorios
-    if (!PKUsuario || !PKgrupo || PKgrupo === "#" || !id_proveedor || id_proveedor === "#" || !fecha_pedido || !fecha_pago) {
-        Swal.fire("", "Debes llenar todos los campos obligatorios.", "warning");
+    // 3) Validar campos obligatorios del encabezado
+    if (!PKUsuario || PKUsuario === "#" || !PKgrupo || PKgrupo === "#" || !id_proveedor || id_proveedor === "" || id_proveedor === "#" || !fecha_pedido || !fecha_pago) {
+        console.warn("Faltan datos en el encabezado. PKUsuario:", PKUsuario, "PKgrupo:", PKgrupo, "id_proveedor:", id_proveedor);
+        Swal.fire("", "Debes llenar todos los campos obligatorios (Solicitante, Grupo, Acreedor y Fechas).", "warning");
         return;
     }
 
@@ -1189,7 +1190,7 @@ function insertarDetallesRequisicion(id_requisicion) {
             success: function (data) {
                 if (data.acreedores && data.acreedores.length > 0) {
                     $('#acreedor').empty();
-                    $('#acreedor').append('<option value="#">Seleccione el acreedor:</option>');  
+                    $('#acreedor').append('<option value="">Seleccione el acreedor:</option>');  
 
                     data.acreedores.forEach(function (acreedor) {
                         $('#acreedor').append('<option value="' + acreedor.id_proveedor + '">' + acreedor.nombre_proveedor + '</option>');

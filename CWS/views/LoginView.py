@@ -47,7 +47,8 @@ def loginRequest(request):
                 SELECT 
                     PKUsuario,
                     CONCAT(Nombre, ' ', IFNULL(Apellido, '')) AS FullName,
-                    Usuario
+                    Usuario,
+                    Avatar
                 FROM usuarios
                 WHERE UPPER(Usuario) = %s
                   AND UPPER(Contrasena) = %s
@@ -62,6 +63,7 @@ def loginRequest(request):
                 user_id = row[0]
                 fullName = row[1].strip()
                 userName = row[2]
+                avatar_url = row[3] if row[3] else None
 
         if account == 0:
             return JsonResponse({
@@ -90,6 +92,7 @@ def loginRequest(request):
                 request.session['fullName'] = fullName
                 request.session['userName'] = userName
                 request.session['empresa'] = empresa
+                request.session['avatar_url'] = avatar_url
 
                 expiration = datetime.utcnow() + timedelta(minutes=EXPIRATION_MINUTES)
                 token_payload = {

@@ -22,7 +22,7 @@
     <link href="https://cdn.datatables.net/fixedheader/3.4.0/css/fixedHeader.dataTables.css" rel="stylesheet">
     <link href="https://cdn.datatables.net/searchpanes/2.2.0/css/searchPanes.dataTables.css" rel="stylesheet">
     <link href="https://cdn.datatables.net/select/1.7.0/css/select.dataTables.css" rel="stylesheet">
-    <script src="https://kit.fontawesome.com/e716b78aa6.js" crossorigin="anonymous"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
     <link rel="icon" type="image/png" sizes="16x16" href="{% static 'app/cws/images/favicon-16x16.png' %}">
     <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
     <script type="text/javascript" src="https://code.highcharts.com/stock/highstock.js"></script>
@@ -62,7 +62,10 @@
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
                             data-bs-toggle="dropdown" aria-expanded="false">
-                            <img class="rounded-circle" src="{% static 'app/ticketit/images/avatar-01.png' %}" width="31">
+                            <img class="rounded-circle" src="{% if avatar_url %}{{ avatar_url }}{% else %}https://ui-avatars.com/api/?name={{ fullName }}&background=2c4770&color=fff&bold=true{% endif %}" 
+                                 width="31"
+                                 style="object-fit: cover;"
+                                 onerror="this.src='https://ui-avatars.com/api/?name={{ fullName }}&background=2c4770&color=fff&bold=true'">
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                             <li><a class="dropdown-item" href="{% url 'modulos' %}">Salir</a></li>
