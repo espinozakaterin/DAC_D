@@ -79,45 +79,7 @@ GESTION DE REQUISICIONES
     var xhrSuministroMain = null;
 
     $(document).ready(function () {
-$("#nombre_completo").on('change', function () {
 
-    const usuario_id_raw = $(this).val();
-    const usuario_id = (usuario_id_raw || '').toString().trim();
-
-    if (!usuario_id) {
-        $('#grupos').empty().append('<option value="">Seleccione el grupo</option>');
-        return;
-    }
-
-    if (!/^\d+$/.test(usuario_id)) {
-        alert("Seleccione un usuario válido.");
-        return;
-    }
-
-    $('#grupos').empty().append('<option value="">Cargando grupos...</option>');
-
-    $.ajax({
-    url: "/CWS/modulos/control/suministros/grupos/por/usuario/data",
-    type: "GET",
-    data: {
-        pk_usuario: usuario_id
-    },
-    success: function (response) {
-        if (response.data && response.data.length > 0) {
-            response.data.forEach(function (g) {
-                $("#grupos").append(
-                    `<option value="${g.id}">${g.nombre}</option>`
-                );
-            });
-        } else {
-            $("#grupos").append('<option value="#">No hay grupos</option>');
-        }
-    },
-    error: function (xhr) {
-        console.log("Error grupos:", xhr.responseText);
-        }
-    });
-});
 
         window.toastMixin = Swal.mixin({
             toast: true,

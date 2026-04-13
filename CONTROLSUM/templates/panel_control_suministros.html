@@ -102,6 +102,49 @@ PANTALLA PRINCIPAL
         opacity: 0.7;
         font-weight: 400;
     }
+
+    /* Estilos para el Modal Premium */
+    .swal2-popup.premium-welcome-modal {
+        border-radius: 20px !important;
+        padding: 2rem !important;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1) !important;
+    }
+    .swal2-title.premium-welcome-title {
+        color: #1a1f2e !important;
+        font-weight: 700 !important;
+        font-size: 1.75rem !important;
+        letter-spacing: -0.5px !important;
+        margin-bottom: 0.5rem !important;
+        font-family: 'Inter', 'Segoe UI', Roboto, sans-serif !important;
+    }
+    .swal2-html-container.premium-welcome-content {
+        color: #64748b !important;
+        line-height: 1.4 !important;
+        font-size: 1rem !important;
+        font-weight: 500 !important;
+        margin-top: -0.5rem !important;
+    }
+    .premium-welcome-icon-box {
+        background: rgba(59, 130, 246, 0.1);
+        width: 90px;
+        height: 90px;
+        border-radius: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        color: #3b82f6;
+        font-size: 2.8rem;
+    }
+    .swal2-confirm.premium-welcome-btn {
+        background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+        border-radius: 12px !important;
+        padding: 12px 35px !important;
+        font-weight: 700 !important;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3) !important;
+    }
 </style>
 
 <div class="dash-layout">
@@ -789,6 +832,41 @@ PANTALLA PRINCIPAL
                 console.error('Error notifications:', error);
                 $('#alertasListRight').html('<div class="dash-empty text-danger"><i class="fas fa-exclamation-triangle"></i><span>Falló la carga de alertas.</span></div>');
             });
+
+        // -------------------------------------------------------------------------
+        //  MENSAJE DE BIENVENIDA (Solo al entrar desde Menú de Aplicaciones)
+        // -------------------------------------------------------------------------
+        const navEntries = performance.getEntriesByType("navigation");
+        const isReload = navEntries.length > 0 && navEntries[0].type === 'reload';
+        const referrer = document.referrer;
+        
+        // Verificamos si viene de la pantalla de módulos pero no de una subpágina de suministros
+        const isFromAppsMenu = referrer.includes('/modulos') && !referrer.includes('suministros');
+
+        if (isFromAppsMenu && !isReload) {
+            setTimeout(() => {
+                Swal.fire({
+                    title: 'Bienvenido, {{ userName }}',
+                    html: `
+                        <div class="premium-welcome-icon-box">
+                            <i class="fas fa-box-open"></i>
+                        </div>
+                        <p class="mb-0">Sistema de Control de Suministros</p>
+                    `,
+                    confirmButtonText: 'CONTINUAR',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    showCloseButton: false,
+                    customClass: {
+                        popup: 'premium-welcome-modal',
+                        title: 'premium-welcome-title',
+                        htmlContainer: 'premium-welcome-content',
+                        confirmButton: 'premium-welcome-btn'
+                    },
+                    buttonsStyling: false
+                });
+            }, 800);
+        }
 
     });
 </script>

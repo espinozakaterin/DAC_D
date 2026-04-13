@@ -297,4 +297,4 @@ EMAIL_HOST = 'smtp.office365.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'notificaciones@carbajalhn.com'
-EMAIL_HOST_PASSWORD = 'notificacion*2023'
+EMAIL_HOST_PASSWORD = 'notificacion*2023'

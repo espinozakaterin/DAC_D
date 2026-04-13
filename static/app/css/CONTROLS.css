@@ -61,12 +61,38 @@ h1, h2, h3, h4, h5, h6,
 
 /* 4. Ensure interactive elements ALWAYS show the pointer cursor */
 a, button, select, label[for], .pointer, .btn, .nav-link, .dropdown-item, 
-.interactive-card, .list-interactive-item, .cal-nav-btn {
+.interactive-card, .list-interactive-item, .cal-nav-btn, 
+input[type="file"], input[type="file"]::file-selector-button, input[type="file"]::-webkit-file-upload-button {
     cursor: pointer !important;
 }
 
+/* Date inputs: Pointer on hover for the entire field, including internal icons and segments */
+input[type="date"], 
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="date"]::-webkit-datetime-edit,
+input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+input[type="date"]::-webkit-datetime-edit-text,
+input[type="date"]::-webkit-datetime-edit-month-field,
+input[type="date"]::-webkit-datetime-edit-day-field,
+input[type="date"]::-webkit-datetime-edit-year-field,
+input.datepicker {
+    cursor: pointer !important;
+}
+
+/* Restore text cursor upon focus to allow normal manual typing */
+input[type="date"]:focus, 
+input[type="date"]:focus::-webkit-datetime-edit,
+input[type="date"]:focus::-webkit-datetime-edit-fields-wrapper,
+input[type="date"]:focus::-webkit-datetime-edit-text,
+input[type="date"]:focus::-webkit-datetime-edit-month-field,
+input[type="date"]:focus::-webkit-datetime-edit-day-field,
+input[type="date"]:focus::-webkit-datetime-edit-year-field,
+input.datepicker:focus {
+    cursor: text !important;
+}
+
 /* 5. Mantain the text cursor ONLY in real editable fields */
-input, textarea, [contenteditable], [contenteditable] * {
+input:not([type="file"]), textarea, [contenteditable], [contenteditable] * {
     cursor: text !important;
 }
 
@@ -81,13 +107,18 @@ input, textarea, [contenteditable], [contenteditable] * {
     caret-color: transparent !important;
 }
 
-input, textarea, [contenteditable], [contenteditable] * {
+input:not([type="file"]), textarea, [contenteditable], [contenteditable] * {
     caret-color: auto !important;
 }
 
 /* Ensure common UI headers don't accidentally capture focus/caret */
 h1, h2, h3, h4, h5, h6, .card-title, .brand-text, .nav-link span {
     caret-color: transparent !important;
+}
+
+/* Ensure focus carets are visible for date inputs to allow manual entry */
+input[type="date"]:focus, input.datepicker:focus {
+    caret-color: auto !important;
 }
 /* ============================================================== */
 

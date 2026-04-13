@@ -8,6 +8,19 @@ GESTIONAR OTROS
 
 {% block body %}
 
+<style>
+    /* Quitar el cursor de texto (línea vertical) en los campos de fecha de Kardex */
+    #fecha_desde, #fecha_hasta {
+        caret-color: transparent;
+    }
+
+    /* Estilo para que el icono del calendario muestre el puntero de mano */
+    #fecha_desde::-webkit-calendar-picker-indicator,
+    #fecha_hasta::-webkit-calendar-picker-indicator {
+        cursor: pointer;
+    }
+</style>
+
 <div class="row align-items-center">
     <div class="col d-flex align-items-center">
       
@@ -100,6 +113,9 @@ GESTIONAR OTROS
         var csrfToken = "{{ csrf_token }}";
         var Tabla_Kardex;
 
+        // Carga previa de suministros enviada desde el servidor
+        const suministrosTodos = {{ suministros_todos_json|safe }};
+
         const today = new Date();
         const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
 
@@ -128,6 +144,39 @@ GESTIONAR OTROS
             var id_suministro = $('#suministro').val();
             var fecha_desde = $('#fecha_desde').val();
             var fecha_hasta = $('#fecha_hasta').val();
+
+            // Determinar qué campos obligatorios faltan
+            var faltantes = [];
+            if (!id_categoria) faltantes.push("categoría");
+            if (!id_suministro) faltantes.push("suministro");
+            if (!fecha_desde) faltantes.push("fecha_desde");
+            if (!fecha_hasta) faltantes.push("fecha_hasta");
+
+            // Si faltan Varios campos (2 o más), mostrar mensaje general
+            if (faltantes.length > 1) {
+                Swal.fire("Atención", "Debe completar todos los campos obligatorios.", "warning");
+                return;
+            }
+
+            // Si falta solo UNO, mostrar el mensaje específico solicitado
+            if (faltantes.length === 1) {
+                var campo = faltantes[0];
+                if (campo === "categoría") {
+                    Swal.fire("Atención", "Debe seleccionar una categoría.", "warning");
+                } else if (campo === "suministro") {
+                    Swal.fire("Atención", "Debe seleccionar un suministro.", "warning");
+                } else if (campo === "fecha_desde") {
+                    Swal.fire("Atención", "Debe agregar la fecha desde.", "warning");
+                } else if (campo === "fecha_hasta") {
+                    Swal.fire("Atención", "Debe agregar la fecha hasta.", "warning");
+                }
+                return;
+            }
+
+            if (fecha_desde > fecha_hasta) {
+                Swal.fire("Atención", "La fecha desde no puede ser mayor que la fecha hasta.", "warning");
+                return;
+            }
 
             fillKardex(id_categoria, id_suministro, fecha_desde, fecha_hasta);
         });
@@ -159,6 +208,7 @@ GESTIONAR OTROS
                 dom: 'Brftip',
                 language: {
                     url: "{% static 'app/th/json/es-ES.json' %}",
+                    emptyTable: "No existen movimientos para este suministro en el rango de fechas seleccionado."
                 },
                 ajax: {
                     url: `{% url 'historial_suministros_data' %}`,
@@ -258,6 +308,11 @@ GESTIONAR OTROS
                         }
                     }
                 ],
+                createdRow: function (row, data, dataIndex) {
+                    if (data.es_saldo_inicial === 1) {
+                        $(row).addClass('table-info fw-bold');
+                    }
+                },
                 columns: [
                     {
                         data: 'fecha_movimiento'
@@ -266,76 +321,103 @@ GESTIONAR OTROS
                         data: 'detalle_movimiento'
                     },
                     {
-                        data: 'entrada'
+                        data: 'entrada',
+                        render: function(data, type, row) {
+                            if (data == null) return "0";
+                            var num = parseFloat(data);
+                            return num % 1 === 0 ? num.toString() : num.toFixed(2);
+                        }
                     },
                     {
-                        data: 'salida'
+                        data: 'salida',
+                        render: function(data, type, row) {
+                            if (data == null) return "0";
+                            var num = parseFloat(data);
+                            return num % 1 === 0 ? num.toString() : num.toFixed(2);
+                        }
                     },
                     {
                         data: 'stock_anterior',
-                        className: 'formattAverages'
+                        className: 'formattAverages',
+                        render: function(data, type, row) {
+                            if (data == null) return "0";
+                            var num = parseFloat(data);
+                            return num % 1 === 0 ? num.toString() : num.toFixed(2);
+                        }
                     },
                     {
                         data: 'stock_actual',
-                        className: 'formattAverages'
+                        className: 'formattAverages',
+                        render: function(data, type, row) {
+                            if (data == null) return "0";
+                            var num = parseFloat(data);
+                            return num % 1 === 0 ? num.toString() : num.toFixed(2);
+                        }
                     },
                     {
                         data: 'precio_unitario',
                         className: 'formattMoney',
-                        render: $.fn.dataTable.render.number(',', '.', 2, 'L\u00A0')
+                        render: function(data, type, row) {
+                            if (data == null) return "L 0.00";
+                            var num = parseFloat(data);
+                            return 'L ' + num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                        }
                     },
                     {
                         data: 'costo_total',
                         className: 'formattMoney',
                         render: function(data, type, row) {
                             let valorAbsoluto = Math.abs(parseFloat(data) || 0);
-                            return 'L\u00A0' + $.fn.dataTable.render.number(',', '.', 2).display(valorAbsoluto);
+                            return 'L ' + valorAbsoluto.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                         }
                     },
                 ],
             });
         }
 
-        // Cargar suministros al seleccionar una categoría
+        // Filtrado local instantáneo al seleccionar una categoría (SIN AJAX)
         $('#categoria').change(function () {
-    var categoria_id = $(this).val();
-    console.log("CATEGORIA SELECCIONADA:", categoria_id);
+            var categoria_id = $(this).val();
+            var $suministro = $('#suministro');
 
-    if (categoria_id) {
-        $.ajax({
-            url: '{% url "obtener_suministros_por_categoria_data" %}',
-            type: "POST",
-            data: {
-                categoria_id: categoria_id,
-                csrfmiddlewaretoken: csrfToken
-            },
-            dataType: 'json',
-            success: function (response) {
-                console.log("RESPUESTA SUMINISTROS:", response);
+            if (categoria_id) {
+                // Filtrar la lista precargada por el ID de la categoría seleccionada
+                var suministrosFiltrados = suministrosTodos.filter(function(s) {
+                    return s.id_categoria == categoria_id;
+                });
 
-                $('#suministro').empty();
+                // Reinicialización limpia: Destruir para recrear desde cero igual que Categoría
+                if ($suministro.data('select2')) { $suministro.select2('destroy'); }
+                $suministro.empty();
 
-                if (response.suministros && response.suministros.length > 0) {
-                    $('#suministro').append('<option value="">Seleccione el Suministro</option>');
-                    $.each(response.suministros, function (index, suministro) {
-                        $('#suministro').append(
-                            '<option value="' + suministro.id_suministros + '">' + suministro.nombre + '</option>'
-                        );
-                    });
-                } else {
-                    $('#suministro').append('<option value="">No hay suministros disponibles</option>');
+                // Preparar datos para carga atómica
+                var data = [{ id: '', text: 'Seleccione el Suministro' }];
+                suministrosFiltrados.forEach(function (s) {
+                    data.push({ id: s.id_suministros, text: s.nombre });
+                });
+
+                if (suministrosFiltrados.length === 0) {
+                    data = [{ id: '', text: 'No hay suministros disponibles' }];
                 }
-            },
-            error: function (xhr, status, error) {
-                console.error("Error al obtener los suministros:", xhr.responseText);
-                Swal.fire("", "Ocurrió un error al obtener los suministros.", "error");
+
+                // Inicialización instantánea (SIN ESPERAS)
+                $suministro.select2({
+                    data: data,
+                    placeholder: "Seleccione el Suministro",
+                    allowClear: true,
+                    width: '100%'
+                }).trigger('change');
+            } else {
+                // Volver al estado inicial si no hay categoría seleccionada
+                if ($suministro.data('select2')) { $suministro.select2('destroy'); }
+                $suministro.empty().select2({
+                    data: [{ id: '', text: 'Seleccione el Suministro' }],
+                    placeholder: "Seleccione el Suministro",
+                    allowClear: true,
+                    width: '100%'
+                }).trigger('change');
             }
         });
-    } else {
-        $('#suministro').empty();
-        $('#suministro').append('<option value="">Seleccione el Suministro</option>');
-    }
-});
         
 
         $('#limpiarFiltros').click(function () {

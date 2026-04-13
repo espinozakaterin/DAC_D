@@ -475,25 +475,21 @@ GESTION DE SUMINISTROS
         }
     ],
 
+    createdRow: function (row, data) {
+        var stock  = parseInt(data.cantidad_stock   || 0);
+        var minimo = parseInt(data.cantidad_minima  || 0);
+        var maximo = parseInt(data.cantidad_inicial || 0);
+
+        if (stock <= minimo) {
+            // STOCK BAJO → rojo claro (inline para sobrescribir table-striped)
+            $('td', row).css('background-color', '#ffd6d6');
+        } else if (stock > maximo) {
+            // SOBREGIRADO → amarillo claro
+            $('td', row).css('background-color', '#fff8cc');
+        }
+    },
+
     initComplete: function () {
-        $('#Tabla_Suministros tbody tr').each(function () {
-            var row = $(this);
-            var rowData = $('#Tabla_Suministros').DataTable().row(row).data();
-
-            if (rowData) {
-                var cantidadStock = parseInt(rowData.cantidad_stock || 0);
-                var cantidadMinima = parseInt(rowData.cantidad_minima || 0);
-                var cantidadMaxima = parseInt(rowData.cantidad_inicial || 0);
-                var estado = parseInt(rowData.estado || 0);
-
-                if (estado !== 3 && (cantidadStock <= cantidadMinima || cantidadStock > cantidadMaxima)) {
-                    row.addClass('bg-danger');
-                } else {
-                    row.removeClass('bg-danger');
-                }
-            }
-        });
-
         const urlParams = new URLSearchParams(window.location.search);
         const productId = urlParams.get('id');
         const productName = urlParams.get('name');

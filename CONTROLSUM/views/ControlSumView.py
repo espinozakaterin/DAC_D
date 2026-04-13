@@ -489,7 +489,7 @@ def listado_asignaciones_data(request):
 
         udcConn.close()
 
-    except Exception as e:s
+    except Exception as e:
         return JsonResponse({'error': str(e)})
     
     context = {
@@ -1529,7 +1529,7 @@ def listado_almacenes_data(request):
         
         udcConn.close()
 
-    except Exception as e
+    except Exception as e:
         return JsonResponse({'error': str(e)})
     
     context = {
@@ -2184,24 +2184,38 @@ def obtener_motivos_devoluciones_data(request):
 
 #-----------------------------------------------------------------------------------------------------#
 def movimientos_suministros_data(request):
-
-    categorias_data = ""
+    categorias_data = []
+    suministros_todos = []
 
     try:
         udcConn = connections['ctrlSum']
         with udcConn.cursor() as cursor:
+            # 1. Obtener categorías para el selector
             cursor.callproc("SUM_GET_CATEGORIAS", [])
             column_names = [desc[0] for desc in cursor.description]
             categorias_data = [dict(zip(map(str, column_names), row)) for row in cursor.fetchall()]
 
-        # Cierra la conexión
-        udcConn.close()
+            while cursor.nextset(): pass
+
+            # 2. Obtener TODOS los suministros activos para filtrado local instantáneo
+            cursor.execute("""
+                SELECT id_suministros, nombre, id_categoria
+                FROM universal_data_core.suministros
+                WHERE estado != 3
+                ORDER BY nombre ASC
+            """)
+            s_rows = cursor.fetchall()
+            suministros_todos = [
+                {"id_suministros": r[0], "nombre": r[1], "id_categoria": r[2]} 
+                for r in s_rows
+            ]
 
     except Exception as e:
-        return JsonResponse({'error': str(e)})
+        print(f"Error en movimientos_suministros_data: {str(e)}")
     
     context = {
         "categorias": categorias_data,
+        "suministros_todos_json": json.dumps(suministros_todos),
     }
     
     return render(request, 'suministros/kardex_suministros.html', context)
@@ -2237,74 +2251,96 @@ def historial_suministros_data(request):
         print(f"fecha_desde: {fecha_desde}")
         print(f"fecha_hasta: {fecha_hasta}")
 
-        if id_suministro is None and id_categoria is None and fecha_desde is None and fecha_hasta is None:
-            print("DEBUG: Todos los filtros están vacíos, retornando vacío")
+        # Las fechas son siempre obligatorias en la entrada — si falta alguna, retornar vacío
+        if not fecha_desde or not fecha_hasta:
             return JsonResponse({'success': True, 'data': []})
 
-        if id_suministro is not None:
-            fecha_desde = None
-            fecha_hasta = None
+        import datetime
+        import calendar
 
         udcConn = connections['ctrlSum']
-        with udcConn.cursor() as cursor:
-            if id_suministro:
-                cursor.execute(
-                    "SELECT COUNT(*) FROM universal_data_core.suministros_movimientos WHERE id_suministros = %s",
-                    [id_suministro]
-                )
-                count = cursor.fetchone()[0]
-                print(f"DEBUG: Movimientos encontrados para suministro {id_suministro}: {count}")
-            
-            cursor.callproc('OBTENER_HISTORIAL_KARDEX', [
-                id_categoria,
-                id_suministro,
-                fecha_desde,
-                fecha_hasta
-            ])
-            result = cursor.fetchall()
-            columnas = [col[0] for col in cursor.description]
-            
-            print(f"DEBUG: SP retornó {len(result)} filas")
-            print(f"DEBUG: Columnas: {columnas}")
-            if result:
-                print(f"DEBUG: Primera fila: {result[0]}")
-            cursor.execute(
-                "SELECT fecha_movimiento, detalle_movimiento, creado_por FROM universal_data_core.suministros_movimientos WHERE id_suministros = %s",
-                [id_suministro]
-            )
-            mapa_usuarios = {}
-            for r_user in cursor.fetchall():
-                # Creamos una llave compuesta por fecha (YYYY-MM-DD) y detalle
-                f_key = (str(r_user[0]).split(' ')[0], r_user[1])
-                mapa_usuarios[f_key] = r_user[2]
+        result = []
+        columnas = []
 
-            with open('check_db_results.txt', 'w') as f_debug:
-                f_debug.write(f"REPORTE DE DATOS CRUDOS EN BD (Suministro {id_suministro})\n")
-                f_debug.write("-" * 50 + "\n")
-                for key, val in mapa_usuarios.items():
-                    f_debug.write(f"Fecha: {key[0]} | Detalle: {key[1]} | Usuario en BD: [{val}]\n")
-            # --------------------------------------------
-
-            data = []
-            for row in result:
-                item = dict(zip(columnas, row))
+        try:
+            # Intentar parsear fechas para cálculos de proximidad
+            try:
+                date_desde = datetime.datetime.strptime(str(fecha_desde), '%Y-%m-%d')
+                date_hasta = datetime.datetime.strptime(str(fecha_hasta), '%Y-%m-%d')
                 
-                orig_fecha = str(item.get('fecha_movimiento', ''))
-                orig_detalle = item.get('detalle_movimiento', '')
+                # 1. Rango de mes completo
+                rango_mes_inicio = date_desde.replace(day=1).strftime('%Y-%m-%d')
+                ultimo_dia_mes = calendar.monthrange(date_hasta.year, date_hasta.month)[1]
+                rango_mes_fin = date_hasta.replace(day=ultimo_dia_mes).strftime('%Y-%m-%d')
 
-                # Normalizar fecha para el retorno
-                if item.get('fecha_movimiento'):
-                    item['fecha_movimiento'] = orig_fecha.split(' ')[0]
-                
-                if 'costo_total' in item and item['costo_total'] is not None:
-                    item['costo_total'] = abs(float(item['costo_total']))
+                # 2. Rango de año completo (Límite temporal estricto)
+                rango_anio_inicio = date_desde.replace(month=1, day=1).strftime('%Y-%m-%d')
+                rango_anio_fin = date_hasta.replace(month=12, day=31).strftime('%Y-%m-%d')
+            except:
+                rango_mes_inicio = None
+                rango_mes_fin = None
+                rango_anio_inicio = None
+                rango_anio_fin = None
 
-                search_key = (orig_fecha.split(' ')[0], orig_detalle)
-                item['creado_por'] = mapa_usuarios.get(search_key) or item.get('creado_por') or ''
-                
-                data.append(item)
+            with udcConn.cursor() as cursor:
+                # ── NIVEL 1: Rango exacto ──────────────────────────────────────────
+                print(f"DEBUG Kardex: Nivel 1 (Exacto: {fecha_desde} - {fecha_hasta})")
+                cursor.callproc('OBTENER_HISTORIAL_KARDEX', [id_categoria, id_suministro, fecha_desde, fecha_hasta])
+                result = list(cursor.fetchall())
+                columnas = [col[0] for col in cursor.description]
 
-        return JsonResponse({'success': True, 'data': data})
+                # Determinar si hay movimientos operativos (no saldo inicial)
+                idx_es_saldo = columnas.index('es_saldo_inicial') if 'es_saldo_inicial' in columnas else -1
+                hay_movimientos = any(row[idx_es_saldo] == 0 for row in result) if idx_es_saldo != -1 else bool(result)
+
+                # ── NIVEL 2: Mismo Mes y Año (Solo si Nivel 1 no tiene movimientos operativos) ───────────────
+                if not hay_movimientos and id_suministro and rango_mes_inicio:
+                    while cursor.nextset(): pass
+                    print(f"DEBUG Kardex: Nivel 2 (Mismo Mes: {rango_mes_inicio} - {rango_mes_fin})")
+                    cursor.callproc('OBTENER_HISTORIAL_KARDEX', [id_categoria, id_suministro, rango_mes_inicio, rango_mes_fin])
+                    result = list(cursor.fetchall())
+                    if result:
+                        columnas = [col[0] for col in cursor.description]
+                # ─────────────────────────────────────────────────────────────────────
+
+                # ── Mapa de usuarios para enriquecer creado_por ───────────────────────
+                mapa_usuarios = {}
+                if id_suministro:
+                    while cursor.nextset(): pass
+                    cursor.execute(
+                        "SELECT fecha_movimiento, detalle_movimiento, creado_por "
+                        "FROM universal_data_core.suministros_movimientos "
+                        "WHERE id_suministros = %s",
+                        [id_suministro]
+                    )
+                    for r_user in cursor.fetchall():
+                        f_key = (str(r_user[0]).split(' ')[0], r_user[1])
+                        mapa_usuarios[f_key] = r_user[2]
+
+                # ── Construir respuesta ───────────────────────────────────────────────
+                data = []
+                for row in result:
+                    item = dict(zip(columnas, row))
+
+                    orig_fecha   = str(item.get('fecha_movimiento', ''))
+                    orig_detalle = item.get('detalle_movimiento', '')
+
+                    if item.get('fecha_movimiento'):
+                        item['fecha_movimiento'] = orig_fecha.split(' ')[0]
+
+                    if 'costo_total' in item and item['costo_total'] is not None:
+                        item['costo_total'] = abs(float(item['costo_total']))
+
+                    search_key = (orig_fecha.split(' ')[0], orig_detalle)
+                    item['creado_por'] = mapa_usuarios.get(search_key) or item.get('creado_por') or ''
+
+                    data.append(item)
+
+                return JsonResponse({'success': True, 'data': data})
+
+        except Exception as e:
+            print(f"ERROR KARDEX: {str(e)}")
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
