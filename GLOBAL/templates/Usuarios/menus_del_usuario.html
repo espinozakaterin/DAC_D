@@ -1,0 +1,1205 @@
+{% extends 'componentes/menu_global_security.html' %}
+{% load static %}
+
+{% block title %}
+MENUS DEL USUARIO
+{% endblock %}
+
+{% block title_header %}
+Menús del Usuario
+{% endblock %}
+
+{% block body %}
+
+<style>
+    /* Enable Global Page Scroll - Matching the standard system layout */
+    html, body, .main-layout, .page-content, .dashboard-container {
+        overflow-y: auto !important;
+        height: auto !important;
+        min-height: 100vh !important;
+    }
+
+    .modern-table-card {
+        background: linear-gradient(145deg, rgba(15, 23, 42, 0.8), rgba(2, 6, 23, 0.9)) !important;
+        backdrop-filter: blur(16px) !important;
+        -webkit-backdrop-filter: blur(16px) !important;
+        border-radius: 16px;
+        border: 1px solid rgba(34, 211, 238, 0.15) !important;
+        padding: 1.25rem !important;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+        height: auto;
+        transition: var(--transition);
+        display: flex;
+        flex-direction: column;
+        overflow: visible; /* Changed from hidden to allow shadow/glow to breathe */
+    }
+
+    .modern-table-card:hover, .modern-table-card:focus-within {
+        box-shadow: 0 20px 50px rgba(0,0,0,0.4) !important;
+        border-color: rgba(34, 211, 238, 0.3) !important;
+    }
+
+    /* DataTable Overrides to match Dashboard style */
+    .table-modern-style thead th {
+        background: linear-gradient(to right, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.9)) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: #e2e8f0 !important;
+        font-size: 0.72rem !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        padding: 8px 12px !important;
+        letter-spacing: 0.04em;
+    }
+
+    .table-modern-style tbody td {
+        border-color: rgba(255, 255, 255, 0.05) !important;
+        padding: 8px 12px !important;
+        font-size: 0.82rem !important;
+        vertical-align: middle !important;
+        color: #e2e8f0 !important;
+    }
+
+    .table-modern-style tbody tr:hover td {
+        background-color: rgba(255, 255, 255, 0.08) !important;
+    }
+    .table-modern-style tbody tr:hover td:first-child {
+        box-shadow: inset 4px 0 0 #22d3ee !important;
+    }
+
+    /* Base background for all cells to remove DataTable's default white */
+    table.dataTable tbody tr td {
+        background-color: transparent !important;
+    }
+
+    /* Soft State-based row backgrounds */
+    #tableMenusDisponibles tbody tr[data-state="autorizado"] td {
+        background-color: rgba(34, 197, 94, 0.05) !important;
+    }
+    #tableMenusDisponibles tbody tr[data-state="permitido"] td {
+        background-color: rgba(14, 165, 233, 0.05) !important;
+    }
+    #tableMenusDisponibles tbody tr[data-state="denegado"] td {
+        background-color: rgba(225, 29, 72, 0.05) !important;
+    }
+
+    /* Smooth transition for rows */
+    table.dataTable tbody tr {
+        transition: all 0.25s ease !important;
+    }
+
+    #tableMenusDisponibles tbody tr[data-state="autorizado"]:hover td {
+        background-color: rgba(34, 197, 94, 0.18) !important;
+        box-shadow: inset 0 0 15px rgba(34, 197, 94, 0.1);
+    }
+    #tableMenusDisponibles tbody tr[data-state="autorizado"]:hover td:first-child {
+        box-shadow: inset 4px 0 0 #22c55e !important;
+    }
+    #tableMenusDisponibles tbody tr[data-state="permitido"]:hover td {
+        background-color: rgba(14, 165, 233, 0.18) !important;
+        box-shadow: inset 0 0 15px rgba(14, 165, 233, 0.1);
+    }
+    #tableMenusDisponibles tbody tr[data-state="permitido"]:hover td:first-child {
+        box-shadow: inset 4px 0 0 #38bdf8 !important;
+    }
+    #tableMenusDisponibles tbody tr[data-state="denegado"]:hover td {
+        background-color: rgba(225, 29, 72, 0.18) !important;
+        box-shadow: inset 0 0 15px rgba(225, 29, 72, 0.1);
+    }
+    #tableMenusDisponibles tbody tr[data-state="denegado"]:hover td:first-child {
+        box-shadow: inset 4px 0 0 #fb7185 !important;
+    }
+
+    /* Premium Status Badges */
+    .badge-flat-status {
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 0.62rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .badge-estado-autorizado {
+        background: rgba(34, 197, 94, 0.15) !important;
+        color: #4ade80 !important;
+        border: 1px solid rgba(34, 197, 94, 0.3) !important;
+        box-shadow: 0 0 10px rgba(34, 197, 94, 0.1);
+        backdrop-filter: blur(4px);
+    }
+    .badge-estado-permitido {
+        background: rgba(14, 165, 233, 0.15) !important;
+        color: #38bdf8 !important;
+        border: 1px solid rgba(14, 165, 233, 0.3) !important;
+        box-shadow: 0 0 10px rgba(14, 165, 233, 0.1);
+        backdrop-filter: blur(4px);
+    }
+    .badge-estado-denegado {
+        background: rgba(225, 29, 72, 0.15) !important;
+        color: #fb7185 !important;
+        border: 1px solid rgba(225, 29, 72, 0.3) !important;
+        box-shadow: 0 0 10px rgba(225, 29, 72, 0.1);
+        backdrop-filter: blur(4px);
+    }
+    .badge-estado-sinacceso {
+        background: rgba(148, 163, 184, 0.15) !important;
+        color: #cbd5e1 !important;
+        border: 1px solid rgba(148, 163, 184, 0.3) !important;
+        backdrop-filter: blur(4px);
+    }
+
+    /* Compact Select Filter */
+    .table-filter-select {
+        border-radius: 8px;
+        border: 1px solid rgba(255,255,255,0.08);
+        padding: 5px 12px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: #fff;
+        background-color: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(8px);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        min-width: 180px;
+    }
+    .table-filter-select:focus {
+        border-color: var(--accent);
+        outline: none;
+        box-shadow: 0 0 12px rgba(34, 211, 238, 0.25) !important;
+    }
+
+    /* Select2 Premium Modernization - Dark Theme */
+    .select2-container--default .select2-selection--single {
+        background-color: rgba(15, 23, 42, 0.6) !important;
+        border: 1px solid rgba(255,255,255,0.08) !important;
+        border-radius: 8px !important;
+        height: 38px !important;
+        display: flex !important;
+        align-items: center !important;
+        padding: 0 10px !important;
+        transition: all 0.3s ease !important;
+        backdrop-filter: blur(8px) !important;
+    }
+
+    .select2-container--default.select2-container--open .select2-selection--single {
+        border-color: #22d3ee !important;
+        background-color: rgba(15, 23, 42, 0.8) !important;
+        box-shadow: 0 0 12px rgba(34, 211, 238, 0.25) !important;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        color: #e2e8f0 !important;
+        font-size: 0.78rem !important;
+        font-weight: 600 !important;
+        padding-left: 0 !important;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__placeholder {
+        color: #94a3b8 !important;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 36px !important;
+        right: 8px !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__arrow b {
+        border-color: #94a3b8 transparent transparent transparent !important;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__clear {
+        margin-right: 15px !important;
+        color: #cbd5e1 !important;
+        font-size: 1rem !important;
+        font-weight: 700 !important;
+        transition: color 0.2s ease;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__clear:hover {
+        color: #ef4444 !important;
+    }
+
+    /* Select2 Dropdown Panel */
+    .select2-dropdown {
+        background: rgba(15, 23, 42, 0.95) !important;
+        backdrop-filter: blur(12px) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        border-radius: 12px !important;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5) !important;
+        overflow: hidden !important;
+        z-index: 9999 !important;
+        margin-top: 5px !important;
+    }
+
+    .select2-search--dropdown {
+        padding: 10px !important;
+        background: transparent !important;
+    }
+
+    .select2-search--dropdown .select2-search__field {
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        border-radius: 8px !important;
+        padding: 8px 12px !important;
+        font-size: 0.85rem !important;
+        background: rgba(15, 23, 42, 0.6) !important;
+        color: #e2e8f0 !important;
+        outline: none !important;
+    }
+
+    .select2-results__options {
+        max-height: 250px !important;
+    }
+
+    .select2-results__option {
+        padding: 10px 15px !important;
+        font-size: 0.82rem !important;
+        color: #e2e8f0 !important;
+        border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+    }
+
+    .select2-results__option--highlighted[aria-selected] {
+        background-color: rgba(255,255,255,0.05) !important;
+        color: #fff !important;
+    }
+
+    .select2-results__option[aria-selected=true] {
+        background-color: rgba(34, 211, 238, 0.1) !important;
+        color: #22d3ee !important;
+        font-weight: 700 !important;
+    }
+
+    .select2-container .select2-results__option:last-child {
+        border-bottom: none !important;
+    }
+
+    .select2-results__options::-webkit-scrollbar {
+        width: 6px !important;
+    }
+    .select2-results__options::-webkit-scrollbar-track { background: transparent !important; }
+    .select2-results__options::-webkit-scrollbar-thumb {
+        background: #0284c7 !important;
+        border-radius: 10px !important;
+    }
+    .select2-results__options::-webkit-scrollbar-thumb:hover {
+        background: #0369a1 !important;
+    }
+
+    /* DataTables search */
+    .dataTables_wrapper .dataTables_filter {
+        margin-bottom: 12px !important; float: right !important;
+    }
+    .dataTables_wrapper .dataTables_filter label {
+        display: flex !important; align-items: center !important;
+        gap: 5px !important; font-size: 0.78rem !important;
+        font-weight: 500 !important; color: var(--text-muted) !important;
+        margin: 0 !important;
+    }
+    .dataTables_wrapper .dataTables_filter input {
+        border: 1px solid rgba(255,255,255,0.08) !important;
+        border-radius: 8px !important; padding: 4px 10px !important;
+        background: rgba(15, 23, 42, 0.6) !important; font-size: 0.78rem !important;
+        width: 110px !important; transition: var(--transition) !important;
+        color: #e2e8f0 !important;
+        backdrop-filter: blur(8px) !important;
+    }
+    .dataTables_wrapper .dataTables_filter input:focus {
+        border-color: #22d3ee !important;
+        box-shadow: 0 0 12px rgba(34, 211, 238, 0.25) !important;
+        outline: none !important;
+    }
+    .dataTables_wrapper .dataTables_info,
+    .dataTables_wrapper .dataTables_paginate {
+        font-size: 0.75rem !important; color: var(--text-muted) !important;
+        margin-top: 12px !important;
+    }
+
+    .dataTables_scrollBody::-webkit-scrollbar {
+        width: 4px !important;
+        height: 4px !important;
+    }
+    .dataTables_scrollBody::-webkit-scrollbar-track { background: transparent !important; }
+    .dataTables_scrollBody::-webkit-scrollbar-thumb { background: #1e293b !important; border-radius: 10px !important; }
+    .dataTables_scrollBody::-webkit-scrollbar-thumb:hover { background: #0f172a !important; }
+
+    /* Refined Style for Groups Table */
+    #tableGruposAsignados.table-modern-style thead th {
+        background: linear-gradient(to right, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.8)) !important;
+        border-bottom: 2px solid rgba(255, 255, 255, 0.1) !important;
+        color: #e2e8f0 !important;
+    }
+    #tableGruposAsignados.table-modern-style tbody td {
+        border-right: 1px solid rgba(255, 255, 255, 0.05);
+        font-size: 0.78rem !important;
+    }
+    #tableGruposAsignados.table-modern-style tbody td:last-child {
+        border-right: none;
+    }
+
+    /* Legend */
+    .legend-strip {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        padding: 10px 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        background: rgba(15, 23, 42, 0.4);
+        flex-wrap: wrap;
+    }
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    .legend-dot {
+        width: 10px; height: 10px;
+        border-radius: 50%;
+    }
+    .dot-autorizado { background: #16a34a; }
+    .dot-permitido  { background: #0284c7; }
+    .dot-denegado   { background: #e11d48; }
+    .dot-sinacceso  { background: #cbd5e1; }
+
+    .empty-state-placeholder {
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        padding: 4rem 1.5rem; color: #94a3b8;
+        background: transparent;
+        border: none;
+    }
+    .empty-state-placeholder i { margin-bottom: 1rem; color: #cbd5e1; }
+    .empty-state-placeholder p { font-size: 0.8rem; font-weight: 500; margin: 0; text-align: center; }
+
+    .pulsing-icon { animation: pulse 2s infinite; }
+    @keyframes pulse {
+        0% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.08); opacity: 0.7; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    .text-navy { color: #1e293b !important; }
+    .font-size-10 { font-size: 0.65rem !important; }
+    .fw-500 { font-weight: 500 !important; }
+
+    .floating-action-btn {
+        width: 120px !important;
+        height: 38px !important;
+        border-radius: 20px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        transition: var(--transition) !important;
+        border: 1px solid transparent !important;
+        box-shadow: var(--shadow-lg) !important;
+        font-size: 0.65rem !important;
+        font-weight: 800 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.04em !important;
+        gap: 6px !important;
+        color: white !important;
+    }
+
+    .floating-action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md) !important;
+    }
+    #btnLimpiar {
+        background: linear-gradient(135deg, rgba(71, 85, 105, 0.9), rgba(51, 65, 85, 0.9)) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        backdrop-filter: blur(8px);
+    }
+    #btnLimpiar:hover {
+        box-shadow: 0 0 15px rgba(71, 85, 105, 0.6) !important;
+        border-color: rgba(255,255,255,0.2) !important;
+    }
+    #btnCerrar {
+        background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.9)) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        backdrop-filter: blur(8px);
+    }
+    #btnCerrar:hover {
+        box-shadow: 0 0 15px rgba(30, 41, 59, 0.6) !important;
+        border-color: rgba(255,255,255,0.2) !important;
+    }
+    .search-colaborador-container { max-width: 650px; margin: 0 auto 1.5rem auto; position: relative; }
+    .search-input-wrapper { display: flex; align-items: center; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(10px); border-radius: 50px; padding: 5px 10px 5px 25px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    .search-input-wrapper:focus-within { transform: translateY(-2px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.1); border-color: rgba(34, 211, 238, 0.3); }
+    .search-input-field { border: none; outline: none; width: 100%; padding: 12px 10px; font-size: 1.1rem; font-weight: 500; color: #f8fafc; background: transparent; }
+    .search-input-field::placeholder { color: #64748b; font-weight: 400; }
+    .search-icon-btn { width: 48px; height: 48px; background: #0284c7; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; border: none; flex-shrink: 0; }
+    .search-icon-btn:hover { background: #0369a1; transform: scale(1.05); }
+    .search-results-dropdown { position: absolute; top: 110%; left: 0; right: 0; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(12px); border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); border: 1px solid rgba(255,255,255,0.1); z-index: 1050; overflow: hidden; display: none; max-height: 400px; overflow-y: auto; }
+    .result-item { padding: 12px 25px; display: flex; flex-direction: column; cursor: pointer; transition: background 0.2s ease; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .result-item:last-child { border-bottom: none; }
+    .result-item:hover, .result-item.highlighted { background: rgba(255,255,255,0.05); }
+    .result-name { font-weight: 700; color: #f8fafc; font-size: 0.95rem; }
+    .result-username { font-size: 0.8rem; color: #94a3b8; font-weight: 500; }
+    .search-badge { background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; text-transform: uppercase; margin-left: auto; }
+</style>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+    <!-- Top Search Bar Section (Premium Layout) -->
+    <div class="search-colaborador-container">
+        <div class="search-input-wrapper" id="searchInputWrapper">
+            <input type="text" id="userInputSearch" class="search-input-field" placeholder="Buscar Colaboradores..." autocomplete="off">
+            <button class="search-icon-btn">
+                <i data-lucide="search" style="width: 22px; height: 22px;"></i>
+            </button>
+        </div>
+        <!-- Results Dropdown -->
+        <div class="search-results-dropdown" id="searchResults">
+            <!-- Dynamic results here -->
+        </div>
+    </div>
+
+    <!-- Main Card -->
+    <div class="row g-3 justify-content-center">
+        <div class="col-12">
+            <div class="modern-table-card shadow-lg border-primary-subtle" style="min-height: 520px;">
+
+                <!-- Card Header -->
+                <div class="card-header bg-transparent border-bottom py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2" style="border-color: rgba(255,255,255,0.05) !important;">
+                    <div>
+                        <h5 class="m-0 fw-500 text-white d-flex align-items-center gap-2">
+                            <i data-lucide="menu-square" style="width: 18px; color: #22d3ee;"></i> GESTIÓN DE MENÚS DEL USUARIO
+                        </h5>
+                        <p class="m-0 font-size-10 mt-1" style="color: #94a3b8;">Visualiza y ajusta los permisos de menú asignados a cada colaborador</p>
+                    </div>
+                    <div class="d-flex align-items-center gap-3 flex-wrap select2-header">
+                        <div class="d-flex flex-column">
+                            <label for="selectModulo" class="font-size-10 fw-800 mb-1" style="color: #94a3b8;">MÓDULO:</label>
+                            <select id="selectModulo" class="table-filter-select" style="min-width: 200px;">
+                                <option value="" data-description="">Seleccione un Módulo</option>
+                                {% for m in modulos %}
+                                <option value="{{ m.PKmodulo }}" data-description="{{ m.Descripcion }}">{{ m.Nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <!-- Current Selected User Badge -->
+                        <div id="selectedUserBadge" class="badge px-3 py-2 border rounded-pill d-none ms-2" style="background: rgba(255,255,255,0.1); color: #fff; font-size: 0.75rem; font-weight: 700; border-color: rgba(255,255,255,0.2) !important;">
+                            <i data-lucide="user" class="me-1" style="width: 14px;"></i> <span id="selectedUserName">N/A</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card Body -->
+                <div class="card-body p-0 d-flex flex-column">
+
+                    <!-- Empty State -->
+                    <div id="empty-state-menus" class="empty-state-placeholder py-5 flex-grow-1">
+                        <div class="pulsing-icon mb-3">
+                            <i data-lucide="menu" style="width: 48px; height: 48px; color: #cbd5e1;"></i>
+                        </div>
+                        <p class="fw-medium font-size-14" style="color: #e2e8f0;">Selecciona un módulo y usuario para visualizar los menús</p>
+                        <small class="mt-1 px-4 text-center" style="color: #94a3b8;">Se mostrará el estado de acceso para cada elemento del menú</small>
+                    </div>
+
+                    <!-- Tables (hidden until selection) -->
+                    <div id="panel-menus" style="display: none;" class="d-flex flex-column flex-grow-1">
+                        <div class="row g-0 flex-grow-1">
+                            <!-- Left: Menus Table -->
+                            <div class="col-7 border-end" style="border-color: rgba(255,255,255,0.05) !important;">
+                                <div class="px-3 pt-3 pb-1">
+                                    <span class="font-size-10 fw-800 text-uppercase" style="letter-spacing:0.06em; color: #94a3b8;">
+                                        <i data-lucide="list" style="width:13px; margin-right:4px;"></i> Listado de Menús
+                                    </span>
+                                </div>
+                                <div class="table-responsive px-2">
+                                    <table id="tableMenusDisponibles"
+                                        class="table table-hover align-middle table-modern-style mb-0 w-100">
+                                        <thead>
+                                            <tr>
+                                                <th style="width: 30%;">Nombre Página</th>
+                                                <th style="width: 5%;" class="text-center">Grupo</th>
+                                                <th style="width: 8%;" class="text-center">Autorizado</th>
+                                                <th style="width: 12%;" class="text-center">Permiso</th>
+                                                <th style="width: 25%;">Nombre</th>
+                                                <th style="width: 12%;" class="text-center">Botón</th>
+                                                <th style="width: 8%;" class="text-center">Posición</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <!-- Right: Groups Table -->
+                            <div class="col-5" style="background: rgba(15, 23, 42, 0.4);">
+                                <div class="px-3 pt-3 pb-1">
+                                    <span class="font-size-10 fw-800 text-uppercase" style="letter-spacing:0.06em; color: #94a3b8;">
+                                        <i data-lucide="shield" style="width:13px; margin-right:4px;"></i> Grupos Asignados
+                                    </span>
+                                </div>
+                                <div class="table-responsive px-2">
+                                    <table id="tableGruposAsignados"
+                                        class="table table-hover align-middle table-modern-style mb-0 w-100">
+                                        <thead>
+                                            <tr>
+                                                <th style="width: 40%;">GRUPO</th>
+                                                <th style="width: 60%;">DESCRIPCIÓN</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Legend Strip -->
+                        <div class="legend-strip mt-auto">
+                            <div class="legend-item"><div class="legend-dot dot-autorizado"></div> Autorizado por Grupo</div>
+                            <div class="legend-item"><div class="legend-dot dot-permitido"></div> Autorizado Directo</div>
+                            <div class="legend-item"><div class="legend-dot dot-denegado"></div> Denegado Directo</div>
+                            <div class="legend-item"><div class="legend-dot dot-sinacceso"></div> Sin Configuración</div>
+                            <small class="ms-auto font-size-10" style="color: #94a3b8;">* Doble clic en una fila para alternar el permiso directo</small>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+<!-- Floating Buttons -->
+<div style="position: fixed; bottom: 30px; right: 30px; z-index: 1010; display: flex; gap: 15px;">
+    <button class="floating-action-btn" id="btnLimpiar" style="border-radius: 12px; height: 44px; width: 130px; font-size: 0.75rem;" title="Limpiar Selección Actual">
+        <i data-lucide="rotate-ccw" style="width: 16px;"></i> LIMPIAR
+    </button>
+    
+    <a href="{% url 'global_main' %}" style="text-decoration: none;">
+        <button class="floating-action-btn" id="btnCerrar" style="border-radius: 12px; height: 44px; width: 130px; font-size: 0.75rem;" title="Cerrar esta sección">
+            <i data-lucide="log-out" style="width: 16px;"></i> CERRAR
+        </button>
+    </a>
+</div>
+
+{% endblock %}
+
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function () {
+
+        var csrfToken = "{{ csrf_token }}";
+        var tableFirmas, firma_id;
+
+        // Función global para limpiar caracteres extraños del sistema
+        function sanitizarTexto(str) {
+            if (!str) return '';
+            let limpio = str.toString();
+            // Corregir caso específico de letra Ñ representada como ||
+            limpio = limpio.replace(/\|\|/g, 'Ñ');
+            // Eliminar caracteres no imprimibles o artefactos de codificación (No Glyph)
+            // Mantenemos rango ASCII imprimible + caracteres latinos extendidos (acentos, Ñ, etc.)
+            return limpio.replace(/[^\x20-\x7E\u00A0-\u00FF]/g, '').trim();
+        }
+
+        var toastMixin = Swal.mixin({
+            toast: true,
+            icon: 'success',
+            title: 'General Title',
+            animation: false,
+            position: 'top-right',
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
+            }
+        });
+
+        /* MENU ID Y SUBMENU ID */
+        $('#usuariosMenu, #menusUsuario_submenu').addClass('active');
+
+        $('#selectModulo').select2({
+            placeholder: "Seleccione un Módulo",
+            allowClear: true,
+            width: 'resolve',
+            dropdownAutoWidth: true,
+            language: {
+                noResults: function() { return "No se encontraron módulos"; }
+            },
+            templateResult: function(data) {
+                if (!data.id) return data.text;
+                return sanitizarTexto(data.text);
+            },
+            templateSelection: function(data) {
+                if (!data.id) return data.text;
+                return sanitizarTexto(data.text);
+            }
+        });
+
+        id_Modulo = $('#selectModulo').val();
+        id_Usuario = null;
+
+        // Collaborators Logic - Search System
+        var allUsers = [];
+
+        function getUsuarios() {
+            $.ajax({
+                url: `{% url 'data_usuarios' %}`,
+                type: "POST",
+                data: { csrfmiddlewaretoken: csrfToken },
+                success: function(response) {
+                    allUsers = response.data || [];
+                }
+            });
+        }
+        getUsuarios(); // Fetch all users on load
+
+        // Search Implementation
+        $('#userInputSearch').on('input', function() {
+            let term = $(this).val().toLowerCase().trim();
+            if (term.length < 1) {
+                $('#searchResults').hide();
+                return;
+            }
+
+            let matches = allUsers.filter(u => 
+                u.Nombre.toLowerCase().includes(term) || 
+                u.Usuario.toLowerCase().includes(term)
+            ).slice(0, 10);
+
+            if (matches.length > 0) {
+                let html = matches.map(u => `
+                    <div class="result-item" data-id="${u.PKUsuario}" data-name="${u.Nombre}">
+                        <div class="d-flex align-items-center">
+                            <div class="result-name">${u.Nombre}</div>
+                            <span class="search-badge">${u.Usuario}</span>
+                        </div>
+                        <div class="result-username">ID de Usuario: ${u.Usuario}</div>
+                    </div>
+                `).join('');
+                $('#searchResults').html(html).show();
+                if (window.lucide) lucide.createIcons();
+            } else {
+                $('#searchResults').html('<div class="p-3 text-muted text-center font-size-14">No se encontraron colaboradores</div>').show();
+            }
+        });
+
+        $(document).on('click', '.result-item', function() {
+            let userId = $(this).data('id');
+            let userName = $(this).data('name');
+            
+            id_Usuario = userId;
+            $('#userInputSearch').val(userName);
+            $('#searchResults').hide();
+            
+            $('#selectedUserName').text(userName);
+            $('#selectedUserBadge').removeClass('d-none').hide().fadeIn(300);
+            if (window.lucide) lucide.createIcons();
+            
+            if (id_Modulo && id_Usuario) {
+                getGruposMenusUsuario(id_Modulo, id_Usuario)
+                    .then(() => {
+                        ListarMenusGrupo()
+                    })
+                    .catch((error) => {
+                        console.error("Error al obtener los grupos y menús de usuario:", error);
+                    });
+            }
+        });
+        
+        $('.search-icon-btn').on('click', function() {
+            ejecutarSeleccionPrimerResultado();
+        });
+
+        $('#userInputSearch').on('keypress', function(e) {
+            if (e.which === 13) {
+                ejecutarSeleccionPrimerResultado();
+            }
+        });
+
+        function ejecutarSeleccionPrimerResultado() {
+            let firstResult = $('#searchResults .result-item').first();
+            if (firstResult.length > 0) {
+                firstResult.click();
+            } else if ($('#userInputSearch').val().trim().length > 0) {
+                $('#userInputSearch').trigger('input');
+            }
+        }
+
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('.search-colaborador-container').length) {
+                $('#searchResults').hide();
+            }
+        });
+
+        $('#selectModulo').change(function (e) {
+            e.preventDefault();
+            id_Modulo = $(this).val();
+
+            if (id_Modulo != null && id_Modulo != "") {
+                getMenusDisponibles(id_Modulo);
+                
+                if (id_Usuario) {
+                    getGruposMenusUsuario(id_Modulo, id_Usuario)
+                        .then(() => {
+                            ListarMenusGrupo()
+                        })
+                        .catch((error) => {
+                            console.error("Error al obtener los grupos y menús de usuario:", error);
+                        });
+                }
+            }
+        });
+
+        if (id_Modulo != null && id_Modulo != "") {
+            getMenusDisponibles($('#selectModulo').val());
+        }
+
+        $('#btnLimpiar').on('click', function () {
+            // Reset state variables
+            id_Modulo = null;
+            id_Usuario = null;
+
+            // Reset Selectors correctly for Select2
+            $('#selectModulo').val(null).trigger('change.select2');
+            
+            // Reset Search Input and Badge
+            $('#userInputSearch').val('');
+            $('#searchResults').hide();
+            $('#selectedUserBadge').addClass('d-none');
+
+            // Clear tables data
+            if ($.fn.DataTable.isDataTable('#tableMenusDisponibles')) {
+                $('#tableMenusDisponibles').DataTable().clear().draw();
+            }
+            if ($.fn.DataTable.isDataTable('#tableGruposAsignados')) {
+                $('#tableGruposAsignados').DataTable().clear().draw();
+            }
+
+            // Layout reset - Forced hiding
+            $('#panel-menus').attr('style', 'display: none !important');
+            $('#empty-state-menus').fadeIn(300);
+        });
+
+
+        $('#tableMenusDisponibles tbody').on('dblclick', 'tr', function () {
+            table = $('#tableMenusDisponibles').DataTable();
+            var rowData = table.row($(this)).data();
+            var index = table.row($(this)).index();
+
+            if (!rowData) {
+                console.error("No se pudo obtener los datos de la fila.");
+                return;
+            }
+
+            ActualizarMenu(rowData, index);
+        });
+
+
+
+
+
+
+
+        function getMenusDisponibles(menuModuloSeleccionado) {
+
+            $("#tableMenusDisponibles").DataTable().clear().destroy();
+
+            // Show panel immediately, hide empty state
+            $('#empty-state-menus').hide();
+            $('#panel-menus').show();
+
+            tableMenusDisponibles = $('#tableMenusDisponibles').DataTable({
+                autoWidth: false,
+                scrollX: true,
+                scrollY: '380px',
+                scrollCollapse: true,
+                pageLength: 50,
+                dom: 'frtip',
+                language: {
+                    url: "{% static 'app/th/json/es-ES.json' %}",
+                },
+                ajax: {
+                    url: `{% url 'data_menus_disponibles' %}`,
+                    type: "POST",
+                    dataSrc: 'data',
+                    data: {
+                        varModulo: menuModuloSeleccionado,
+                        csrfmiddlewaretoken: csrfToken
+                    },
+                },
+                colReorder: {
+                    realtime: false,
+                },
+                buttons: [
+                    {
+                        extend: 'excel',
+                        text: '<i class="fas fa-file-excel"></i>',
+                        titleAttr: 'Exportar a Excel',
+                        className: 'btn btn-success',
+                    },
+                    {
+                        extend: 'pdf',
+                        text: '<i class="fas fa-file-pdf"></i>',
+                        titleAttr: 'Exportar a PDF',
+                        className: 'btn btn-danger',
+                    },
+                    {
+                        extend: 'print',
+                        text: '<i class="fas fa-print"></i>',
+                        titleAttr: 'Imprimir',
+                        className: 'btn btn-primary',
+                        orientation: 'landscape'
+                    }
+                ],
+        columns: [
+                    { 
+                        data: 'NombrePagina', 
+                        className: 'fw-700',
+                        render: function(data) {
+                            return sanitizarTexto(data);
+                        }
+                    },
+                    { 
+                        data: 'Grupo', 
+                        className: 'text-center text-muted font-size-10',
+                        render: function(data) { return sanitizarTexto(data); }
+                    },
+                    {
+                        data: 'Autorizado',
+                        className: 'text-center',
+                        render: function (data) {
+                            return data
+                                ? `<span class="badge-flat-status badge-estado-autorizado"><i data-lucide="check-circle" style="width:11px;height:11px;"></i> Sí</span>`
+                                : `<span class="badge-flat-status badge-estado-sinacceso">–</span>`;
+                        },
+                    },
+                    {
+                        data: 'Permiso',
+                        className: 'text-center',
+                        render: function (data) {
+                            if (data == 0) {
+                                return `<span class="badge-flat-status badge-estado-denegado"><i data-lucide="x-circle" style="width:11px;height:11px;"></i> Denegado</span>`;
+                            } else if (data == 1) {
+                                return `<span class="badge-flat-status badge-estado-permitido"><i data-lucide="check-circle" style="width:11px;height:11px;"></i> Permitido</span>`;
+                            } else {
+                                return `<span class="badge-flat-status badge-estado-sinacceso">Sin Config.</span>`;
+                            }
+                        },
+                    },
+                    { 
+                        data: 'Nombre', 
+                        className: 'text-muted font-size-10 italic',
+                        render: function(data) { 
+                            let s = sanitizarTexto(data);
+                            return s || '<span class="text-light">Sin nombre</span>';
+                        }
+                    },
+                    { 
+                        data: 'Boton', 
+                        className: 'text-center text-muted font-size-10 text-nowrap',
+                        render: function(data) { return sanitizarTexto(data); }
+                    },
+                    { 
+                        data: 'Posicion', 
+                        className: 'text-center text-muted font-size-10 text-nowrap',
+                        render: function(data) { return sanitizarTexto(data); }
+                    },
+                ],
+                createdRow: function (row, data) {
+                    if (data.Autorizado == true) {
+                        $(row).attr('data-state', 'autorizado');
+                    } else if (data.Permiso == 0) {
+                        $(row).attr('data-state', 'denegado');
+                    } else if (data.Permiso == 1) {
+                        $(row).attr('data-state', 'permitido');
+                    }
+                },
+                drawCallback: function() {
+                    if (window.lucide) lucide.createIcons();
+                },
+                order: [[0, "asc"]],
+            });
+
+        }
+
+
+        function getGruposMenusUsuario(menuModuloSeleccionado, menuUsuarioSeleccionado) {
+            return new Promise((resolve, reject) => {
+                $("#tableGruposAsignados").DataTable().clear().destroy();
+                var cardHeight = $(".card-expanded").height();
+                var tableHeight = cardHeight * 0.5;
+
+                tableGruposAsignados = $('#tableGruposAsignados').DataTable({
+                    autoWidth: false,
+                    scrollX: true,
+                    scrollY: '380px',
+                    scrollCollapse: true,
+                    pageLength: 50,
+                    dom: 'frtip',
+                    language: {
+                        url: "{% static 'app/th/json/es-ES.json' %}",
+                    },
+                    ajax: {
+                        url: `{% url 'data_grupos_usuarios_menus_usuarios' %}`,
+                        type: "POST",
+                        data: {
+                            varModulo: menuModuloSeleccionado,
+                            varUsuario: menuUsuarioSeleccionado,
+                            csrfmiddlewaretoken: csrfToken
+                        },
+                        success: function (data) {
+                            tableGruposAsignados.clear().rows.add(data.data).draw();
+                            resolve();
+                        },
+                        error: function (xhr, status, error) {
+                            reject(error);
+                        }
+                    },
+                    colReorder: {
+                        realtime: false,
+                    },
+                    buttons: [
+                        {
+                            extend: 'excel',
+                            text: '<i class="fas fa-file-excel"></i>',
+                            titleAttr: 'Exportar a Excel',
+                            className: 'btn btn-success',
+                        },
+                        {
+                            extend: 'pdf',
+                            text: '<i class="fas fa-file-pdf"></i>',
+                            titleAttr: 'Exportar a PDF',
+                            className: 'btn btn-danger',
+                        },
+                        {
+                            extend: 'print',
+                            text: '<i class="fas fa-print"></i>',
+                            titleAttr: 'Imprimir',
+                            className: 'btn btn-primary',
+                            orientation: 'landscape'
+                        }
+                    ],
+                    columns: [
+                        { 
+                            data: 'Nombres', 
+                            className: 'fw-800 text-navy',
+                            render: function(data) { return sanitizarTexto(data); }
+                        },
+                        { 
+                            data: 'Descripcion', 
+                            className: 'text-muted font-size-10',
+                            render: function(data) { 
+                                return sanitizarTexto(data) || '<span class="italic text-light">Sin descripción</span>'; 
+                            }
+                        }
+                    ],
+                    order: [[1, "asc"]],
+                });
+            });
+        }
+
+
+        function ListarMenusGrupo() {
+            let menusDT = $('#tableMenusDisponibles').DataTable();
+            let menusRows = menusDT.rows().data();
+
+            menusRows.each(function (rowData, index) {
+                rowData.Permiso = -1
+                rowData.Autorizado = false
+            });
+
+            menusDT.clear().rows.add(menusRows).draw();
+
+            document.querySelectorAll("#tableGruposAsignados tbody tr").forEach((row, index) => {
+                let columns = row.querySelectorAll("td");
+                let filaData = [];
+
+                let table = $('#tableGruposAsignados').DataTable();
+                let rowData = table.row(row).data();
+
+                if (rowData != null) {
+
+                    let id_Grupo = rowData.fkgrupo;
+
+                    columns.forEach(cell => {
+                        filaData.push(cell.innerText);
+                    });
+
+                    $.ajax({
+                        url: "{% url 'data_menus_grupo' %}",
+                        type: "POST",
+                        data: {
+                            varGrupo: id_Grupo,
+                            varModulo: id_Modulo,
+                            csrfmiddlewaretoken: csrfToken
+                        },
+                        success: function (data) {
+                            let menusGrupo = data.data;
+
+                            let table = $('#tableMenusDisponibles').DataTable();
+                            let rows = table.rows().data();
+
+                            rows.each(function (rowData, index) {
+                                menusGrupo.forEach(menuGrupo => {
+                                    if (rowData.PKMenu == menuGrupo.fkMenu) {
+                                        rowData.Autorizado = true;
+                                    }
+                                });
+                            });
+
+                            table.clear().rows.add(rows).draw();
+
+                        },
+                        error: function (xhr, status, error) {
+                            console.log("Error al obtener menús del grupo:", error);
+                        }
+                    });
+                }
+
+            });
+
+            ListarMenusUsuario()
+        }
+
+
+        function ListarMenusUsuario() {
+            $.ajax({
+                url: "{% url 'data_menus_usuario' %}",
+                type: "POST",
+                data: {
+                    varUsuario: id_Usuario,
+                    varModulo: id_Modulo,
+                    csrfmiddlewaretoken: csrfToken
+                },
+                success: function (data) {
+                    let menusUsuario = data.data;
+
+                    let table = $('#tableMenusDisponibles').DataTable();
+                    let rows = table.rows().data();
+
+                    rows.each(function (rowData, index) {
+                        menusUsuario.forEach(menuUsuario => {
+                            if (rowData.PKMenu === menuUsuario.fkMenu) {
+                                rowData.Permiso = menuUsuario.Permiso;
+                            }
+                        });
+                    });
+
+                    table.clear().rows.add(rows).draw();
+                },
+                error: function (xhr, status, error) {
+                    console.log("Error al obtener menús del usuario:", error);
+                }
+            });
+        }
+
+
+        function ActualizarMenu(filaData, filaIndex) {
+            var table = $('#tableMenusDisponibles').DataTable();
+            var rows = table.rows().data();
+
+            if (rows.length === 0) {
+                console.log("No hay filas disponibles en la tabla.");
+                return;
+            }
+
+            if (!filaData) {
+                console.log("No se pudieron obtener los datos del menú.");
+                return;
+            }
+
+            var PKmenu = filaData.PKMenu;
+            var ValorPermiso = filaData.Permiso;
+            var Siguiente;
+            var ElGrupo = filaData.TipoMenu;
+
+            if (ValorPermiso == -1) {
+                Siguiente = 1;
+            } else if (ValorPermiso == 1) {
+                Siguiente = 0;
+            } else {
+                Siguiente = -1;
+            }
+
+            if (ElGrupo == 2) {
+                var codigoGrupo = filaData.Boton;
+                if (codigoGrupo.length > 4) {
+                    codigoGrupo = codigoGrupo.substring(0, 4);
+                }
+
+                let table = $('#tableMenusDisponibles').DataTable();
+                let rows = table.rows().data();
+
+                rows.each(function (rowData, index) {
+                    var codigoBoton = rowData.Boton;
+                    if (rowData.Boton.length > 4) {
+                        codigoBoton = rowData.Boton.substring(0, 4);
+                    }
+
+                    if (codigoGrupo == codigoBoton) {
+                        $.ajax({
+                            url: "{% url 'delete_insert_menu_usuario' %}",
+                            type: "POST",
+                            data: {
+                                varIdRegistro: id_Usuario,
+                                varPKMenu: PKmenu,
+                                varSiguiente: Siguiente,
+                                csrfmiddlewaretoken: csrfToken
+                            },
+                            success: function (data) {
+                                console.log("Menú actualizado exitosamente.");
+                            },
+                            error: function (xhr, status, error) {
+                                console.error("Error al actualizar el menú:", error);
+                            }
+                        });
+                    }
+                });
+            } else {
+
+                $.ajax({
+                    url: "{% url 'delete_insert_menu_usuario' %}",
+                    type: "POST",
+                    data: {
+                        varIdRegistro: id_Usuario,
+                        varPKMenu: PKmenu,
+                        varSiguiente: Siguiente,
+                        csrfmiddlewaretoken: csrfToken
+                    },
+                    success: function (data) {
+                        console.log("Menú actualizado exitosamente.");
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Error al actualizar el menú:", error);
+                    }
+                });
+
+            }
+
+            filaData.Permiso = Siguiente;
+            table.row(filaIndex).data(filaData).draw();
+        }
+
+
+        function quitarTodoUsuario() {
+            $.ajax({
+                url: "{% url 'delete_menus_usuario' %}",
+                type: "POST",
+                data: {
+                    varIdRegistro: id_Usuario,
+                    csrfmiddlewaretoken: csrfToken
+                },
+                success: function (data) {
+
+                },
+                error: function (xhr, status, error) {
+
+                }
+            });
+        }
+
+    });
+
+
+
+</script>
+
+{% endblock %}

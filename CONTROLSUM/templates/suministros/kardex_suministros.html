@@ -9,95 +9,234 @@ GESTIONAR OTROS
 {% block body %}
 
 <style>
-    /* Quitar el cursor de texto (línea vertical) en los campos de fecha de Kardex */
-    #fecha_desde, #fecha_hasta {
-        caret-color: transparent;
+    /* Quitar el cursor de texto y puntero en los campos de fecha (Override Global) */
+    #fecha_desde, #fecha_hasta,
+    #fecha_desde::-webkit-calendar-picker-indicator,
+    #fecha_hasta::-webkit-calendar-picker-indicator,
+    #fecha_desde::-webkit-datetime-edit,
+    #fecha_hasta::-webkit-datetime-edit,
+    #fecha_desde::-webkit-datetime-edit-fields-wrapper,
+    #fecha_hasta::-webkit-datetime-edit-fields-wrapper,
+    #fecha_desde::-webkit-datetime-edit-text,
+    #fecha_hasta::-webkit-datetime-edit-text,
+    #fecha_desde::-webkit-datetime-edit-month-field,
+    #fecha_hasta::-webkit-datetime-edit-month-field,
+    #fecha_desde::-webkit-datetime-edit-day-field,
+    #fecha_hasta::-webkit-datetime-edit-day-field,
+    #fecha_desde::-webkit-datetime-edit-year-field,
+    #fecha_hasta::-webkit-datetime-edit-year-field {
+        cursor: default !important;
+        caret-color: transparent !important;
+        user-select: none !important;
+        -webkit-user-select: none;
     }
 
-    /* Estilo para que el icono del calendario muestre el puntero de mano */
-    #fecha_desde::-webkit-calendar-picker-indicator,
-    #fecha_hasta::-webkit-calendar-picker-indicator {
-        cursor: pointer;
+    /* Estilos profesionales para el Kardex (Plano y Cuadrado) */
+    .filter-card {
+        border: 1px solid #e2e8f0;
+        transition: none;
+        border-radius: 0 !important;
+    }
+
+    .filter-card:hover {
+        box-shadow: none !important;
+    }
+
+    .table-container {
+        border: 1px solid #e2e8f0;
+        overflow: hidden;
+        border-radius: 0 !important;
+        background-color: #ffffff;
+    }
+
+    #Tabla_Kardex thead th {
+        background-color: #ffffff !important; /* Blanco limpio */
+        color: #1e293b !important;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.72rem;
+        padding: 15px 10px;
+        border: none !important;
+        border-bottom: 1px solid #e2e8f0 !important; /* Línea única y delgada */
+        border-radius: 0 !important;
+        white-space: nowrap;
+    }
+
+    #Tabla_Kardex tbody td {
+        padding: 12px 10px;
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f5f9 !important; /* Separación sutil entre filas */
+        font-size: 0.85rem;
+        border-radius: 0 !important;
+        color: #475569;
+    }
+
+    #Tabla_Kardex tbody tr:hover {
+        background-color: #f8fafc !important; /* Hover sutil empresarial */
+        transition: background-color 0.15s ease-in-out;
+    }
+
+    /* Estilo para los botones de acción del filtro */
+    .btn-filtro-principal {
+        background-color: #1e293b !important;
+        border-color: #1e293b !important;
+        color: #ffffff !important;
+        font-weight: 600;
+        padding: 8px 20px;
+        border-radius: 8px;
+        height: 41px;
+        min-width: 130px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        transition: all 0.2s ease-in-out;
+        font-size: 0.9rem;
+    }
+
+    .btn-filtro-principal i, .btn-filtro-secundario i {
+        font-size: 0.75rem; /* Iconos ligeramente más pequeños que el texto */
+    }
+
+    .btn-filtro-secundario {
+        background-color: #64748b !important;
+        border-color: #64748b !important;
+        color: #ffffff !important;
+        font-weight: 600;
+        padding: 8px 20px;
+        border-radius: 8px;
+        height: 41px;
+        min-width: 130px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        transition: all 0.2s ease-in-out;
+        font-size: 0.9rem;
+    }
+
+    .btn-filtro-principal:hover, .btn-filtro-secundario:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        filter: brightness(90%);
+    }
+
+    .btn-filtro-principal:active, .btn-filtro-secundario:active {
+        opacity: 0.8;
+    }
+
+    .badge-entrada {
+        background-color: #dcfce7;
+        color: #166534;
+        font-weight: 700;
+        border-radius: 0 !important;
+    }
+
+    .badge-salida {
+        background-color: #fee2e2;
+        color: #991b1b;
+        font-weight: 700;
+        border-radius: 0 !important;
+    }
+
+    /* Estilo para el Saldo Inicial Integrado */
+    #panel_saldo_inicial .card {
+        background-color: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        padding-left: 1.5rem !important; /* px-4 equivalent */
+        padding-right: 1.5rem !important; /* px-4 equivalent */
+        border-bottom: none !important; /* Para que se junte con la tabla */
+        border-radius: 0 !important;
+        box-shadow: none !important;
+    }
+
+    #panel_saldo_inicial {
+        margin-bottom: 0 !important;
     }
 </style>
 
-<div class="row align-items-center">
+<div class="row align-items-center mb-4">
     <div class="col d-flex align-items-center">
-      
         <h3 class="page-title mb-0">
-            <i class="fas fa-history"></i> <strong>HISTORIAL DE MOVIMIENTOS(KARDEX)</strong>
+            <i class="fas fa-history text-primary me-2"></i> <strong>KARDEX DE SUMINISTROS</strong>
         </h3>
     </div>
-
 </div>
 
-<div class="row">
-    <div class="col-md-4 mb-3">
-        <div class="bg-white shadow rounded-4 p-3">
-            <h5 class="text-center"><strong>Filtrar</strong></h5>
-
-            <!-- Filtro por Categoría -->
-            <div class="mb-3">
-                <label for="categoria" class="form-label"><strong>Filtrar por Categoría</strong></label>
-                <select id="categoria" class="form-select" name="categoria">
-                    <option value=""></option>
-                    {% for cat in categorias %}
-                    <option value="{{ cat.id_categoria }}">{{ cat.nombre_categoria }}</option>
-                    {% endfor %}
-                </select>
+<!-- PANEL DE FILTROS EN LA PARTE SUPERIOR -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="bg-white px-4 py-3 filter-card">
+            <div class="d-flex align-items-center mb-3">
+                <i class="fas fa-filter text-muted me-2"></i>
+                <h6 class="mb-0 fw-bold text-dark">Filtros de Búsqueda</h6>
             </div>
+            <div class="row g-3 align-items-end">
+                <div class="col-md-2">
+                    <label for="categoria" class="form-label small fw-bold text-muted text-uppercase">Categoría</label>
+                    <select id="categoria" class="form-select" name="categoria">
+                        <option value=""></option>
+                        {% for cat in categorias %}
+                        <option value="{{ cat.id_categoria }}">{{ cat.nombre_categoria }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
 
-            <!-- Filtro por Suministro -->
-            <div class="mb-3">
-                <label for="suministro" class="form-label"><strong>Filtrar por Suministro</strong></label>
-                <select id="suministro" class="form-select" aria-label="Seleccionar Suministro">
-                    <option value=""></option>
-                </select>
-            </div>
-            <!-- Filtro por Fecha -->
-            <div class="row mb-3">
-                <div class="col">
-                    <label for="fecha_desde" class="form-label"><strong>Desde</strong></label>
+                <div class="col-md-3">
+                    <label for="suministro" class="form-label small fw-bold text-muted text-uppercase">Suministro</label>
+                    <select id="suministro" class="form-select" aria-label="Seleccionar Suministro">
+                        <option value=""></option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label for="fecha_desde" class="form-label small fw-bold text-muted text-uppercase">Desde</label>
                     <input type="date" id="fecha_desde" name="fecha_desde" class="form-control">
                 </div>
-                <div class="col">
-                    <label for="fecha_hasta" class="form-label"><strong>Hasta</strong></label>
+
+                <div class="col-md-2">
+                    <label for="fecha_hasta" class="form-label small fw-bold text-muted text-uppercase">Hasta</label>
                     <input type="date" id="fecha_hasta" name="fecha_hasta" class="form-control">
                 </div>
-            </div>
 
-            <div class="d-grid gap-2 mt-3">
-                <!-- Botón para cargar los datos -->
-                <button id="cargarDatos" class="btn btn-dark">
-                    <i class="fas fa-sync"></i> Cargar Datos
-                </button>
-                <button id="limpiarFiltros" class="btn btn-secondary">
-                    <i class="fas fa-eraser"></i> Limpiar Filtros
-                </button>
+                <div class="col-md-3 d-flex gap-2 align-items-end justify-content-end">
+                    <button id="cargarDatos" class="btn btn-filtro-principal d-flex align-items-center justify-content-center">
+                        <i class="fas fa-sync me-2"></i> Cargar
+                    </button>
+                    <button id="limpiarFiltros" class="btn btn-filtro-secundario d-flex align-items-center justify-content-center" title="Limpiar Filtros">
+                        <i class="fas fa-eraser me-2"></i> Limpiar
+                    </button>
+                </div>
+            </div>
+  </div>
+</div>
+
+<!-- PANEL DE CONTENIDO: SALDO INICIAL Y TABLA -->
+<div class="row">
+    <div class="col-12">
+        <!-- Panel de Referencia: Saldo Inicial -->
+        <div id="panel_saldo_inicial" class="mb-0 d-none">
+            <div class="card border-0 p-3" style="background-color: #ffffff; border: 1px solid #e2e8f0 !important; border-bottom: none !important; border-radius: 0 !important;">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="fw-bold text-dark" style="font-size: 0.95rem; letter-spacing: 0.5px; text-transform: uppercase;">Saldo Inicial al Período</div>
+                        <div class="text-muted small">Stock previo al rango seleccionado</div>
+                    </div>
+                    <div class="text-end">
+                        <span id="valor_saldo_inicial" class="fw-bold fs-4 text-primary">0</span>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="col-md-8">
-        <div class="table-responsive bg-white shadow rounded-4 p-3">
-            <table id="Tabla_Kardex"
-                class="table table-hover table-bordered table-striped table-sm align-middle mb-0 rounded-4"
-                style="width: 100%; border-collapse: collapse; border-radius: 10px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
-                <thead class="text-white text-center rounded-4" style="background-color: #697a8a; text-align: justify;">
+        <div class="bg-white px-4 py-3 table-container mb-4">
+            <table id="Tabla_Kardex" class="table table-hover align-middle mb-0" style="width: 100%;">
+                <thead>
                     <tr>
-                        <th class="text-center">Fecha</th>
-                        <th class="text-center">Descripción</th>
+                        <th style="width: 12%;">Fecha</th>
+                        <th style="width: 25%;">Descripción</th>
                         <th class="text-center">Entrada</th>
                         <th class="text-center">Salida</th>
                         <th class="text-center">Stock Anterior</th>
                         <th class="text-center">Stock Actual</th>
-                        <th class="text-center">Precio Unitario</th>
-                        <th class="text-center">Total</th>
+                        <th class="text-end">Precio Unitario</th>
+                        <th class="text-end">Total</th>
                     </tr>
                 </thead>
-
                 <tbody>
-
                 </tbody>
             </table>
         </div>
@@ -206,14 +345,32 @@ GESTIONAR OTROS
                 scrollCollapse: true,
                 pageLength: 10,
                 dom: 'Brftip',
-                language: {
-                    url: "{% static 'app/th/json/es-ES.json' %}",
+                language: {                    url: "{% static 'app/th/json/es-ES.json' %}",
                     emptyTable: "No existen movimientos para este suministro en el rango de fechas seleccionado."
                 },
                 ajax: {
                     url: `{% url 'historial_suministros_data' %}`,
                     type: "POST",
-                    dataSrc: 'data',
+                    dataSrc: function (json) {
+                        if (!json.data) return [];
+                        const data = json.data;
+                        const initialRow = data.find(row => row.es_saldo_inicial === 1);
+                        
+                        if (initialRow) {
+                            let stock = initialRow.stock_actual || 0;
+                            let num = parseFloat(stock);
+                            let formattedStock = num % 1 === 0 ? num.toString() : num.toFixed(2);
+                            
+                            $('#valor_saldo_inicial').text(formattedStock);
+                            $('#panel_saldo_inicial').removeClass('d-none');
+                            
+                            // Retornar solo los movimientos reales (excluyendo el saldo inicial de la tabla)
+                            return data.filter(row => row.es_saldo_inicial !== 1);
+                        } else {
+                            $('#panel_saldo_inicial').addClass('d-none');
+                            return data;
+                        }
+                    },
                     data: {
                         csrfmiddlewaretoken: csrfToken,
                         id_categoria: id_categoria,  
@@ -250,11 +407,11 @@ GESTIONAR OTROS
         pageSize: 'A4',
         orientation: 'portrait',
         exportOptions: {
-        columns: [0, 1, 2, 3, 4, 5, 6, 7]
+            columns: [0, 1, 2, 3, 4, 5, 6, 7]
         },
         customize: function (doc) {
         doc.content[1].table.widths = Array(doc.content[1].table.body[0].length).fill('*');
-        doc.styles.tableHeader.fillColor = '#2c4770';
+        doc.styles.tableHeader.fillColor = '#697a8a';
         doc.styles.tableHeader.color = 'white';
         doc.styles.tableHeader.alignment = 'center';
         doc.styles.tableHeader.fontSize = 9;
@@ -309,9 +466,7 @@ GESTIONAR OTROS
                     }
                 ],
                 createdRow: function (row, data, dataIndex) {
-                    if (data.es_saldo_inicial === 1) {
-                        $(row).addClass('table-info fw-bold');
-                    }
+                    // Limpio
                 },
                 columns: [
                     {
@@ -322,6 +477,7 @@ GESTIONAR OTROS
                     },
                     {
                         data: 'entrada',
+                        className: 'text-center',
                         render: function(data, type, row) {
                             if (data == null) return "0";
                             var num = parseFloat(data);
@@ -330,6 +486,7 @@ GESTIONAR OTROS
                     },
                     {
                         data: 'salida',
+                        className: 'text-center',
                         render: function(data, type, row) {
                             if (data == null) return "0";
                             var num = parseFloat(data);
@@ -365,7 +522,7 @@ GESTIONAR OTROS
                     },
                     {
                         data: 'costo_total',
-                        className: 'formattMoney',
+                        className: 'formattMoney text-end',
                         render: function(data, type, row) {
                             let valorAbsoluto = Math.abs(parseFloat(data) || 0);
                             return 'L ' + valorAbsoluto.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -441,6 +598,7 @@ GESTIONAR OTROS
             if ($.fn.dataTable.isDataTable('#Tabla_Kardex')) {
                 $('#Tabla_Kardex').DataTable().clear().destroy();
             }
+            $('#panel_saldo_inicial').addClass('d-none');
         });
 
         const urlParams = new URLSearchParams(window.location.search);

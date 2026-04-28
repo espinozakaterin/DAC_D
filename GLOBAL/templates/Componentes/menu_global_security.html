@@ -1,0 +1,364 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>{% block title %}{% endblock %} | GLOBAL Security</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Modern Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
+    <!-- Lucide Icons & Font-awesome -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+
+    <!-- DataTables & Plugins CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.css" rel="stylesheet">
+    
+    <meta name="application-name" content="GLOBAL" />
+
+    <!-- Custom Modern Style (Loaded last for priority) -->
+    <link rel="stylesheet" href="{% static 'app/css/global_modern.css' %}?v=5.0">
+
+    <style>
+        /* Modern Header Overrides */
+        .header-title { font-weight: 700; color: #FFFFFF !important; letter-spacing: -0.01em; }
+        .avatar-modern { 
+            border: 1.5px solid rgba(0, 229, 255, 0.3); 
+            background: rgba(0, 229, 255, 0.1); 
+            color: #00E5FF; 
+            font-weight: 700;
+        }
+        /* EXTRA FORCE DARK THEME - Ultimate SaaS Depth */
+        html, body { 
+            background: radial-gradient(circle at 20% 30%, rgba(34, 211, 238, 0.12), transparent 40%),
+                        radial-gradient(circle at 80% 20%, rgba(168, 85, 247, 0.10), transparent 40%),
+                        radial-gradient(circle at 60% 80%, rgba(59, 130, 246, 0.08), transparent 50%),
+                        linear-gradient(180deg, #020617 0%, #020617 100%) fixed !important; 
+            color: #FFFFFF !important; 
+        }
+        .modern-sidebar {
+            background: linear-gradient(180deg, #020617 0%, #07111f 40%, #0b2533 100%) !important;
+            position: relative;
+        }
+        .modern-sidebar::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 30%, rgba(34, 211, 238, 0.15), transparent 60%);
+            pointer-events: none;
+        }
+        .btn-logout-modern {
+            width: 85% !important;
+            margin: 0 auto !important;
+            height: 52px !important;
+            border-radius: 16px !important;
+            background: linear-gradient(135deg, #06b6d4, #22d3ee) !important;
+            color: #ffffff !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 10px;
+            font-weight: 700;
+            text-decoration: none !important;
+            box-shadow: 0 10px 25px rgba(34, 211, 238, 0.25) !important;
+            transition: all 0.3s ease !important;
+            border: none !important;
+        }
+
+        .btn-logout-modern:hover {
+            background: linear-gradient(135deg, #22d3ee, #67e8f9) !important;
+            box-shadow: 0 12px 30px rgba(34, 211, 238, 0.4) !important;
+            transform: translateY(-2px);
+            color: #ffffff !important;
+        }
+        .nav-link-modern.active {
+            color: var(--accent) !important;
+            font-weight: 600;
+        }
+        .nav-link-modern:hover {
+            background: rgba(34, 211, 238, 0.15) !important;
+            box-shadow: 0 0 15px rgba(34, 211, 238, 0.4) !important;
+        }
+        .stat-card {
+            background-color: rgba(15, 23, 42, 0.72) !important;
+            border: 1px solid rgba(34, 211, 238, 0.16) !important;
+            backdrop-filter: blur(14px) !important;
+            box-shadow: 0 18px 45px rgba(0, 0, 0, 0.35) !important;
+            border-radius: 20px !important;
+        }
+        .table-modern-wrapper { 
+            background-color: rgba(15, 23, 42, 0.72) !important; 
+            backdrop-filter: blur(14px) !important;
+            border: 1px solid rgba(34, 211, 238, 0.16) !important; 
+            border-radius: 20px !important;
+        }
+        .header-title, .nav-text, .logo-text { color: #FFFFFF !important; }
+
+        /* FLEXBOX POSITIONING FIX - NO GAPS */
+        .modern-sidebar {
+            position: sticky !important;
+            flex-shrink: 0 !important;
+        }
+        .page-content {
+            margin-left: 0 !important;
+            padding-left: 0 !important;
+            width: 100% !important;
+            flex: 1 !important;
+        }
+        .dashboard-container {
+            margin: 0 !important;
+            padding: 1.5rem 1.5rem !important;
+            width: 100% !important;
+            max-width: none !important;
+        }
+        .header-content {
+            width: 100% !important;
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            padding: 0 !important;
+        }
+        .user-profile {
+            margin-left: auto !important;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="main-layout" id="mainLayout">
+        <!-- Sidebar -->
+        <aside class="modern-sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-icon shadow-lg">
+                    <img src="{% static 'app/global/globallogo.png' %}" alt="Logo">
+                </div>
+                <span class="logo-text">GLOBAL</span>
+            </div>
+
+            <nav class="sidebar-nav">
+                <!-- Dashboard -->
+                <div class="nav-item">
+                    <a href="{% url 'global_main' %}" class="nav-link-modern">
+                        <i data-lucide="layout-dashboard"></i>
+                        <span class="nav-text">Dashboard</span>
+                    </a>
+                </div>
+
+                <!-- Usuarios -->
+                <div class="nav-item">
+                    <div class="nav-link-modern has-submenu {% if request.resolver_match.url_name in 'global_modulos_usuario global_grupos_usuario global_menus_usuario global_acciones_usuario global_listado_usuario' %}active{% endif %}" data-target="submenu-users">
+                        <i data-lucide="users"></i>
+                        <span class="nav-text">Usuarios</span>
+                        <i data-lucide="chevron-down" class="ms-auto submenu-arrow" style="width: 16px;"></i>
+                    </div>
+                    <div class="submenu-modern" id="submenu-users">
+                        <a href="{% url 'global_modulos_usuario'%}" class="sub-nav-link">Módulos del Usuario</a>
+                        <a href="{% url 'global_grupos_usuario' %}" class="sub-nav-link">Grupos del Usuario</a>
+                        <a href="{% url 'global_menus_usuario' %}" class="sub-nav-link">Menús del Usuario</a>
+                        <a href="{% url 'global_acciones_usuario' %}" class="sub-nav-link">Acciones del Usuario</a>
+                        <a href="{% url 'global_listado_usuario' %}" class="sub-nav-link">Listado General</a>
+                    </div>
+                </div>
+
+                <!-- Grupos -->
+                <div class="nav-item">
+                    <div class="nav-link-modern has-submenu {% if request.resolver_match.url_name in 'global_usuarios_grupo global_menus_grupo global_acciones_grupo global_listado_grupo' %}active{% endif %}" data-target="submenu-groups">
+                        <i data-lucide="user-cog"></i>
+                        <span class="nav-text">Grupos</span>
+                        <i data-lucide="chevron-down" class="ms-auto submenu-arrow" style="width: 16px;"></i>
+                    </div>
+                    <div class="submenu-modern" id="submenu-groups">
+                        <a href="{% url 'global_usuarios_grupo' %}" class="sub-nav-link">Usuarios del Grupo</a>
+                        <a href="{% url 'global_menus_grupo' %}" class="sub-nav-link">Menús del Grupo</a>
+                        <a href="{% url 'global_acciones_grupo' %}" class="sub-nav-link">Acciones del Grupo</a>
+                        <a href="{% url 'global_listado_grupo' %}" class="sub-nav-link">Listado de Grupos</a>
+                    </div>
+                </div>
+
+                <!-- Módulos -->
+                <div class="nav-item">
+                    <a href="{% url 'global_usuarios_autorizados_modulos' %}" class="nav-link-modern {% if request.resolver_match.url_name == 'global_usuarios_autorizados_modulos' %}active{% endif %}">
+                        <i data-lucide="package"></i>
+                        <span class="nav-text">Módulos</span>
+                    </a>
+                </div>
+
+                <!-- Menús -->
+                <div class="nav-item">
+                    <a href="{% url 'global_listado_menu' %}" class="nav-link-modern {% if request.resolver_match.url_name == 'global_listado_menu' %}active{% endif %}">
+                        <i data-lucide="menu"></i>
+                        <span class="nav-text">Menús</span>
+                    </a>
+                </div>
+
+                <!-- Acciones -->
+                <div class="nav-item">
+                    <a href="{% url 'global_listado_acciones' %}" class="nav-link-modern {% if request.resolver_match.url_name == 'global_listado_acciones' %}active{% endif %}">
+                        <i data-lucide="activity"></i>
+                        <span class="nav-text">Acciones</span>
+                    </a>
+                </div>
+
+                <!-- Sucursales -->
+                <div class="nav-item">
+                    <div class="nav-link-modern has-submenu {% if request.resolver_match.url_name in 'global_usuarios_de_la_sucursal global_sucursales_del_usuario' %}active{% endif %}" data-target="submenu-branches">
+                        <i data-lucide="map-pin"></i>
+                        <span class="nav-text">Sucursales</span>
+                        <i data-lucide="chevron-down" class="ms-auto submenu-arrow" style="width: 16px;"></i>
+                    </div>
+                    <div class="submenu-modern" id="submenu-branches">
+                        <a href="{% url 'global_usuarios_de_la_sucursal' %}" class="sub-nav-link">Usuarios de Sucursal</a>
+                        <a href="{% url 'global_sucursales_del_usuario' %}" class="sub-nav-link">Sucursales del Usuario</a>
+                    </div>
+                </div>
+
+                <!-- Token -->
+                <div class="nav-item">
+                    <a href="{% url 'global_config_tipos_solicitud_tokens' %}" class="nav-link-modern {% if request.resolver_match.url_name == 'global_config_tipos_solicitud_tokens' %}active{% endif %}">
+                        <i data-lucide="key"></i>
+                        <span class="nav-text">Tokens</span>
+                    </a>
+                </div>
+            </nav>
+
+            <!-- Bottom actions -->
+            <div class="mt-auto p-4 border-top border-white-10">
+                <a href="http://127.0.0.1:8000/CWS/modulos" class="btn-logout-modern">
+                    <i data-lucide="log-out"></i>
+                    <span class="nav-text">Salir</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content Wrapper -->
+        <main class="page-content">
+            <!-- Header -->
+            <header class="top-header">
+                <div class="header-content">
+                    <div class="header-left">
+                        <button class="sidebar-toggle" id="toggleSidebar">
+                            <i data-lucide="menu"></i>
+                        </button>
+                        <h2 class="header-title">{% block title_header %}Seguridad Aplicación{% endblock %}</h2>
+                    </div>
+
+                    <div class="user-profile">
+                        <div class="avatar avatar-modern">A</div>
+                        <div class="d-none d-md-block">
+                            <div style="font-size: 0.85rem; font-weight: 600; color: #FFFFFF;">Administrador</div>
+                            <div style="font-size: 0.75rem; color: #8A99AF;">Local User</div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Body Container -->
+            <div class="dashboard-container">
+                {% block body %}
+                {% endblock %}
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal fade" id="accessModal" tabindex="-1" role="dialog" aria-labelledby="accessModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content" style="border-radius: 16px; border: none;">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold" id="accessModalLabel">ACCESO NO AUTORIZADO</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted">No tienes permisos suficientes para realizar esta acción.</p>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal" style="border-radius: 8px;">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        $(document).ready(function() {
+            // Sidebar Toggle
+            $('#toggleSidebar').on('click', function() {
+                $('#mainLayout').toggleClass('mini-sidebar');
+            });
+
+            // Submenu Toggle
+            $('.has-submenu').on('click', function() {
+                const target = $(this).data('target');
+                const submenu = $('#' + target);
+                
+                // Toggle arrow rotation
+                $(this).find('.submenu-arrow').toggleClass('rotate-180');
+                
+                // Slide toggle submenu
+                submenu.slideToggle(300).toggleClass('show');
+                
+                // Optional: Close other submenus
+                /*
+                $('.submenu-modern').not(submenu).slideUp(300).removeClass('show');
+                $('.has-submenu').not(this).find('.submenu-arrow').removeClass('rotate-180');
+                */
+            });
+
+            // Handle active menu based on current URL with high precision
+            const currentPath = window.location.pathname;
+            
+            // Remove any existing active classes first
+            $('.nav-link-modern, .sub-nav-link').removeClass('active');
+            
+            $('.sidebar-nav a').each(function() {
+                const linkHref = $(this).attr('href');
+                
+                // CRITICAL FIX: Dashboard only matches if it's the EXACT path
+                // Other links can match via startsWith for sub-pages
+                const isDashboard = linkHref.includes('/panel/') && linkHref.endsWith('/panel/');
+                const isMatch = isDashboard ? (currentPath === linkHref) : (currentPath.startsWith(linkHref) && linkHref !== '/');
+
+                if (isMatch) {
+                    $(this).addClass('active');
+                    
+                    // If it's a sub-link, activate and open the parent
+                    if ($(this).hasClass('sub-nav-link')) {
+                        const parentNav = $(this).closest('.nav-item').find('.nav-link-modern.has-submenu');
+                        const parentSubmenu = $(this).closest('.submenu-modern');
+                        
+                        parentNav.addClass('active');
+                        parentSubmenu.addClass('show').show();
+                        parentNav.find('.submenu-arrow').addClass('rotate-180');
+                    }
+                }
+            });
+        });
+    </script>
+
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>

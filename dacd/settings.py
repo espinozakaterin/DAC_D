@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'REPORTERIA',
     'CONTABLE',
     'CONTROLSUM',
+    'GLOBAL',
 
 ]
 CORS_ALLOW_ALL_ORIGINS = True
@@ -119,6 +120,7 @@ TEMPLATES = [
             os.path.join(BASE_DIR, 'REPORTERIA', 'templates'),
             os.path.join(BASE_DIR, 'CONTABLE', 'templates'),
             os.path.join(BASE_DIR, 'CONTROLSUM', 'templates'),
+            os.path.join(BASE_DIR, 'GLOBAL', 'templates'),
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -232,6 +234,26 @@ DATABASES = {
         'OPTIONS': {
             'local_infile': 1,
         },
+    },
+    'aws1_global': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'global_security',
+        'USER': 'root',
+        'PASSWORD': 'hola123',
+        'HOST': 'localhost',
+        'PORT': '3306',
+        'OPTIONS': {
+            'charset': 'utf8mb4',
+            'init_command': "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci",
+        },
+    },
+    'aws1_udc': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.getenv("DATABASE_NAME"),
+        'USER': os.getenv("DATABASE_USER"),
+        'PASSWORD': os.getenv("DATABASE_PASSWORD"),
+        'HOST': os.getenv("DATABASE_HOST"),
+        'PORT': os.getenv("DATABASE_PORT"),
     },
 }
 

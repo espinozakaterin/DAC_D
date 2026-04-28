@@ -8,17 +8,29 @@ GESTION DE SUMINISTROS
 
 {% block body %}
 
-<div class="row align-items-center">
+<style>
+    .text-navy { color: #1e293b !important; }
+    .font-size-10 { font-size: 0.62rem !important; }
+    .fw-500 { font-weight: 500 !important; }
+</style>
+
+<div class="row align-items-center mb-4">
     <div class="col d-flex align-items-center">
-        <h3 class="page-title mb-0">
-            <i class="fas fa-box"></i> <strong>LISTADO DE SUMINISTROS</strong>
-        </h3>
+        <div>
+            <h5 class="m-0 fw-500 text-navy d-flex align-items-center gap-2">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="#0284c7" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
+                LISTADO DE PRODUCTOS
+            </h5>
+            <p class="text-muted m-0 font-size-10 mt-1">Administra y visualiza el inventario completo de productos registrados</p>
+        </div>
     </div>
 
     <div class="col-auto text-end float-end ms-auto download-grp">
-        <button class="btn btn-sm btn-success" style="background-color: #697a8a; text-align: justify;" id="btnNuevo"
-            title="Crear Nuevo"><i class="fas fa-plus me-2"></i>
-            <strong>Nuevo Suministro</strong></button>
+        <button class="btn-modern btn-primary-modern px-3 py-2" id="btnNuevo"
+            title="Crear Nuevo" style="font-size: 0.85rem;">
+            <i class="fas fa-plus me-2" style="width: 14px;"></i>
+            Nuevo Producto
+        </button>
     </div>
 </div>
 

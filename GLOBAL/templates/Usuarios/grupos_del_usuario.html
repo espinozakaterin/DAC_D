@@ -1,0 +1,1005 @@
+{% extends 'componentes/menu_global_security.html' %}
+{% load static %}
+
+{% block title %}
+Grupos del Usuario | GLOBAL Security
+{% endblock %}
+
+{% block title_header %}
+Asignación de Grupos
+{% endblock %}
+
+{% block body %}
+
+<style>
+    /* Enable Global Page Scroll - Matching the standard system layout */
+    html, body, .main-layout, .page-content, .dashboard-container {
+        overflow-y: auto !important;
+        height: auto !important;
+        min-height: 100vh !important;
+    }
+    .modulos-page-header {
+        background: #fff;
+        border-radius: 16px;
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid var(--border-color);
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .header-icon-accent {
+        width: 44px;
+        height: 44px;
+        background: rgba(14, 165, 233, 0.1);
+        color: var(--accent);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .premium-page-title {
+        font-weight: 700;
+        color: var(--primary);
+        letter-spacing: -0.01em;
+        margin: 0;
+    }
+
+    .modern-table-card {
+        background: linear-gradient(145deg, rgba(15, 23, 42, 0.8), rgba(2, 6, 23, 0.9)) !important;
+        backdrop-filter: blur(16px) !important;
+        -webkit-backdrop-filter: blur(16px) !important;
+        border-radius: 16px;
+        border: 1px solid rgba(34, 211, 238, 0.15) !important;
+        padding: 0.65rem !important;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+        height: auto;
+        transition: var(--transition);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .modern-table-card:hover {
+        box-shadow: 0 20px 50px rgba(0,0,0,0.4) !important;
+        border-color: rgba(34, 211, 238, 0.3) !important;
+    }
+
+    .modern-label {
+        font-size: 0.72rem;
+        font-weight: 800;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* DataTable Overrides to match Dashboard style */
+    .table-modern-style thead th {
+        background: linear-gradient(to right, rgba(15, 23, 42, 0.95), rgba(2, 6, 23, 0.95)) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: #94a3b8 !important;
+        font-size: 0.75rem !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        padding: 8px 15px !important;
+        height: auto !important;
+        line-height: 1.2 !important;
+        background-image: none !important;
+    }
+
+    .table-modern-style tbody td {
+        border-color: rgba(255, 255, 255, 0.05) !important;
+        padding: 5px 12px !important;
+        font-size: 0.85rem !important;
+        color: #e2e8f0 !important;
+    }
+
+    .table-modern-style tbody tr:hover td {
+        background-color: rgba(255, 255, 255, 0.05) !important;
+    }
+
+    /* Base background for all cells to remove DataTable's default white */
+    table.dataTable tbody tr td {
+        background-color: transparent !important;
+    }
+
+    /* Available Modules Base (Soft Blue) */
+    #tableUnifiedGrupos tbody tr[data-group-state="available"] td {
+        background-color: rgba(14, 165, 233, 0.05) !important;
+    }
+
+    /* Assigned Modules Base (Soft Green) */
+    #tableUnifiedGrupos tbody tr[data-group-state="assigned"] td {
+        background-color: rgba(34, 197, 94, 0.05) !important;
+    }
+
+    /* Smooth transition for rows */
+    table.dataTable tbody tr {
+        transition: all 0.25s ease !important;
+    }
+
+    /* Hover effects for unified table */
+    #tableUnifiedGrupos tbody tr[data-group-state="available"]:hover td {
+        background-color: rgba(14, 165, 233, 0.15) !important;
+        box-shadow: inset 0 0 10px rgba(14, 165, 233, 0.05);
+    }
+
+    #tableUnifiedGrupos tbody tr[data-group-state="assigned"]:hover td {
+        background-color: rgba(34, 197, 94, 0.15) !important;
+        box-shadow: inset 0 0 10px rgba(34, 197, 94, 0.05);
+    }
+
+    /* Force clean slate to kill any theme/DT blue on right columns during selection */
+    table#tableUnifiedGrupos.dataTable tbody tr.selected td {
+        background-color: transparent;
+        background-image: none !important;
+        box-shadow: none !important;
+    }
+
+    /* ASIGNADO SELECCIONADO -> FONDO VERDE */
+    table#tableUnifiedGrupos.dataTable tbody tr[data-group-state="assigned"].selected td {
+        background-color: rgba(34, 197, 94, 0.2) !important;
+    }
+    table#tableUnifiedGrupos.dataTable tbody tr[data-group-state="assigned"].selected td:first-child {
+        box-shadow: inset 4px 0 0 rgba(34, 197, 94, 1) !important;
+    }
+
+    /* DISPONIBLE SELECCIONADO -> FONDO AZUL EXACTO */
+    table#tableUnifiedGrupos.dataTable tbody tr[data-group-state="available"].selected td {
+        background-color: rgba(14, 165, 233, 0.2) !important;
+    }
+    table#tableUnifiedGrupos.dataTable tbody tr[data-group-state="available"].selected td:first-child {
+        box-shadow: inset 4px 0 0 rgba(14, 165, 233, 1) !important;
+    }
+
+    /* ABSOLUTE COLUMN ISOLATION (REMOVED WHITE ZONE) */
+    table#tableUnifiedGrupos.dataTable tbody tr td:nth-child(3),
+    table#tableUnifiedGrupos.dataTable tbody tr td:nth-child(4),
+    table#tableUnifiedGrupos.dataTable tbody tr.selected td:nth-child(3),
+    table#tableUnifiedGrupos.dataTable tbody tr.selected td:nth-child(4) {
+        background-color: transparent !important;
+    }
+
+    /* TEXT READABILITY ON SELECTION */
+    #tableUnifiedGrupos.dataTable tbody tr.selected td:nth-child(1),
+    #tableUnifiedGrupos.dataTable tbody tr.selected td:nth-child(2),
+    #tableUnifiedGrupos.dataTable tbody tr.selected td:nth-child(1) *,
+    #tableUnifiedGrupos.dataTable tbody tr.selected td:nth-child(2) * {
+        color: #ffffff !important;
+    }
+
+    /* Hover effect restricted to identification zone */
+    #tableUnifiedGrupos tbody tr:not(.selected):hover td:nth-child(-n+2) {
+        filter: brightness(0.96);
+        cursor: pointer;
+    }
+
+    /* Hover effect without breaking active selection */
+    #tableUnifiedGrupos tbody tr:not(.selected):hover td {
+        filter: brightness(0.97);
+        cursor: pointer;
+    }
+
+    /* Premium Status Theming */
+    .badge-flat-status {
+        padding: 5px 12px;
+        border-radius: 6px;
+        font-size: 0.62rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .badge-status-assigned {
+        background: rgba(34, 197, 94, 0.15) !important;
+        color: #4ade80 !important;
+        border: 1px solid rgba(34, 197, 94, 0.3) !important;
+        box-shadow: 0 0 10px rgba(34, 197, 94, 0.1);
+        backdrop-filter: blur(4px);
+    }
+    .badge-status-available {
+        background: rgba(14, 165, 233, 0.15) !important;
+        color: #38bdf8 !important;
+        border: 1px solid rgba(14, 165, 233, 0.3) !important;
+        box-shadow: 0 0 10px rgba(14, 165, 233, 0.1);
+        backdrop-filter: blur(4px);
+    }
+
+    .btn-row-action {
+        padding: 6px 16px !important;
+        border-radius: 8px !important;
+        font-size: 0.65rem !important;
+        font-weight: 800 !important;
+        transition: all 0.2s ease !important;
+        border: none !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        letter-spacing: 0.02em;
+    }
+    .btn-row-assign {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.3)) !important;
+        color: #34d399 !important;
+        border: 1px solid rgba(16, 185, 129, 0.4) !important;
+        box-shadow: 0 0 12px rgba(16, 185, 129, 0.15);
+        backdrop-filter: blur(4px);
+    }
+    .btn-row-remove {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(185, 28, 28, 0.3)) !important;
+        color: #f87171 !important;
+        border: 1px solid rgba(239, 68, 68, 0.4) !important;
+        box-shadow: 0 0 12px rgba(239, 68, 68, 0.15);
+        backdrop-filter: blur(4px);
+    }
+    .btn-row-action:hover {
+        transform: translateY(-2px);
+        filter: brightness(1.2);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+    }
+    .btn-row-action:active {
+        transform: translateY(0);
+    }
+
+    .dataTables_scrollBody::-webkit-scrollbar {
+        width: 4px !important;
+        height: 4px !important;
+    }
+    .dataTables_scrollBody::-webkit-scrollbar-track { background: transparent !important; }
+    .dataTables_scrollBody::-webkit-scrollbar-thumb {
+        background: #1e293b !important; 
+        border-radius: 10px !important;
+    }
+    .dataTables_scrollBody::-webkit-scrollbar-thumb:hover {
+        background: #0f172a !important;
+    }
+
+    .pulsing-icon { animation: pulse 2s infinite; }
+    @keyframes pulse {
+        0% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.1); opacity: 0.7; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+
+    .text-navy { color: #1e293b !important; }
+    .font-size-10 { font-size: 0.62rem !important; }
+    .font-size-14 { font-size: 0.88rem !important; }
+
+    .table-filter-select {
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        padding: 5px 12px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: #475569;
+        background-color: #f8fafc;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        min-width: 150px;
+    }
+    .table-filter-select:focus {
+        border-color: var(--accent);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+    }
+
+    /* Premium Search Bar Styles */
+    .search-colaborador-container {
+        max-width: 800px;
+        margin: 0 auto 2.5rem auto;
+        position: relative;
+    }
+
+    .search-input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(10px);
+        border-radius: 50px;
+        padding: 5px 10px 5px 25px;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .search-input-wrapper:focus-within {
+        transform: translateY(-2px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.1);
+        border-color: rgba(34, 211, 238, 0.3);
+    }
+
+    .search-input-field {
+        border: none;
+        outline: none;
+        width: 100%;
+        padding: 12px 10px;
+        font-size: 1.1rem;
+        font-weight: 500;
+        color: #f8fafc;
+        background: transparent;
+    }
+
+    .search-input-field::placeholder {
+        color: #64748b;
+        font-weight: 400;
+    }
+
+    .search-icon-btn {
+        width: 48px;
+        height: 48px;
+        background: #0284c7;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: none;
+        flex-shrink: 0;
+    }
+
+    .search-icon-btn:hover {
+        background: #0369a1;
+        transform: scale(1.05);
+    }
+
+    /* Search Results Dropdown */
+    .search-results-dropdown {
+        position: absolute;
+        top: 110%;
+        left: 0;
+        right: 0;
+        background: rgba(15, 23, 42, 0.95);
+        backdrop-filter: blur(12px);
+        border-radius: 16px;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+        border: 1px solid rgba(255,255,255,0.1);
+        z-index: 1050;
+        overflow: hidden;
+        display: none;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .result-item {
+        padding: 12px 25px;
+        display: flex;
+        flex-direction: column;
+        cursor: pointer;
+        transition: background 0.2s ease;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .result-item:last-child {
+        border-bottom: none;
+    }
+
+    .result-item:hover, .result-item.highlighted {
+        background: rgba(255,255,255,0.05);
+    }
+
+    .result-name {
+        font-weight: 700;
+        color: #f8fafc;
+        font-size: 0.95rem;
+    }
+
+    .result-username {
+        font-size: 0.8rem;
+        color: #94a3b8;
+        font-weight: 500;
+    }
+
+    .search-badge {
+        background: #f1f5f9;
+        color: #475569;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        margin-left: auto;
+    }
+
+    .empty-state-placeholder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 4rem 1.5rem;
+        background: transparent;
+        border: none;
+        color: #94a3b8;
+        transition: opacity 0.3s ease;
+    }
+
+    .empty-state-placeholder i {
+        color: #cbd5e1;
+        margin-bottom: 1.25rem;
+    }
+    
+    .empty-state-placeholder p {
+        font-size: 0.8rem;
+        font-weight: 500;
+        margin: 0;
+        text-align: center;
+        line-height: 1.4;
+    }
+
+    .no-default-search .dataTables_filter {
+        display: none !important;
+    }
+
+    .dataTables_wrapper .dataTables_filter {
+        margin-bottom: 12px !important;
+        float: right !important;
+    }
+
+    .dataTables_wrapper .dataTables_filter label {
+        display: flex !important;
+        align-items: center !important;
+        gap: 5px !important;
+        font-size: 0.78rem !important;
+        font-weight: 500 !important;
+        color: var(--text-muted) !important;
+        margin: 0 !important;
+    }
+
+    .dataTables_wrapper .dataTables_filter input {
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        border-radius: 8px !important;
+        padding: 4px 10px !important;
+        background: rgba(15, 23, 42, 0.6) !important;
+        color: #e2e8f0 !important;
+        font-size: 0.78rem !important;
+        width: 110px !important;
+        transition: var(--transition) !important;
+    }
+
+    .dataTables_wrapper .dataTables_filter input:focus {
+        border-color: var(--accent) !important;
+        box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1) !important;
+        outline: none !important;
+    }
+
+    /* Select2 Premium Modernization - Dark Theme */
+    .select2-container--default .select2-selection--single {
+        background-color: rgba(15, 23, 42, 0.6) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        border-radius: 8px !important;
+        height: 38px !important;
+        display: flex !important;
+        align-items: center !important;
+        padding: 0 10px !important;
+        transition: all 0.2s ease !important;
+    }
+
+    .select2-container--default.select2-container--open .select2-selection--single {
+        border-color: var(--accent) !important;
+        background-color: rgba(15, 23, 42, 0.8) !important;
+        box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.1) !important;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        color: #e2e8f0 !important;
+        font-size: 0.78rem !important;
+        font-weight: 600 !important;
+        padding-left: 0 !important;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__placeholder {
+        color: #94a3b8 !important;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 36px !important;
+        right: 8px !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__arrow b {
+        border-color: #94a3b8 transparent transparent transparent !important;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__clear {
+        margin-right: 15px !important;
+        color: #cbd5e1 !important;
+        font-size: 1rem !important;
+        font-weight: 700 !important;
+        transition: color 0.2s ease;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__clear:hover {
+        color: #ef4444 !important;
+    }
+
+    /* Select2 Dropdown Panel */
+    .select2-dropdown {
+        background: rgba(15, 23, 42, 0.95) !important;
+        backdrop-filter: blur(12px) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        border-radius: 12px !important;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5) !important;
+        overflow: hidden !important;
+        z-index: 9999 !important;
+        margin-top: 5px !important;
+    }
+
+    .select2-search--dropdown {
+        padding: 10px !important;
+        background: transparent !important;
+    }
+
+    .select2-search--dropdown .select2-search__field {
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        border-radius: 8px !important;
+        padding: 8px 12px !important;
+        font-size: 0.85rem !important;
+        background: rgba(15, 23, 42, 0.6) !important;
+        color: #e2e8f0 !important;
+        outline: none !important;
+    }
+
+    .select2-results__options {
+        max-height: 250px !important;
+    }
+
+    .select2-results__option {
+        padding: 10px 15px !important;
+        font-size: 0.82rem !important;
+        color: #e2e8f0 !important;
+        border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+    }
+
+    .select2-results__option--highlighted[aria-selected] {
+        background-color: rgba(255,255,255,0.05) !important;
+        color: #fff !important;
+    }
+
+    .select2-results__option[aria-selected=true] {
+        background-color: rgba(34, 211, 238, 0.1) !important;
+        color: #22d3ee !important;
+        font-weight: 700 !important;
+    }
+
+    .select2-container .select2-results__option:last-child {
+        border-bottom: none !important;
+    }
+
+    .select2-results__options::-webkit-scrollbar {
+        width: 6px !important;
+    }
+    .select2-results__options::-webkit-scrollbar-track { background: transparent !important; }
+    .select2-results__options::-webkit-scrollbar-thumb {
+        background: #0284c7 !important;
+        border-radius: 10px !important;
+    }
+    .select2-results__options::-webkit-scrollbar-thumb:hover {
+        background: #0369a1 !important;
+    }
+    
+    .floating-action-btn {
+        width: 120px !important;
+        height: 38px !important;
+        border-radius: 20px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        transition: var(--transition) !important;
+        border: 1px solid transparent !important;
+        box-shadow: var(--shadow-lg) !important;
+        font-size: 0.65rem !important;
+        font-weight: 800 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.04em !important;
+        gap: 6px !important;
+        color: white !important;
+    }
+
+    .floating-action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md) !important;
+    }
+</style>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+
+
+    <!-- Top Search Bar Section (Premium Layout - Broad Horizontal) -->
+    <div class="search-colaborador-container">
+        <div class="search-input-wrapper">
+            <input type="text" id="userInputSearch" class="search-input-field" placeholder="Buscar Usuario..." autocomplete="off">
+            <button class="search-icon-btn">
+                <i data-lucide="search" style="width: 22px; height: 22px;"></i>
+            </button>
+        </div>
+        <!-- Search Results Dropdown -->
+        <div class="search-results-dropdown" id="searchResults">
+            <!-- Dynamic results here -->
+        </div>
+    </div>
+
+    <div class="row g-3 justify-content-center">
+        <div class="col-12">
+            <div class="modern-table-card h-100 shadow-lg border-primary-subtle" style="min-height: 520px;">
+                <div class="card-header bg-transparent border-bottom py-3 px-4 d-flex justify-content-between align-items-center" style="border-color: rgba(255,255,255,0.05) !important;">
+                    <div>
+                        <h5 class="m-0 fw-800 text-white d-flex align-items-center gap-2">
+                            <i data-lucide="shield-check" style="width: 18px; color: #22d3ee;"></i> GESTIÓN DE GRUPOS POR USUARIO
+                        </h5>
+                        <p class="m-0 font-size-10 mt-1" style="color: #94a3b8;">Administra accesos y permisos directamente vinculando grupos de seguridad</p>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <!-- Current Selected User Badge -->
+                        <div id="selectedUserBadge" class="badge px-3 py-2 border rounded-pill d-none" style="background: rgba(255,255,255,0.1); color: #fff; font-size: 0.75rem; font-weight: 700; border-color: rgba(255,255,255,0.2) !important;">
+                            <i data-lucide="user" class="me-1" style="width: 14px;"></i> <span id="selectedUserName">N/A</span>
+                        </div>
+
+                        <label for="selectModulo" class="font-size-10 fw-800 mb-0 ms-2" style="color: #94a3b8;">MÓDULO:</label>
+                        <div style="min-width: 200px;">
+                            <select id="selectModulo" class="table-filter-select w-100" style="background: rgba(15, 23, 42, 0.6); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;">
+                                <option value=""></option>
+                                {% for m in modulos %}
+                                <option value="{{ m.PKmodulo }}">{{ m.Nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <label class="font-size-10 fw-800 mb-0 ms-3" style="color: #94a3b8;">MOSTRAR:</label>
+                        <select id="filterStatus" class="table-filter-select" style="background: rgba(15, 23, 42, 0.6); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;">
+                            <option value="all" style="background: #0f172a; color: white;">TODOS</option>
+                            <option value="assigned" style="background: #0f172a; color: white;">ASIGNADOS</option>
+                            <option value="available" style="background: #0f172a; color: white;">DISPONIBLES</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="card-body p-0 d-flex flex-column h-100">
+
+                    <!-- Empty State (Before Selection) -->
+                    <div id="empty-state-groups" class="empty-state-placeholder py-5 flex-grow-1">
+                        <div class="pulsing-icon mb-3">
+                            <i data-lucide="user-search" style="width: 48px; height: 48px; color: #cbd5e1;"></i>
+                        </div>
+                        <p class="fw-medium font-size-14" style="color: #e2e8f0;">Busca y selecciona un usuario arriba para comenzar</p>
+                        <small class="mt-1 px-4 text-center" style="color: #94a3b8;">Gestionarás la disponibilidad y asignación de grupos por módulo</small>
+                    </div>
+
+                    <!-- Unified Groups Management Table (Hidden until selection) -->
+                    <div id="table-container-groups" class="table-responsive flex-grow-1" style="display: none;">
+                        <table id="tableUnifiedGrupos" class="table table-hover align-middle table-modern-style mb-0 w-100">
+                            <thead>
+                                <tr>
+                                    <th style="width: 25%;">Nombre del Grupo</th>
+                                    <th style="width: 40%;">Descripción</th>
+                                    <th style="width: 15%;" class="text-center">Estado</th>
+                                    <th style="width: 20%;" class="text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+<!-- Floating Action Buttons (Full Replicated Style) -->
+<div style="position: fixed; bottom: 30px; right: 30px; z-index: 1010; display: flex; gap: 15px;">
+    <button class="floating-action-btn" id="btnLimpiar" style="background: #475569 !important; border-radius: 12px; height: 44px; width: 130px; font-size: 0.75rem;" title="Limpiar Selección Actual">
+        <i data-lucide="rotate-ccw" style="width: 16px;"></i> LIMPIAR
+    </button>
+    
+    <a href="{% url 'global_main' %}" style="text-decoration: none;">
+        <button class="floating-action-btn" id="btnCerrar" style="background: #1e293b !important; border-radius: 12px; height: 44px; width: 130px; font-size: 0.75rem;" title="Cerrar esta sección">
+            <i data-lucide="log-out" style="width: 16px;"></i> CERRAR
+        </button>
+    </a>
+</div>
+
+{% endblock %}
+
+
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // Initialize Select2 with Premium Styles
+        $('#selectModulo').select2({
+            placeholder: "Seleccione módulo...",
+            allowClear: true,
+            width: 'resolve',
+            dropdownAutoWidth: true,
+            language: {
+                noResults: function() { return "No se encontraron módulos"; }
+            }
+        });
+
+        // Trigger loading on change
+        $('#selectModulo').on('change', function() {
+            id_modulo = $(this).val();
+            if (selectedUsuarioId) {
+                // If it's cleared, it will call with id_modulo = ""
+                getUnifiedGrupos(selectedUsuarioId, id_modulo || "");
+            }
+        });
+
+        // Custom Filter Logic for Status
+        $.fn.dataTable.ext.search.push(
+            function(settings, data, dataIndex) {
+                if (settings.nTable.id !== 'tableUnifiedGrupos') return true;
+                
+                var filterValue = $('#filterStatus').val();
+                if (filterValue === 'all') return true;
+                
+                var rowData = $('#tableUnifiedGrupos').DataTable().row(dataIndex).data();
+                if (!rowData) return true;
+                
+                var isAssigned = rowData.assigned;
+                if (filterValue === 'assigned') return isAssigned;
+                if (filterValue === 'available') return !isAssigned;
+                
+                return true;
+            }
+        );
+
+        // Filter event listener
+        $(document).on('change', '#filterStatus', function() {
+            if ($.fn.DataTable.isDataTable('#tableUnifiedGrupos')) {
+                $('#tableUnifiedGrupos').DataTable().draw();
+            }
+        });
+
+        var csrfToken = "{{ csrf_token }}";
+        var toastMixin = Swal.mixin({
+            toast: true,
+            icon: 'success',
+            title: 'General Title',
+            animation: false,
+            position: 'top-right',
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
+            }
+        });
+
+        /* MENU ID Y SUBMENU ID */
+        $('#usuariosMenu, #gruposUsuario_submenu').addClass('active');
+
+        selectedUsuarioId = null;
+        id_modulo = null;
+
+        // Sync module header search with user selection (Global behavior)
+        $('#userInputSearch').on('input', function() {
+            // Already handled by result dropdown logic
+        });
+
+        function getUnifiedGrupos(usuarioSeleccionado, moduloSeleccionado) {
+            if (!usuarioSeleccionado) return;
+
+            if ($.fn.DataTable.isDataTable('#tableUnifiedGrupos')) {
+                $('#tableUnifiedGrupos').DataTable().destroy();
+            }
+            $('#tableUnifiedGrupos tbody').empty();
+
+            $("#empty-state-groups").hide();
+            $("#table-container-groups").hide(); // Hide while loading
+            
+            // Show loading state if needed or just wait for resolution
+            
+            $.when(
+                $.ajax({
+                    url: `{% url 'data_grupos_asignados' %}`,
+                    type: "POST",
+                    data: { varUsuario: usuarioSeleccionado, varModulo: moduloSeleccionado, csrfmiddlewaretoken: csrfToken }
+                }),
+                $.ajax({
+                    url: `{% url 'data_grupos_disponibles' %}`,
+                    type: "POST",
+                    data: { varUsuario: usuarioSeleccionado, varModulo: moduloSeleccionado, csrfmiddlewaretoken: csrfToken }
+                })
+            ).done(function(resAsignados, resDisponibles) {
+                let dataAsignados = (resAsignados[0].data || []).map(g => ({ ...g, assigned: true }));
+                let dataDisponibles = (resDisponibles[0].data || []).map(g => ({ ...g, assigned: false }));
+                let unifiedData = [...dataAsignados, ...dataDisponibles];
+
+                $("#table-container-groups").fadeIn(300);
+
+                tableUnifiedGrupos = $('#tableUnifiedGrupos').DataTable({
+                    data: unifiedData,
+                    autoWidth: false,
+                    scrollX: true,
+                    scrollY: '450px',
+                    scrollCollapse: true,
+                    pageLength: 25,
+                    dom: 'rftip',
+                    language: { url: "{% static 'app/th/json/es-ES.json' %}" },
+                    createdRow: function(row, data, dataIndex) {
+                        $(row).attr('data-group-state', data.assigned ? 'assigned' : 'available');
+                    },
+                    columns: [
+                        { data: 'Nombres', className: 'fw-700' },
+                        { 
+                            data: 'Descripcion', 
+                            className: 'font-size-10',
+                            render: function(data) { return data || '<span class="text-muted italic">Sin descripción</span>'; }
+                        },
+                        { 
+                            data: 'assigned',
+                            className: 'text-center',
+                            render: function(data) {
+                                return data 
+                                    ? `<span class="badge-flat-status badge-status-assigned"><i data-lucide="check-circle" style="width:13px; height:13px;"></i> ASIGNADO</span>`
+                                    : `<span class="badge-flat-status badge-status-available"><i data-lucide="circle" style="width:13px; height:13px;"></i> DISPONIBLE</span>`;
+                            }
+                        },
+                        {
+                            data: null,
+                            className: 'text-center',
+                            render: function(data) {
+                                let groupId = data.fkgrupo;
+                                return data.assigned
+                                    ? `<button class="btn-row-action btn-row-remove" data-id="${groupId}" data-action="quitar">
+                                        <i data-lucide="trash-2" style="width:14px"></i> QUITAR
+                                       </button>`
+                                    : `<button class="btn-row-action btn-row-assign" data-id="${groupId}" data-action="asignar">
+                                        <i data-lucide="plus-circle" style="width:14px"></i> ASIGNAR
+                                       </button>`;
+                            }
+                        }
+                    ],
+                    order: [[2, "desc"], [0, "asc"]],
+                    drawCallback: function(settings) {
+                        if (window.lucide) lucide.createIcons();
+                    }
+                });
+            }).fail(function() {
+                Swal.fire('Error', 'No se pudieron sincronizar los grupos.', 'error');
+            });
+        }
+
+        // In-Row Action Handling
+        $('#tableUnifiedGrupos').on('click', '.btn-row-action', function(e) {
+            e.preventDefault();
+            let groupId = $(this).data('id');
+            let action = $(this).data('action');
+            
+            $(this).addClass('disabled').attr('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status"></span>');
+            ejecutarAccionGrupo(action, groupId);
+        });
+
+        function ejecutarAccionGrupo(accion, groupId) {
+            let url = accion === 'asignar' ? "{% url 'insert_usuario_grupo' %}" : "{% url 'eliminar_usuario_grupo' %}";
+            let msg = accion === 'asignar' ? 'Asignado' : 'Removido';
+
+            $.post(url, {
+                varUsuario: selectedUsuarioId,
+                varGrupo: groupId,
+                csrfmiddlewaretoken: csrfToken
+            }, function (response) {
+                if (response.save == 1) {
+                    getUnifiedGrupos(selectedUsuarioId, id_modulo);
+                    toastMixin.fire({
+                        icon: 'success',
+                        title: `Grupo ${msg}!`
+                    });
+                } else {
+                    Swal.fire('Error', response.error || 'No se pudo completar la acción.', 'error');
+                    // Reset table to show button again if needed, or just let the refresh handle it
+                    getUnifiedGrupos(selectedUsuarioId, id_modulo);
+                }
+            });
+        }
+
+        // Row Selection Logic
+        $('#tableUnifiedGrupos tbody').on('click', 'tr', function() {
+            $('#tableUnifiedGrupos tbody tr').removeClass('selected');
+            $(this).addClass('selected');
+        });
+
+        // Collaborators Logic - Search System
+        var allUsers = [];
+
+        function getUsuarios() {
+            $.ajax({
+                url: `{% url 'data_usuarios' %}`,
+                type: "POST",
+                data: { csrfmiddlewaretoken: csrfToken },
+                success: function(response) {
+                    allUsers = response.data || [];
+                }
+            });
+        }
+
+        $('#userInputSearch').on('input', function() {
+            let term = $(this).val().toLowerCase().trim();
+            if (term.length < 1) {
+                $('#searchResults').hide();
+                return;
+            }
+
+            let matches = allUsers.filter(u => 
+                u.Nombre.toLowerCase().includes(term) || 
+                u.Usuario.toLowerCase().includes(term)
+            ).slice(0, 10);
+
+            if (matches.length > 0) {
+                let html = matches.map(u => `
+                    <div class="result-item" data-id="${u.PKUsuario}" data-name="${u.Nombre}">
+                        <div class="d-flex align-items-center">
+                            <div class="result-name">${u.Nombre}</div>
+                            <span class="search-badge">${u.Usuario}</span>
+                        </div>
+                        <div class="result-username">ID de Usuario: ${u.Usuario}</div>
+                    </div>
+                `).join('');
+                $('#searchResults').html(html).show();
+                if (window.lucide) lucide.createIcons();
+            } else {
+                $('#searchResults').html('<div class="p-3 text-muted text-center font-size-14">No se encontraron usuarios</div>').show();
+            }
+        });
+
+        $(document).on('click', '.result-item', function() {
+            let userId = $(this).data('id');
+            let userName = $(this).data('name');
+            selectedUsuarioId = userId;
+            id_modulo = $("#selectModulo").val();
+
+            $('#userInputSearch').val(userName);
+            $('#searchResults').hide();
+
+            $('#selectedUserName').text(userName);
+            $('#selectedUserBadge').removeClass('d-none').hide().fadeIn(300);
+            
+            if (window.lucide) lucide.createIcons();
+
+            if (id_modulo) {
+                getUnifiedGrupos(userId, id_modulo);
+            } else {
+                $("#empty-state-groups").hide();
+                $("#table-container-groups").hide();
+                // We keep empty state or show we need a module
+            }
+        });
+
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('.search-colaborador-container').length) {
+                $('#searchResults').hide();
+            }
+        });
+
+        // Removido handler nativo redundante ya que Select2 maneja su propio evento change obenido arriba
+
+        $('#btnLimpiar').on('click', function () {
+            limpiarSeleccion();
+        });
+
+        function limpiarSeleccion() {
+            selectedUsuarioId = null;
+            $('#userInputSearch').val('');
+            $('#searchResults').hide();
+            $('#selectedUserBadge').addClass('d-none');
+            $("#table-container-groups").hide();
+            $("#empty-state-groups").fadeIn(300);
+            $('#selectModulo').val("").trigger('change');
+            id_modulo = null;
+        }
+
+        getUsuarios();
+    });
+</script>
+
+
+{% endblock %}

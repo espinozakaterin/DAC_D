@@ -1,0 +1,436 @@
+{% extends 'componentes/menu_global_security.html' %}
+{% load static %}
+
+{% block title %}
+USUARIOS DE LA SUCURSAL
+{% endblock %}
+
+{% block body %}
+<meta charset="UTF-8">
+
+<style>
+    /* === DARK GLASS PREMIUM - Unified View (Reference: modulos_usuario.html) === */
+    html, body, .main-layout, .page-content, .dashboard-container {
+        overflow-y: auto !important; height: auto !important; min-height: 100vh !important;
+        font-family: 'Inter', 'Segoe UI', Arial, sans-serif !important;
+        -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+    }
+
+    /* Force standard font on all module children to prevent icon-font interference */
+    .modern-table-card *, .search-entity-container *, .search-results-dropdown * {
+        font-family: 'Inter', 'Segoe UI', Arial, sans-serif !important;
+    }
+
+    .modern-table-card {
+        background: linear-gradient(145deg, rgba(15, 23, 42, 0.85), rgba(2, 6, 23, 0.92)) !important;
+        backdrop-filter: blur(16px) !important; -webkit-backdrop-filter: blur(16px) !important;
+        border-radius: 16px !important; border: 1px solid rgba(34, 211, 238, 0.15) !important;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+        transition: all 0.25s ease;
+        padding: 0.5rem 1rem !important; margin: 0.5rem auto !important;
+        max-width: 1400px;
+    }
+
+    /* Premium Search Bar */
+    .search-entity-container { max-width: 800px; margin: 0 auto 2rem auto; position: relative; }
+    .search-input-wrapper {
+        display: flex; align-items: center; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(10px);
+        border-radius: 50px; padding: 5px 10px 5px 25px; border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3); transition: all 0.3s ease;
+    }
+    .search-input-wrapper:focus-within { transform: translateY(-1px); border-color: rgba(34, 211, 238, 0.4); }
+    .search-input-field { 
+        border: none; outline: none; width: 100%; padding: 8px 10px; font-size: 0.95rem; color: #f8fafc; background: transparent; 
+        font-family: Arial, Helvetica, sans-serif !important;
+    }
+    .search-icon-btn {
+        width: 38px; height: 38px; background: #0284c7; color: white; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; transition: 0.2s;
+    }
+    .search-icon-btn:hover { background: #0369a1; transform: scale(1.05); }
+
+    /* Results Dropdown */
+    .search-results-dropdown {
+        position: absolute; top: 110%; left: 0; right: 0; background: rgba(15, 23, 42, 0.95);
+        backdrop-filter: blur(12px); border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.1);
+        z-index: 1050; display: none; max-height: 350px; overflow-y: auto; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+    }
+    .result-item { padding: 12px 25px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); cursor: pointer; transition: 0.2s; }
+    .result-item:hover { background: rgba(255, 255, 255, 0.05); }
+    .result-name { font-weight: 700; color: #f8fafc; font-size: 0.95rem; }
+    .result-sub { font-size: 0.75rem; color: #94a3b8; }
+
+    /* Unified Table Styles */
+    .table-modern-style thead th {
+        background: linear-gradient(to right, rgba(15, 23, 42, 0.95), rgba(2, 6, 23, 0.95)) !important;
+        color: #94a3b8 !important; font-size: 0.7rem !important; text-transform: uppercase !important; font-weight: 700 !important;
+        padding: 10px 15px !important; border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+    .table-modern-style tbody td { padding: 8px 15px !important; color: #e2e8f0 !important; font-size: 0.82rem !important; border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important; }
+    .table-modern-style tbody tr:hover td { background-color: rgba(255, 255, 255, 0.03) !important; }
+
+    /* Badges & Buttons */
+    .badge-status { padding: 6px 12px; border-radius: 20px; font-weight: 800; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.04em; display: inline-flex; align-items: center; gap: 5px; }
+    .badge-assigned { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); }
+    .badge-available { background: rgba(14, 165, 233, 0.1); color: #0ea5e9; border: 1px solid rgba(14, 165, 233, 0.2); }
+    
+    .btn-action-modern {
+        padding: 5px 12px !important; border-radius: 8px !important; font-size: 0.65rem !important;
+        font-weight: 800 !important; transition: all 0.2s ease !important; border: none !important;
+        display: inline-flex !important; align-items: center !important; gap: 6px !important;
+        letter-spacing: 0.02em; text-transform: uppercase;
+    }
+    .btn-assign {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.25)) !important;
+        color: #34d399 !important; border: 1px solid rgba(16, 185, 129, 0.3) !important;
+        box-shadow: 0 0 10px rgba(16, 185, 129, 0.1); backdrop-filter: blur(4px);
+    }
+    .btn-remove {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(185, 28, 28, 0.25)) !important;
+        color: #f87171 !important; border: 1px solid rgba(239, 68, 68, 0.3) !important;
+        box-shadow: 0 0 10px rgba(239, 68, 68, 0.1); backdrop-filter: blur(4px);
+    }
+    .btn-action-modern:hover { transform: translateY(-2px); filter: brightness(1.2); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important; }
+
+    /* Empty State */
+    .empty-state-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4rem 2rem; color: #94a3b8; }
+
+    .btn-limpiar {
+        background: #475569 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.1) !important;
+        border-radius: 12px !important; padding: 10px 22px !important; font-size: 0.75rem !important;
+        font-weight: 700 !important; display: inline-flex !important; align-items: center !important;
+        gap: 8px !important; cursor: pointer !important; transition: all 0.3s ease !important;
+    }
+    .btn-cerrar {
+        background: #1e293b !important; color: #ffffff !important;
+        border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 12px !important;
+        padding: 10px 22px !important; font-size: 0.75rem !important; font-weight: 700 !important;
+        display: inline-flex !important; align-items: center !important; gap: 8px !important;
+        cursor: pointer !important; transition: all 0.3s ease !important; text-decoration: none !important;
+    }
+    .btn-limpiar:hover, .btn-cerrar:hover { transform: translateY(-3px); filter: brightness(1.2); box-shadow: 0 10px 20px rgba(0,0,0,0.4) !important; }
+
+    /* DataTable Overrides */
+    .dataTables_filter { margin-bottom: 1rem !important; }
+    .dataTables_filter input {
+        background: rgba(15, 23, 42, 0.6) !important; border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 8px !important; color: #fff !important; font-size: 0.75rem !important; padding: 4px 10px !important;
+    }
+</style>
+
+<div class="container-fluid py-2">
+    <!-- Top Search Bar (Entity Selection) -->
+    <div class="search-entity-container">
+        <div class="search-input-wrapper">
+            <input type="text" id="sucursalInputSearch" class="search-input-field" placeholder="Buscar Sucursal..." autocomplete="off">
+            <button class="search-icon-btn">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </button>
+        </div>
+        <div class="search-results-dropdown" id="searchResults">
+            <!-- Results here -->
+        </div>
+    </div>
+
+    <!-- Main Card -->
+    <div class="modern-table-card card-expanded">
+        <div class="card-header bg-transparent border-bottom border-white-5 py-3 px-4 d-flex justify-content-between align-items-center">
+            <div>
+                <h5 class="m-0 fw-bold text-white d-flex align-items-center gap-2" style="font-size: 1.1rem;">
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="#22d3ee" stroke-width="2.5" fill="none"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    USUARIOS DE LA SUCURSAL
+                </h5>
+                <p class="m-0 x-small text-muted" style="font-size: 0.7rem;">Gestión unificada de colaboradores por punto de servicio</p>
+            </div>
+            
+            <div class="d-flex align-items-center gap-2">
+                <div id="selectedSucursalBadge" class="badge px-3 py-2 d-none" style="background: rgba(34, 211, 238, 0.1); color: #22d3ee; border: 1px solid rgba(34, 211, 238, 0.2); border-radius: 50px;">
+                    <span id="selectedSucursalName">N/A</span>
+                </div>
+
+                <div id="filterContainer" class="d-flex align-items-center gap-2 d-none">
+                    <label class="font-size-10 fw-800 mb-0 ms-2" style="color: #94a3b8;">MOSTRAR:</label>
+                    <select id="filterStatus" class="table-filter-select" style="background: rgba(15, 23, 42, 0.6); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; font-size: 0.75rem; padding: 4px 8px; outline: none; cursor: pointer;">
+                        <option value="all" style="background: #0f172a; color: white;">TODOS</option>
+                        <option value="assigned" style="background: #0f172a; color: white;">ASIGNADOS</option>
+                        <option value="available" style="background: #0f172a; color: white;">DISPONIBLES</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body p-0">
+            <!-- Empty State -->
+            <div id="empty-state" class="empty-state-placeholder">
+                <svg viewBox="0 0 24 24" width="48" height="48" stroke="currentColor" stroke-width="1.5" fill="none" class="mb-3 opacity-50"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                <p class="fw-bold mb-1">Busca y selecciona una sucursal arriba</p>
+                <p class="small text-muted">Podrás gestionar todos los usuarios disponibles y asignados en una vista unificada</p>
+            </div>
+
+            <!-- Unified Table -->
+            <div id="table-container" class="table-responsive p-3" style="display: none;">
+                <table id="tableUnifiedUsuarios" class="table table-modern-style w-100">
+                    <thead>
+                        <tr>
+                            <th>Sucursal</th>
+                            <th>Empresa</th>
+                            <th>Usuario</th>
+                            <th class="text-center">Estado</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Floating Action Buttons (Reference Style) -->
+        <div style="position: fixed; bottom: 30px; right: 30px; z-index: 1010; display: flex; gap: 15px;">
+            <button class="btn-limpiar" id="BtnLimpiar" title="Limpiar Selección Actual">
+                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" class="me-1"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg> LIMPIAR
+            </button>
+            
+            <a href="{% url 'global_main' %}" class="btn-cerrar" id="BtnCerrar" title="Cerrar esta sección">
+                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" class="me-1"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"></path></svg> CERRAR
+            </a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function () {
+        const csrfToken = "{{ csrf_token }}";
+        let sucursalesList = [];
+        let selectedSucursal = null;
+        let tableUnified = null;
+
+        // Custom Filter Logic for Status
+        $.fn.dataTable.ext.search.push(
+            function(settings, data, dataIndex) {
+                if (settings.nTable.id !== 'tableUnifiedUsuarios') return true;
+                
+                var filterValue = $('#filterStatus').val();
+                if (filterValue === 'all') return true;
+                
+                var rowData = $('#tableUnifiedUsuarios').DataTable().row(dataIndex).data();
+                if (!rowData) return true;
+                
+                var state = rowData.state;
+                if (filterValue === 'assigned') return state === 'assigned';
+                if (filterValue === 'available') return state === 'available';
+                
+                return true;
+            }
+        );
+
+        // Filter event listener
+        $(document).on('change', '#filterStatus', function() {
+            if ($.fn.DataTable.isDataTable('#tableUnifiedUsuarios')) {
+                $('#tableUnifiedUsuarios').DataTable().draw();
+            }
+        });
+
+        const toastMixin = Swal.mixin({
+            toast: true, icon: 'success', title: 'Acción Exitosa', animation: false,
+            position: 'top-right', showConfirmButton: false, timer: 2000, timerProgressBar: true
+        });
+
+        // 1. Initial Fetch of Sucursales for Search
+        $.ajax({
+            url: `{% url 'get_usuarios_de_la_sucursal_sucursales_data' %}`,
+            type: "POST", data: { csrfmiddlewaretoken: csrfToken },
+            success: function (data) { sucursalesList = data.data || []; }
+        });
+
+        const sanitize = (str) => {
+            if (!str) return "";
+            let s = String(str);
+            // Target the specific broken word "CABAÑAS"
+            s = s.replace(/CABA.{1,3}AS/gi, 'CABAÑAS');
+            
+            // General brute-force replacement for the broken glyphs
+            s = s.replace(/\u00C3\u0091/g, 'Ñ')
+                 .replace(/\u00C3\u00B1/g, 'ñ')
+                 .replace(/Ã‘/g, 'Ñ')
+                 .replace(/Ã±/g, 'ñ');
+            return s.trim();
+        };
+
+        // 2. Search Logic
+        $('#sucursalInputSearch').on('input', function() {
+            const query = $(this).val().toLowerCase().trim();
+            const resultsDiv = $('#searchResults');
+            
+            if (query.length < 2) { resultsDiv.hide(); return; }
+
+            const filtered = sucursalesList.filter(s => 
+                s.NombreSucursal.toLowerCase().includes(query) || 
+                s.CodigoSucursal.toLowerCase().includes(query) ||
+                s.NombreEmpresa.toLowerCase().includes(query)
+            ).slice(0, 8);
+
+            if (filtered.length > 0) {
+                resultsDiv.empty().show();
+                filtered.forEach(s => {
+                    const cleanName = sanitize(s.NombreSucursal);
+                    const cleanEmpresa = sanitize(s.NombreEmpresa);
+                    
+                    const $item = $('<div class="result-item"></div>')
+                        .attr('data-id', s.PKsucursal)
+                        .attr('data-name', cleanName)
+                        .attr('data-empresa', cleanEmpresa);
+                    
+                    const $name = $('<div class="result-name"></div>').text(cleanName);
+                    const $sub = $('<div class="result-sub"></div>').text(`${s.CodigoSucursal} | ${cleanEmpresa}`);
+                    
+                    $item.append($name).append($sub);
+                    resultsDiv.append($item);
+                });
+            } else {
+                resultsDiv.hide();
+            }
+        });
+
+        $(document).on('click', '.result-item', function() {
+            const rawName = $(this).find('.result-name').text();
+            const cleanName = rawName.replace(/[\u200B-\u200D\uFEFF]/g, '').trim(); // Remove zero-width spaces/hidden chars
+            
+            selectedSucursal = {
+                id: $(this).data('id'),
+                name: cleanName,
+                empresa: String($(this).data('empresa')).trim()
+            };
+            $('#sucursalInputSearch').val(selectedSucursal.name);
+            $('#searchResults').hide();
+            $('#selectedSucursalName').text(selectedSucursal.name);
+            $('#selectedSucursalBadge').removeClass('d-none');
+            $('#filterContainer').removeClass('d-none'); // Show filter
+            $('#empty-state').hide();
+            $('#table-container').show();
+            fetchAndRenderUsers();
+        });
+
+        // 3. Data Fetching & Unified Rendering
+        function fetchAndRenderUsers() {
+            if (!selectedSucursal) return;
+
+            if (tableUnified) { tableUnified.clear().draw(); }
+
+            // Fetch both lists in parallel
+            Promise.all([
+                $.ajax({ url: `{% url 'get_usuarios_de_la_sucursal_usuarios_disponibles_data' %}`, type: "POST", data: { varSucursal: selectedSucursal.id, csrfmiddlewaretoken: csrfToken } }),
+                $.ajax({ url: `{% url 'get_usuarios_de_la_sucursal_usuarios_asignados_data' %}`, type: "POST", data: { varSucursal: selectedSucursal.id, csrfmiddlewaretoken: csrfToken } })
+            ]).then(([disponibles, asignados]) => {
+                const unifiedData = [];
+                
+                (disponibles.data || []).forEach(u => unifiedData.push({ ...u, state: 'available' }));
+                (asignados.data || []).forEach(u => unifiedData.push({ ...u, state: 'assigned' }));
+
+                renderTable(unifiedData);
+            });
+        }
+
+        function renderTable(data) {
+            if (tableUnified) {
+                tableUnified.clear().rows.add(data).draw();
+            } else {
+                tableUnified = $('#tableUnifiedUsuarios').DataTable({
+                    data: data,
+                    autoWidth: false,
+                    scrollX: true,
+                    pageLength: 50,
+                    dom: 'rftip',
+                    language: { url: "{% static 'app/th/json/es-ES.json' %}" },
+                    columns: [
+                        { 
+                            data: null, 
+                            render: () => {
+                                let span = document.createElement('span');
+                                span.textContent = sanitize(selectedSucursal.name);
+                                return span.innerHTML;
+                            }
+                        },
+                        { 
+                            data: null, 
+                            render: () => {
+                                let span = document.createElement('span');
+                                span.textContent = sanitize(selectedSucursal.empresa);
+                                return span.innerHTML;
+                            }
+                        },
+                        { 
+                            data: 'Nombres', 
+                            className: 'fw-bold text-white',
+                            render: (d) => {
+                                let span = document.createElement('span');
+                                span.textContent = sanitize(d);
+                                return span.innerHTML;
+                            }
+                        },
+                        { 
+                            data: 'state',
+                            className: 'text-center',
+                            render: (s) => s === 'assigned' 
+                                ? '<span class="badge-status badge-assigned"><svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" fill="none"><path d="M20 6L9 17l-5-5"></path></svg> ASIGNADO</span>'
+                                : '<span class="badge-status badge-available"><svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" fill="none"><circle cx="12" cy="12" r="10"></circle></svg> DISPONIBLE</span>'
+                        },
+                        {
+                            data: null,
+                            className: 'text-center',
+                            render: (row) => row.state === 'assigned'
+                                ? `<button class="btn-action-modern btn-remove" onclick="handleAction('remove', ${row.fkUsuario})"><svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" fill="none"><path d="M18 6L6 18M6 6l12 12"></path></svg> QUITAR</button>`
+                                : `<button class="btn-action-modern btn-assign" onclick="handleAction('assign', ${row.fkUsuario})"><svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" fill="none"><path d="M12 5v14M5 12h14"></path></svg> ASIGNAR</button>`
+                        }
+                    ],
+                    order: [[3, "asc"], [2, "asc"]]
+                });
+            }
+        }
+
+        // 4. Actions Logic
+        window.handleAction = function(type, userId) {
+            const url = type === 'assign' 
+                ? "{% url 'insert_usuarios_de_la_sucursal_usuarios_disponible' %}"
+                : "{% url 'eliminar_usuarios_de_la_sucursal_usuarios_asignado' %}";
+
+            $.ajax({
+                url: url,
+                type: "POST",
+                data: {
+                    varSucursal: selectedSucursal.id,
+                    varUsuario: userId,
+                    csrfmiddlewaretoken: csrfToken
+                },
+                success: function (data) {
+                    if (data.save == 1) {
+                        toastMixin.fire({ title: type === 'assign' ? '¡Usuario Asignado!' : '¡Usuario Removido!' });
+                        fetchAndRenderUsers();
+                    } else {
+                        Swal.fire("Error", data.error, "error");
+                    }
+                }
+            });
+        };
+
+        $('#btnLimpiar').on('click', function() {
+            selectedSucursal = null;
+            $('#sucursalInputSearch').val('');
+            $('#selectedSucursalBadge').addClass('d-none');
+            $('#filterContainer').addClass('d-none'); // Hide filter
+            $('#table-container').hide();
+            $('#empty-state').show();
+        });
+
+        // Close dropdown on click outside
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('.search-entity-container').length) {
+                $('#searchResults').hide();
+            }
+        });
+    });
+</script>
+{% endblock %}

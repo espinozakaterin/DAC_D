@@ -2283,24 +2283,11 @@ def historial_suministros_data(request):
                 rango_anio_fin = None
 
             with udcConn.cursor() as cursor:
-                # ── NIVEL 1: Rango exacto ──────────────────────────────────────────
-                print(f"DEBUG Kardex: Nivel 1 (Exacto: {fecha_desde} - {fecha_hasta})")
+                # ── Rango exacto solicitado ──────────────────────────────────────────
+                print(f"DEBUG Kardex: Consulta (Exacto: {fecha_desde} - {fecha_hasta})")
                 cursor.callproc('OBTENER_HISTORIAL_KARDEX', [id_categoria, id_suministro, fecha_desde, fecha_hasta])
                 result = list(cursor.fetchall())
                 columnas = [col[0] for col in cursor.description]
-
-                # Determinar si hay movimientos operativos (no saldo inicial)
-                idx_es_saldo = columnas.index('es_saldo_inicial') if 'es_saldo_inicial' in columnas else -1
-                hay_movimientos = any(row[idx_es_saldo] == 0 for row in result) if idx_es_saldo != -1 else bool(result)
-
-                # ── NIVEL 2: Mismo Mes y Año (Solo si Nivel 1 no tiene movimientos operativos) ───────────────
-                if not hay_movimientos and id_suministro and rango_mes_inicio:
-                    while cursor.nextset(): pass
-                    print(f"DEBUG Kardex: Nivel 2 (Mismo Mes: {rango_mes_inicio} - {rango_mes_fin})")
-                    cursor.callproc('OBTENER_HISTORIAL_KARDEX', [id_categoria, id_suministro, rango_mes_inicio, rango_mes_fin])
-                    result = list(cursor.fetchall())
-                    if result:
-                        columnas = [col[0] for col in cursor.description]
                 # ─────────────────────────────────────────────────────────────────────
 
                 # ── Mapa de usuarios para enriquecer creado_por ───────────────────────
@@ -2318,6 +2305,22 @@ def historial_suministros_data(request):
                         mapa_usuarios[f_key] = r_user[2]
 
                 # ── Construir respuesta ───────────────────────────────────────────────
+                # Mapa de correcciones de encoding para textos corruptos provenientes de la BD
+                _ENCODING_FIXES = {
+                    'Devoluci\xben':      'Devolución',
+                    'Devoluci¾n':         'Devolución',
+                    'Actualizaci\xben':   'Actualización',
+                    'Actualizaci¾n':      'Actualización',
+                }
+
+                def _fix_encoding(texto):
+                    """Reemplaza caracteres mal codificados en textos del Kardex."""
+                    if not texto:
+                        return texto
+                    for malo, bueno in _ENCODING_FIXES.items():
+                        texto = texto.replace(malo, bueno)
+                    return texto
+
                 data = []
                 for row in result:
                     item = dict(zip(columnas, row))
@@ -2330,6 +2333,10 @@ def historial_suministros_data(request):
 
                     if 'costo_total' in item and item['costo_total'] is not None:
                         item['costo_total'] = abs(float(item['costo_total']))
+
+                    # Corregir textos con encoding corrupto
+                    if 'detalle_movimiento' in item:
+                        item['detalle_movimiento'] = _fix_encoding(str(item['detalle_movimiento']))
 
                     search_key = (orig_fecha.split(' ')[0], orig_detalle)
                     item['creado_por'] = mapa_usuarios.get(search_key) or item.get('creado_por') or ''

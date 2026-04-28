@@ -1,0 +1,577 @@
+{% extends 'componentes/menu_global_security.html' %}
+{% load static %}
+
+{% block title %}
+Listado de Acciones | GLOBAL Security
+{% endblock %}
+
+{% block title_header %}
+Gestión de Privilegios
+{% endblock %}
+
+{% block body %}
+
+<style>
+    /* === DARK GLASS PREMIUM - Listado de Acciones (scoped) === */
+
+    /* Main Card */
+    .modern-table-card {
+        background: linear-gradient(145deg, rgba(15,23,42,0.85), rgba(2,6,23,0.92)) !important;
+        backdrop-filter: blur(16px) !important; -webkit-backdrop-filter: blur(16px) !important;
+        border-radius: 16px;
+        border: 1px solid rgba(34,211,238,0.15) !important;
+        padding: 0.65rem !important;
+        box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.08) !important;
+        height: auto; transition: all 0.25s ease;
+        display: flex; flex-direction: column;
+    }
+    .modern-table-card:hover {
+        border-color: rgba(34,211,238,0.3) !important;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.45) !important;
+    }
+
+    /* Header area */
+    .border-bottom { border-bottom-color: rgba(255,255,255,0.06) !important; }
+    .fw-bold { color: #ffffff !important; }
+    .text-muted, .form-label.text-muted { color: #94a3b8 !important; }
+    .text-secondary { color: #94a3b8 !important; }
+    .font-size-14 { color: #e2e8f0 !important; }
+
+    /* Header icon override */
+    .stat-icon.icon-orange {
+        background: rgba(34,211,238,0.12) !important;
+        color: #22d3ee !important;
+        border: 1px solid rgba(34,211,238,0.2) !important;
+    }
+
+    /* "Nueva Acción" button - premium */
+    .btn-modern.btn-primary-modern {
+        background: linear-gradient(135deg, rgba(2,132,199,0.8), rgba(3,105,161,0.9)) !important;
+        color: #fff !important; border: 1px solid rgba(34,211,238,0.3) !important;
+        border-radius: 10px !important; font-weight: 700 !important;
+        box-shadow: 0 4px 12px rgba(2,132,199,0.3); transition: all 0.2s ease;
+        display: flex; align-items: center; gap: 8px;
+    }
+    .btn-modern.btn-primary-modern:hover {
+        transform: translateY(-1px); filter: brightness(1.15);
+        box-shadow: 0 6px 16px rgba(2,132,199,0.4);
+    }
+
+    /* Table */
+    .table-modern thead th {
+        background: linear-gradient(to right, rgba(15,23,42,0.95), rgba(2,6,23,0.95)) !important;
+        color: #94a3b8 !important; font-size: 0.68rem !important;
+        padding: 10px 14px !important; text-transform: uppercase !important;
+        font-weight: 800 !important; letter-spacing: 0.04em;
+        border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+        background-image: none !important;
+        text-align: center !important; vertical-align: middle !important;
+    }
+    .table-modern tbody td {
+        color: #e2e8f0 !important; font-size: 0.82rem !important;
+        padding: 10px 14px !important;
+        border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+        background-color: transparent !important;
+    }
+    table.dataTable tbody tr td { background-color: transparent !important; }
+    .table-modern tbody tr { transition: background-color 0.2s ease !important; }
+    .table-modern tbody tr:hover td { background-color: rgba(255,255,255,0.03) !important; }
+
+    /* Selected row */
+    table.table-modern#tableListadoAcciones tbody tr.selected td,
+    table.table-modern#tableListadoAcciones tbody tr.selected > .sorting_1,
+    table.table-modern#tableListadoAcciones tbody tr.table-primary td {
+        background-color: rgba(34,211,238,0.2) !important;
+        color: #ffffff !important; font-weight: 600 !important; box-shadow: none !important;
+    }
+    table.table-modern#tableListadoAcciones.dataTable.display tbody tr.selected > .sorting_1,
+    table.table-modern#tableListadoAcciones.dataTable.order-column.hover tbody tr.selected > .sorting_1 {
+        background-color: rgba(34,211,238,0.2) !important;
+        color: #ffffff !important;
+    }
+
+    /* Action buttons in table */
+    .table-modern tbody .btn-sm {
+        background: rgba(255,255,255,0.06) !important; border: 1px solid rgba(255,255,255,0.1) !important;
+        color: #cbd5e1 !important; border-radius: 6px !important; transition: all 0.2s ease;
+        font-size: 0.72rem !important;
+    }
+    .table-modern tbody .btn-sm:hover { background: rgba(255,255,255,0.12) !important; color: #fff !important; transform: scale(1.05); }
+    .table-modern tbody .btn-custom {
+        background: rgba(255,255,255,0.06) !important; border: 1px solid rgba(255,255,255,0.12) !important;
+        color: #94a3b8 !important; border-radius: 6px !important;
+    }
+    .table-modern tbody .btn-custom:hover { background: rgba(255,255,255,0.12) !important; color: #fff !important; }
+    .table-modern tbody .btn-danger { border-color: rgba(239,68,68,0.3) !important; color: #f87171 !important; }
+    .table-modern tbody .btn-danger:hover { background: rgba(239,68,68,0.15) !important; }
+
+    /* DataTable filter/search */
+    .dataTables_wrapper .dataTables_filter input {
+        border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 8px !important;
+        padding: 4px 10px !important; background: rgba(15,23,42,0.6) !important;
+        color: #e2e8f0 !important; font-size: 0.78rem !important;
+    }
+    .dataTables_wrapper .dataTables_filter input:focus { border-color: #22d3ee !important; outline: none !important; box-shadow: 0 0 0 3px rgba(34,211,238,0.1) !important; }
+    .dataTables_wrapper .dataTables_filter label { color: #94a3b8 !important; font-size: 0.75rem !important; }
+    .dataTables_wrapper .dataTables_info { color: #64748b !important; font-size: 0.72rem !important; }
+    .dataTables_scrollBody::-webkit-scrollbar { width: 4px !important; height: 4px !important; }
+    .dataTables_scrollBody::-webkit-scrollbar-track { background: transparent !important; }
+    .dataTables_scrollBody::-webkit-scrollbar-thumb { background: #1e293b !important; border-radius: 10px !important; }
+
+    /* Table spacing */
+    .table-responsive { margin-top: 1.8rem !important; padding-right: 10px !important; }
+    .dataTables_wrapper { padding-right: 1.5rem !important; }
+
+    /* Select2 - Dark */
+    .select2-container--default .select2-selection--single {
+        background-color: rgba(15,23,42,0.6) !important; border: 1px solid rgba(255,255,255,0.1) !important;
+        border-radius: 8px !important; height: 38px !important;
+        display: flex !important; align-items: center !important;
+        padding: 0 10px !important; transition: all 0.2s ease !important;
+    }
+    .select2-container--default.select2-container--open .select2-selection--single {
+        border-color: #22d3ee !important; box-shadow: 0 0 0 3px rgba(34,211,238,0.1) !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        color: #e2e8f0 !important; font-size: 0.78rem !important; font-weight: 600 !important;
+        padding-left: 0 !important; line-height: 38px !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__placeholder { color: #94a3b8 !important; }
+    .select2-container--default .select2-selection--single .select2-selection__arrow { height: 36px !important; right: 8px !important; }
+    .select2-container--default .select2-selection--single .select2-selection__arrow b { border-color: #94a3b8 transparent transparent transparent !important; }
+    .select2-container--default .select2-selection--single .select2-selection__clear { color: #64748b !important; transition: color 0.2s ease; }
+    .select2-container--default .select2-selection--single .select2-selection__clear:hover { color: #ef4444 !important; }
+
+    .select2-dropdown, .select2-container--default .select2-dropdown {
+        background: rgba(15,23,42,0.96) !important; background-color: rgba(15,23,42,0.96) !important;
+        backdrop-filter: blur(12px) !important; -webkit-backdrop-filter: blur(12px) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 12px !important;
+        box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5) !important;
+        z-index: 9999 !important; overflow: hidden !important; margin-top: 5px !important;
+    }
+    .select2-results__options { max-height: 250px !important; list-style: none !important; padding: 0 !important; margin: 0 !important; }
+    .select2-results__option, .select2-container--default .select2-results__option {
+        padding: 10px 15px !important; font-size: 0.82rem !important;
+        color: #e2e8f0 !important; background: transparent !important; background-color: transparent !important;
+        border-bottom: 1px solid rgba(255,255,255,0.05) !important; list-style: none !important;
+    }
+    .select2-container--default .select2-results__option--highlighted[aria-selected] {
+        background: rgba(255,255,255,0.08) !important; background-color: rgba(255,255,255,0.08) !important; color: #fff !important;
+    }
+    .select2-results__option[aria-selected=true] {
+        background: rgba(34,211,238,0.12) !important; background-color: rgba(34,211,238,0.12) !important;
+        color: #22d3ee !important; font-weight: 700 !important;
+    }
+    .select2-container .select2-results__option:last-child { border-bottom: none !important; }
+    .select2-search--dropdown { padding: 10px !important; background: transparent !important; background-color: transparent !important; }
+    .select2-search--dropdown .select2-search__field {
+        border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 8px !important;
+        padding: 8px 12px !important; font-size: 0.85rem !important;
+        background: rgba(15,23,42,0.6) !important; background-color: rgba(15,23,42,0.6) !important;
+        color: #e2e8f0 !important; outline: none !important;
+    }
+    .select2-search--dropdown .select2-search__field:focus { border-color: #22d3ee !important; box-shadow: 0 0 0 3px rgba(34,211,238,0.1) !important; }
+    .select2-results__options::-webkit-scrollbar { width: 6px !important; }
+    .select2-results__options::-webkit-scrollbar-track { background: transparent !important; }
+    .select2-results__options::-webkit-scrollbar-thumb { background: #0284c7 !important; border-radius: 10px !important; }
+    .select2-results__options::-webkit-scrollbar-thumb:hover { background: #0369a1 !important; }
+
+    /* Floating Buttons - Premium */
+    .floating-action-container { position: fixed; bottom: 32px; right: 32px; z-index: 1010; display: flex; gap: 15px; }
+    .floating-action-btn {
+        border-radius: 12px !important; height: 44px; padding: 0 25px;
+        font-size: 0.75rem !important; font-weight: 800 !important; display: flex; align-items: center;
+        gap: 8px; color: white !important; text-transform: uppercase;
+        box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5) !important; backdrop-filter: blur(8px);
+        transition: all 0.2s ease; cursor: pointer;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+    }
+    .floating-action-btn:hover { transform: translateY(-2px); filter: brightness(1.15); }
+    .btn-secondary-ref { background: linear-gradient(135deg, rgba(71,85,105,0.9), rgba(51,65,85,0.9)) !important; }
+    .btn-primary-ref { background: linear-gradient(135deg, rgba(30,41,59,0.9), rgba(15,23,42,0.9)) !important; }
+
+    /* Empty State */
+    .empty-state-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10rem 2rem; text-align: center; }
+    .empty-state-placeholder .pulsing-icon { color: #475569 !important; }
+    .empty-state-placeholder p { color: #94a3b8 !important; }
+    .empty-state-placeholder small { color: #64748b !important; }
+    .pulsing-icon { animation: pulse 2s infinite; margin-bottom: 1.5rem; }
+    @keyframes pulse {
+        0% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.1); opacity: 0.7; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* Modal dark/glass (scoped) */
+    #modalEditarAccion, #modalAgregarAccion { z-index: 1060 !important; pointer-events: auto !important; }
+    .modal-backdrop { z-index: 1055 !important; background-color: rgba(0,0,0,0.7) !important; backdrop-filter: blur(6px) !important; }
+    #modalEditarAccion .modal-dialog, #modalAgregarAccion .modal-dialog { z-index: 1061 !important; pointer-events: auto !important; }
+    #modalEditarAccion .modal-content, #modalAgregarAccion .modal-content {
+        background: linear-gradient(160deg, rgba(15,23,42,0.97), rgba(2,6,23,0.99)) !important;
+        backdrop-filter: blur(20px) !important; border: 1px solid rgba(34,211,238,0.2) !important;
+        border-radius: 16px !important; color: #e2e8f0 !important;
+        box-shadow: 0 25px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06) !important;
+        pointer-events: auto !important; z-index: 1062 !important;
+    }
+    #modalEditarAccion .modal-header, #modalAgregarAccion .modal-header {
+        background: linear-gradient(135deg, rgba(15,23,42,0.9), rgba(2,6,23,0.95)) !important;
+        border-bottom: 1px solid rgba(34,211,238,0.12) !important;
+    }
+    #modalEditarAccion .modal-header .modal-title, #modalAgregarAccion .modal-header .modal-title { color: #fff !important; font-weight: 700 !important; }
+    #modalEditarAccion .modal-header .btn-close, #modalAgregarAccion .modal-header .btn-close {
+        filter: invert(1) grayscale(100%) brightness(200%) !important; opacity: 0.6 !important; pointer-events: auto !important; cursor: pointer !important;
+    }
+    #modalEditarAccion .modal-body, #modalAgregarAccion .modal-body { background: transparent !important; pointer-events: auto !important; }
+    #modalEditarAccion .modal-body .form-label, #modalAgregarAccion .modal-body .form-label {
+        color: #94a3b8 !important; font-weight: 600 !important; font-size: 0.78rem !important; text-transform: uppercase !important; letter-spacing: 0.04em !important;
+    }
+    #modalEditarAccion .modal-body .form-control, #modalAgregarAccion .modal-body .form-control {
+        background-color: rgba(15,23,42,0.7) !important; color: #e2e8f0 !important;
+        border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 10px !important;
+        pointer-events: auto !important; cursor: text !important;
+    }
+    #modalEditarAccion .modal-body .form-control:focus, #modalAgregarAccion .modal-body .form-control:focus {
+        border-color: #22d3ee !important; box-shadow: 0 0 0 3px rgba(34,211,238,0.12) !important;
+        background-color: rgba(15,23,42,0.85) !important; color: #fff !important;
+    }
+    #modalEditarAccion .modal-footer, #modalAgregarAccion .modal-footer {
+        background: rgba(15,23,42,0.5) !important; border-top: 1px solid rgba(255,255,255,0.06) !important; pointer-events: auto !important;
+    }
+    #modalEditarAccion .modal-footer .btn-primary, #modalAgregarAccion .modal-footer .btn-primary {
+        background: linear-gradient(135deg, rgba(2,132,199,0.85), rgba(3,105,161,0.95)) !important;
+        border: 1px solid rgba(34,211,238,0.3) !important; color: #fff !important; border-radius: 10px !important;
+        font-weight: 700 !important; pointer-events: auto !important; cursor: pointer !important;
+    }
+    #modalEditarAccion .modal-footer .btn-secondary, #modalAgregarAccion .modal-footer .btn-secondary {
+        background: linear-gradient(135deg, rgba(71,85,105,0.7), rgba(51,65,85,0.8)) !important;
+        border: 1px solid rgba(255,255,255,0.08) !important; color: #cbd5e1 !important; border-radius: 10px !important;
+        pointer-events: auto !important; cursor: pointer !important;
+    }
+    #modalEditarAccion *, #modalAgregarAccion * { pointer-events: auto; }
+</style>
+
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+<div class="modern-table-card shadow-lg m-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3 border-bottom pb-3">
+        <div class="d-flex align-items-center gap-2">
+            <div class="stat-icon icon-orange" style="width: 40px; height: 40px; font-size: 1.2rem; background: rgba(249, 115, 22, 0.1); color: #f97316; display: flex; align-items: center; justify-content: center; border-radius: 10px;">
+                <i data-lucide="activity"></i>
+            </div>
+            <h4 class="fw-bold mb-0">Listado de Acciones</h4>
+        </div>
+
+        <div class="d-flex align-items-center gap-3">
+            <div class="d-flex align-items-center gap-2">
+                <label for="selectModulo" class="form-label mb-0 fw-bold text-muted small" style="font-size: 0.72rem; letter-spacing: 0.05em;">MÓDULO:</label>
+                <div style="min-width: 250px;">
+                    <select id="selectModulo" class="table-filter-select w-100">
+                        <option value=""></option>
+                        {% for m in modulos %}
+                        <option value="{{ m.PKmodulo }}" data-description="{{ m.Descripcion }}">
+                            {{ m.Nombre }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <button id="btnAgregarAccion" class="btn-modern btn-primary-modern px-3 py-2" style="font-size: 0.85rem;">
+                <i data-lucide="plus-circle" style="width: 18px;"></i>
+                Nueva Acción
+            </button>
+        </div>
+    </div>
+
+    <div id="empty-state-acciones" class="empty-state-placeholder">
+        <div class="pulsing-icon">
+            <i data-lucide="shield-check" style="width: 48px; height: 48px;"></i>
+        </div>
+        <p class="text-muted fw-medium font-size-14">Seleccione un módulo arriba para gestionar sus privilegios</p>
+        <small class="text-secondary mt-1 px-4">Visualizarás el catálogo de acciones y descripciones técnicas para el módulo seleccionado</small>
+    </div>
+
+    <div id="table-container-acciones" style="display: none;">
+        <div class="table-responsive">
+            <table id="tableListadoAcciones" class="table-modern w-100">
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">Índice</th>
+                        <th>Nombre de Acción</th>
+                        <th>Descripción Detallada</th>
+                        <th style="width: 150px;" class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Floating Buttons -->
+<div class="floating-action-container">
+    <button class="floating-action-btn btn-secondary-ref" id="btnLimpiar" title="Limpiar Selección Actual">
+        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+        LIMPIAR
+    </button>
+    <a href="{% url 'global_main' %}" style="text-decoration: none;">
+        <button class="floating-action-btn btn-primary-ref" title="Cerrar esta sección">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            CERRAR
+        </button>
+    </a>
+</div>
+
+{% include 'acciones/modales_acciones/m_edit_listado_acciones.html' %}
+{% include 'acciones/modales_acciones/m_add_listado_acciones.html' %}
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function () {
+        /* ── Move modals to <body> to escape stacking contexts ── */
+        $('#modalEditarAccion, #modalAgregarAccion').appendTo('body');
+
+        var csrfToken = "{{ csrf_token }}";
+        var selectedAccionId = null, id_modulo = null;
+
+        // Initialize Select2 with Standard Premium Style
+        $('#selectModulo').select2({
+            placeholder: "Seleccione módulo...",
+            allowClear: true,
+            width: 'resolve',
+            dropdownAutoWidth: true
+        });
+
+        $('#btnAgregarAccion').on('click', function () {
+            $('#NombreAdd').val("");
+            $('#DescripcionAdd').val("");
+            $('#modalAgregarAccion').modal('show');
+        });
+
+        $('#btnLimpiar').on('click', function () {
+            limpiarSeleccion();
+        });
+
+        function limpiarSeleccion() {
+            $('#selectModulo').val("").trigger('change');
+            id_modulo = null;
+            $("#table-container-acciones").hide();
+            $("#empty-state-acciones").fadeIn(300);
+            if ($.fn.DataTable.isDataTable('#tableListadoAcciones')) {
+                $("#tableListadoAcciones").DataTable().clear().draw();
+            }
+        }
+
+        $('#selectModulo').on('change', function () {
+            getAcciones();
+        });
+
+        // Initial load check
+        getAcciones();
+
+
+        function getAcciones() {
+            var moduloSeleccionado = $("#selectModulo").val();
+
+            if (!moduloSeleccionado || moduloSeleccionado === "") {
+                $("#table-container-acciones").hide();
+                $("#empty-state-acciones").show();
+                return;
+            }
+
+            $("#empty-state-acciones").hide();
+            $("#table-container-acciones").show();
+
+            if ($.fn.DataTable.isDataTable('#tableListadoAcciones')) {
+                $('#tableListadoAcciones').DataTable().destroy();
+            }
+
+            tableListadoAcciones = $('#tableListadoAcciones').DataTable({
+                autoWidth: false,
+                scrollX: true,
+                scrollY: '450px',
+                scrollCollapse: true,
+                pageLength: 50,
+                dom: 'rftip',
+                language: {
+                    url: "{% static 'app/th/json/es-ES.json' %}",
+                },
+                ajax: {
+                    url: `{% url 'get_listado_acciones_data' %}`,
+                    type: "POST",
+                    data: {
+                        csrfmiddlewaretoken: "{{ csrf_token }}",
+                        varModulo: moduloSeleccionado
+                    },
+                    dataSrc: 'data'
+                },
+                colReorder: {
+                    realtime: false,
+                },
+                buttons: [
+                    {
+                        extend: 'excel',
+                        text: '<i class="fas fa-file-excel"></i>',
+                        titleAttr: 'Exportar a Excel',
+                        className: 'btn btn-success',
+                    },
+                    {
+                        extend: 'pdf',
+                        text: '<i class="fas fa-file-pdf"></i>',
+                        titleAttr: 'Exportar a PDF',
+                        className: 'btn btn-danger',
+                    },
+                    {
+                        extend: 'print',
+                        text: '<i class="fas fa-print"></i>',
+                        titleAttr: 'Imprimir',
+                        className: 'btn btn-primary',
+                        orientation: 'landscape'
+                    }
+                ],
+                columns: [
+                    { data: 'PKaccion' },
+                    { data: 'Nombre' },
+                    { data: 'Descripcion' },
+                    {
+                        data: null,
+                        orderable: false,
+                        className: 'text-center',
+                        render: function (data, type, row) {
+                            return `<div class="d-flex align-items-center justify-content-center gap-1" style="white-space: nowrap;">
+                                        <button title="Editar Accion" class="btn btn-sm btn-custom" style="background: #f8fafc; border: 1px solid #e2e8f0; color: #64748b;">
+                                            <i class="fa fa-edit"></i>
+                                        </button>
+                                        <button title="Eliminar Accion" class="btn btn-sm btn-danger" style="border-radius: 6px;">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </div>`;
+                        }
+                    }
+                ]
+            });
+        }
+
+        $('#tableListadoAcciones tbody').on('click', 'tr', function () {
+            $('#tableListadoAcciones tbody tr').removeClass('selected');
+            $(this).addClass('selected');
+            selectedAccionId = tableListadoAcciones.row(this).data().PKaccion;
+        });
+
+
+        $('#tableListadoAcciones tbody').on('click', 'button', function () {
+            var action = $(this).attr('title');
+            var data = tableListadoAcciones.row($(this).parents('tr')).data();
+            if (action === "Editar Accion") {
+                // $('#Id').val(data.PKaccion);
+                $('#Nombre').val(data.Nombre);
+                $('#Descripcion').val(data.Descripcion);
+                $('#modalEditarAccion').data('acciones', data);
+                $('#modalEditarAccion').modal('show');
+            } else if (action === "Eliminar Accion") {
+                var data = tableListadoAcciones.row($(this).parents('tr')).data();
+                var Nombre = data.Nombre;
+                var AccionID = data.PKaccion;
+                Swal.fire({
+                    title: `¿Deseas eliminar a esta accion?`,
+                    text: `El la accion ${Nombre}, será ELIMINADO`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: `Sí, Eliminar`
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: `{% url 'delete_accion' %}`,
+                            type: 'POST',
+                            data: {
+                                varAccion: AccionID,
+                                csrfmiddlewaretoken: "{{ csrf_token }}"
+                            },
+                            success: function (response) {
+                                Swal.fire('Éxito', `La Accion ha sido ELMINADA correctamente`, 'success');
+                                getAcciones();
+                            },
+                            error: function (xhr, status, error) {
+                                Swal.fire('Error', `No se pudo ELIMINAR la Accion`, 'error');
+                            }
+                        });
+                    }
+                });
+            }
+        });
+
+
+        $('#guardarAccionEditada').on('click', function () {
+            var Descripcion = $('#Descripcion').val()
+            var Nombre = $('#Nombre').val()
+            if (Nombre.trim() === '') {
+                Swal.fire('Error', 'El nuevo nombre no puede estar vacío', 'error');
+                return;
+            }
+            var accion = $('#modalEditarAccion').data('acciones');
+
+            $.ajax({
+                url: `{% url 'update_accion' %}`,
+                type: 'POST',
+                data: {
+                    varAccion: accion.PKaccion,
+                    varNombre: Nombre,
+                    varDescripcion: Descripcion,
+                    varModulo: id_modulo,
+
+                    csrfmiddlewaretoken: "{{ csrf_token }}"
+                },
+                success: function (response) {
+                    Swal.fire('Éxito', 'La accion ha sido actualizada correctamente', 'success');
+                    $('#modalEditarAccion').modal('hide');
+                    getAcciones();
+                },
+                error: function (xhr, status, error) {
+                    Swal.fire('Error', 'No se pudo actualizar la accion', 'error');
+                },
+                complete: function () {
+                    $('#modalCambiarNombre').modal('hide');
+                }
+
+            });
+
+        });
+
+
+        //SE AGREGO CONSULTA PARA ESTE INSERT , NO HABIA SP
+        $('#guardarNuevaAccion').on('click', function () {
+            var NombreAdd = $('#NombreAdd').val().trim();
+            var DescripcionAdd = $('#DescripcionAdd').val().trim();
+
+            if (!Nombre || !Descripcion) {
+                Swal.fire('Error', 'Todos los campos son obligatorios', 'error');
+                return;
+            }
+
+            $.ajax({
+                url: `{% url 'create_accion' %}`,
+                type: 'POST',
+                data: {
+                    varNombre: NombreAdd,
+                    varDescripcion: DescripcionAdd,
+                    varModulo: id_modulo,
+                    csrfmiddlewaretoken: "{{ csrf_token }}"
+                },
+                success: function (response) {
+                    Swal.fire('Éxito', 'Accion agregada correctamente', 'success');
+                    $('#modalAgregarAccion').modal('hide');
+                    getAcciones();
+                },
+                error: function (xhr, status, error) {
+                    Swal.fire('Error', 'No se pudo agregar la accion', 'error');
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

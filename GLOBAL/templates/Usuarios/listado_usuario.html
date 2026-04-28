@@ -1,0 +1,983 @@
+{% extends 'componentes/menu_global_security.html' %}
+{% load static %}
+
+{% block title %}
+Usuarios | GLOBAL Security
+{% endblock %}
+
+{% block title_header %}
+Gestión de Usuarios
+{% endblock %}
+
+{% block body %}
+
+<style>
+    /* Definitive External Symmetry */
+    .dashboard-container {
+        padding-left: 2rem !important;  
+        padding-right: 2rem !important; 
+        margin: 0 auto !important;
+        max-width: 100% !important;
+    }
+
+    /* Enable Global Page Scroll - Balanced with Bootstrap */
+    html, .main-layout, .page-content {
+        overflow-y: auto !important;
+    }
+    body {
+        overflow-y: auto; /* Removed !important to allow .modal-open to work */
+        height: auto;
+        min-height: 100vh;
+    }
+
+    /* Modern Card Style (Dark Glass Premium) */
+    .modern-table-card {
+        background: linear-gradient(145deg, rgba(15, 23, 42, 0.8), rgba(2, 6, 23, 0.9)) !important;
+        backdrop-filter: blur(16px) !important;
+        -webkit-backdrop-filter: blur(16px) !important;
+        border-radius: 16px;
+        border: 1px solid rgba(34, 211, 238, 0.15) !important;
+        padding: 0.75rem !important;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+        height: auto;
+        transition: var(--transition);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .modern-table-card:hover {
+        box-shadow: 0 20px 50px rgba(0,0,0,0.4) !important;
+        border-color: rgba(34, 211, 238, 0.3) !important;
+    }
+
+    .stat-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .icon-blue { background: rgba(14, 165, 233, 0.1); color: #22d3ee; }
+
+    /* DataTable Overrides */
+    .table-modern-style thead th {
+        background: linear-gradient(to right, rgba(15, 23, 42, 0.95), rgba(2, 6, 23, 0.95)) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: #94a3b8 !important;
+        font-size: 0.68rem !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        padding: 8px 12px !important;
+    }
+
+    .table-modern-style tbody td {
+        border-color: rgba(255, 255, 255, 0.05) !important;
+        padding: 8px 12px !important;
+        font-size: 0.8rem !important;
+        color: #e2e8f0 !important;
+        background-color: transparent !important;
+    }
+
+    .table-modern-style tbody tr {
+        transition: background-color 0.2s ease !important;
+    }
+
+    .table-modern-style tbody tr:hover td {
+        background-color: rgba(255, 255, 255, 0.05) !important;
+    }
+
+    /* DataTable Search and Filter Elements */
+    .dataTables_wrapper .dataTables_filter label {
+        color: #94a3b8 !important;
+        font-weight: 500 !important;
+        font-size: 0.8rem !important;
+    }
+    
+    .dataTables_wrapper .dataTables_filter input {
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        border-radius: 8px !important;
+        padding: 5px 12px !important;
+        background: rgba(15, 23, 42, 0.6) !important;
+        color: #fff !important;
+        font-size: 0.8rem !important;
+        transition: all 0.2s ease !important;
+        margin-left: 10px !important;
+    }
+
+    .dataTables_wrapper .dataTables_filter input:focus {
+        border-color: #22d3ee !important;
+        outline: none !important;
+        box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.1) !important;
+    }
+
+    .dataTables_wrapper .dataTables_info {
+        color: #94a3b8 !important;
+        font-size: 0.8rem !important;
+        padding-top: 15px !important;
+    }
+
+    /* Scrollbar Style */
+    .dataTables_scrollBody::-webkit-scrollbar { width: 6px !important; height: 6px !important; }
+    .dataTables_scrollBody::-webkit-scrollbar-track { background: transparent !important; }
+    .dataTables_scrollBody::-webkit-scrollbar-thumb { background: #1e293b !important; border-radius: 10px !important; }
+    .dataTables_scrollBody::-webkit-scrollbar-thumb:hover { background: #334155 !important; }
+
+    /* Custom Filter Select */
+    .table-filter-select {
+        border-radius: 8px !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        padding: 6px 14px !important;
+        font-size: 0.78rem !important;
+        font-weight: 600 !important;
+        color: #fff !important;
+        background-color: rgba(15, 23, 42, 0.6) !important;
+        cursor: pointer !important;
+        transition: all 0.2s ease !important;
+        min-width: 140px;
+    }
+
+    .table-filter-select:focus {
+        border-color: #22d3ee !important;
+        outline: none !important;
+        box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.1) !important;
+    }
+
+    /* Buttons Premium Styles */
+    .btn-action-icon {
+        width: 36px !important;
+        height: 36px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        background: rgba(15, 23, 42, 0.6) !important;
+        color: #94a3b8 !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 8px !important;
+        padding: 0 !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        font-size: 0.95rem !important;
+        backdrop-filter: blur(4px);
+    }
+
+    .btn-action-icon:hover {
+        background: rgba(34, 211, 238, 0.1) !important;
+        color: #22d3ee !important;
+        transform: translateY(-2px) scale(1.05);
+        border-color: rgba(34, 211, 238, 0.4) !important;
+        box-shadow: 0 0 15px rgba(34, 211, 238, 0.2) !important;
+    }
+
+    .btn-retirar-elegant {
+        background: rgba(239, 68, 68, 0.1) !important;
+        color: #fca5a5 !important;
+        border: 1px solid rgba(239, 68, 68, 0.2) !important;
+        border-radius: 8px !important;
+        padding: 6px 14px !important;
+        font-size: 0.75rem !important;
+        font-weight: 600 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        transition: all 0.2s ease !important;
+        min-height: 32px;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+    }
+
+    .btn-retirar-elegant:hover {
+        background: rgba(239, 68, 68, 0.2) !important;
+        color: #fef2f2 !important;
+        border-color: rgba(239, 68, 68, 0.3) !important;
+        transform: translateY(-1px);
+    }
+
+    .btn-habilitar-elegant {
+        background: rgba(16, 185, 129, 0.1) !important;
+        color: #6ee7b7 !important;
+        border: 1px solid rgba(16, 185, 129, 0.2) !important;
+        border-radius: 8px !important;
+        padding: 6px 14px !important;
+        font-size: 0.75rem !important;
+        font-weight: 600 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        transition: all 0.2s ease !important;
+        min-height: 32px;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+    }
+
+    .btn-habilitar-elegant:hover {
+        background: rgba(16, 185, 129, 0.2) !important;
+        color: #ecfdf5 !important;
+        border-color: rgba(16, 185, 129, 0.3) !important;
+        transform: translateY(-1px);
+    }
+
+    .btn-add-modern {
+        background: linear-gradient(135deg, #0284c7, #0ea5e9) !important;
+        color: white !important;
+        border: none !important;
+        padding: 8px 18px !important;
+        font-size: 0.8rem !important;
+        border-radius: 10px !important;
+        font-weight: 600 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        transition: all 0.2s ease !important;
+        box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3) !important;
+    }
+
+    .btn-add-modern:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(2, 132, 199, 0.4) !important;
+        filter: brightness(1.1);
+    }
+
+    /* Floating Action Buttons */
+    .floating-action-btn {
+        width: 130px !important;
+        height: 44px !important;
+        border-radius: 12px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        transition: var(--transition) !important;
+        border: 1px solid transparent !important;
+        box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5) !important;
+        font-size: 0.75rem !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        gap: 8px !important;
+        color: white !important;
+    }
+
+    .floating-action-btn:hover {
+        transform: translateY(-2px);
+    }
+
+    #btnCerrar {
+        background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.9)) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        backdrop-filter: blur(8px);
+        position: fixed;
+        bottom: 32px;
+        right: 32px;
+        z-index: 1000;
+    }
+    #btnCerrar:hover {
+        box-shadow: 0 0 15px rgba(30, 41, 59, 0.6) !important;
+        border-color: rgba(255,255,255,0.2) !important;
+    }
+
+    .action-buttons-container {
+        display: flex;
+        align-items: center;
+        gap: 8px !important;
+        white-space: nowrap;
+    }
+    
+    /* Pagination Styling (Dark) */
+    .dataTables_wrapper .dataTables_paginate .paginate_button {
+        color: #94a3b8 !important;
+        border-radius: 6px !important;
+        border: 1px solid transparent !important;
+        padding: 4px 10px !important;
+        margin: 0 2px !important;
+        transition: all 0.2s ease !important;
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+        background: rgba(255,255,255,0.1) !important;
+        color: #fff !important;
+        border-color: rgba(255,255,255,0.2) !important;
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current, 
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+        background: rgba(14, 165, 233, 0.2) !important;
+        color: #22d3ee !important;
+        border: 1px solid rgba(14, 165, 233, 0.3) !important;
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+        color: #475569 !important;
+        background: transparent !important;
+        cursor: not-allowed !important;
+    }
+    /* Modal Premium Styling (Dark Glass) */
+    .modal-content {
+        background: linear-gradient(145deg, rgba(15, 23, 42, 0.95), rgba(2, 6, 23, 0.98)) !important;
+        backdrop-filter: blur(16px) !important;
+        -webkit-backdrop-filter: blur(16px) !important;
+        border: 1px solid rgba(34, 211, 238, 0.15) !important;
+        border-radius: 16px !important;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8) !important;
+    }
+
+    .modal-header {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+        padding: 1.25rem 1.5rem !important;
+    }
+
+    .modal-title {
+        color: #fff !important;
+        font-weight: 700 !important;
+        letter-spacing: -0.01em !important;
+    }
+
+    .btn-close {
+        filter: invert(1) grayscale(100%) brightness(200%) !important;
+    }
+
+    .modal-body {
+        padding: 1.5rem !important;
+    }
+
+    .form-label {
+        color: #94a3b8 !important;
+        font-weight: 600 !important;
+        font-size: 0.8rem !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.05em !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    .form-control, .form-select {
+        background: rgba(15, 23, 42, 0.6) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: #fff !important;
+        border-radius: 8px !important;
+        padding: 0.6rem 1rem !important;
+        font-size: 0.9rem !important;
+        transition: all 0.2s ease !important;
+    }
+
+    .form-control:focus, .form-select:focus {
+        background: rgba(15, 23, 42, 0.8) !important;
+        border-color: #22d3ee !important;
+        box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.1) !important;
+        outline: none !important;
+    }
+
+    .modal-footer {
+        border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+        padding: 1.25rem 1.5rem !important;
+    }
+
+    /* Modal Buttons */
+    .modal-footer .btn-primary {
+        background: linear-gradient(135deg, #0284c7, #0ea5e9) !important;
+        border: none !important;
+        padding: 0.6rem 1.5rem !important;
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+        box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3) !important;
+        color: white !important;
+    }
+
+    .modal-footer .btn-secondary {
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: #cbd5e1 !important;
+        padding: 0.6rem 1.5rem !important;
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+    }
+
+    .modal-footer .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.1) !important;
+        color: #fff !important;
+    }
+
+    /* --- MODAL INTERACTION FIXES --- */
+    
+    /* 1. Ensure the container doesn't trap the modal below the backdrop */
+    body.modal-open .dashboard-container {
+        z-index: 1050 !important;
+        position: relative !important;
+    }
+
+    /* 2. Explicit Z-Index Hierarchy */
+    .modal-backdrop {
+        z-index: 1040 !important;
+    }
+
+    .modal {
+        z-index: 1060 !important;
+    }
+
+    /* 3. Force Interaction Ability */
+    .modal.show, 
+    .modal.show .modal-dialog, 
+    .modal.show .modal-content {
+        pointer-events: auto !important;
+        visibility: visible !important;
+    }
+
+    /* 4. Restore typing visibility (Fixing global caret-color: transparent) */
+    .modal-content input, 
+    .modal-content textarea {
+        caret-color: #fff !important; /* Force visible caret */
+        cursor: text !important;
+    }
+
+    /* 5. Ensure clickable elements are responsive */
+    .modal-content button, 
+    .modal-content .btn,
+    .modal-header .btn-close {
+        pointer-events: auto !important;
+        cursor: pointer !important;
+    }
+
+    /* Backdrop visual style (Premium) */
+    .modal-backdrop.show {
+        opacity: 0.7 !important;
+        backdrop-filter: blur(4px) !important;
+    }
+</style>
+
+<div class="modern-table-card" id="mainModuleCard">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+        <div class="d-flex align-items-center gap-3">
+            <div class="stat-icon icon-blue">
+                <i data-lucide="users" style="width: 22px;"></i>
+            </div>
+            <div class="d-flex flex-column">
+                <h5 class="m-0 fw-bold text-white">Listado de Usuarios</h5>
+                <p class="m-0 mt-1" style="color: #94a3b8; font-size: 0.8rem;">Visualiza y administra los usuarios registrados en el sistema</p>
+            </div>
+        </div>
+
+        <div class="d-flex align-items-center gap-3">
+            <div class="d-flex align-items-center gap-2">
+                <label for="filtroEstado" class="m-0 font-size-10 fw-800" style="color: #94a3b8;">ESTADO:</label>
+                <select id="filtroEstado" class="table-filter-select">
+                    <option value="1" selected style="background: #0f172a; color: white;">Habilitados</option>
+                    <option value="2" style="background: #0f172a; color: white;">Retirados</option>
+                    <option value="0" style="background: #0f172a; color: white;">Todos</option>
+                </select>
+            </div>
+            <button id="btnAgregarUsuario" class="btn-add-modern">
+                <i data-lucide="user-plus" style="width: 16px;"></i>
+                NUEVO USUARIO
+            </button>
+        </div>
+    </div>
+
+    <div class="table-responsive flex-grow-1">
+        <table id="tableModulosUsuario" class="table table-hover align-middle table-modern-style mb-0 w-100">
+            <thead>
+                <tr>
+                    <th>Nombre Completo</th>
+                    <th>Usuario / Alias</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<a href="{% url 'global_main' %}" style="text-decoration: none;">
+    <button class="floating-action-btn" id="btnCerrar" title="Cerrar esta sección">
+        <i data-lucide="log-out" style="width: 16px;"></i> CERRAR
+    </button>
+</a>
+
+{% include 'usuarios/modales_usuarios/m_listado_usuarios_agregar_usuario.html' %}
+{% include 'usuarios/modales_usuarios/m_listado_usuarios_cambiar_contrasenas.html' %}
+{% include 'usuarios/modales_usuarios/m_listado_usuarios_cambiar_usuario.html' %}
+{% include 'usuarios/modales_usuarios/m_listado_usuarios_cambiar_nombre.html' %}
+{% include 'usuarios/modales_usuarios/m_listado_usuarios_ver_password.html' %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  $(document).ready(function () {
+    var csrfToken = "{{ csrf_token }}";
+    var tableFirmas, firma_id;
+
+    // Check for auto-action from dashboard
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('action') === 'new') {
+        setTimeout(function() {
+            $('#btnAgregarUsuario').click();
+            // Remove the param from URL without refreshing to avoid re-opening on reload
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }, 500);
+    }
+
+
+    $('#btnAgregarUsuario').on('click', function () {
+      $('#modalAgregarUsuario').modal('show');
+      getListadoEmpleados();
+    });
+
+    var toastMixin = Swal.mixin({
+      toast: true,
+      icon: 'success',
+      title: 'General Title',
+      animation: false,
+      position: 'top-right',
+      showConfirmButton: false,
+      timer: 2000,
+      timerProgressBar: true,
+      didOpen: (toast) => {
+        toast.addEventListener('mouseenter', Swal.stopTimer);
+        toast.addEventListener('mouseleave', Swal.resumeTimer);
+      }
+    });
+
+    /* MENU ID Y SUBMENU ID */
+    $('#usuariosMenu, #listadoUsuario_submenu').addClass('active');
+
+    selectedUsuarioId = null;
+    selectedEmpleadoId = null;
+
+    $('#filtroEstado').on('change', function () {
+      getUsuarios();
+    });
+
+    $('#selectNombreCompleto').on('change', function () {
+      selectedEmpleadoId = $(this).val();
+    });
+
+
+    getUsuarios()
+
+
+    function getUsuarios() {
+
+      $("#tableModulosUsuario").DataTable().clear().destroy();
+
+      var estadoFiltro = $('#filtroEstado').val();
+
+      var cardHeight = $(".card-expanded").height();
+      var tableHeight = cardHeight * 0.5;
+
+      tableModulosUsuario = $('#tableModulosUsuario').DataTable({
+        autoWidth: false,
+        scrollX: true,
+        scrollY: tableHeight + 'px',
+        scrollCollapse: true,
+        pageLength: 50,
+        dom: 'rftip',
+        language: {
+          url: "{% static 'app/th/json/es-ES.json' %}",
+        },
+        ajax: {
+          url: `{% url 'data_usuarios_especial' %}`,
+          type: "POST",
+          dataSrc: 'data',
+          data: {
+            csrfmiddlewaretoken: csrfToken,
+            estado: estadoFiltro
+          },
+        },
+        colReorder: {
+          realtime: false,
+        },
+        buttons: [
+          {
+            extend: 'excel',
+            text: '<i class="fas fa-file-excel"></i>',
+            titleAttr: 'Exportar a Excel',
+            className: 'btn btn-success',
+          },
+          {
+            extend: 'pdf',
+            text: '<i class="fas fa-file-pdf"></i>',
+            titleAttr: 'Exportar a PDF',
+            className: 'btn btn-danger',
+          },
+          {
+            extend: 'print',
+            text: '<i class="fas fa-print"></i>',
+            titleAttr: 'Imprimir',
+            className: 'btn btn-primary',
+            orientation: 'landscape'
+          }
+        ],
+        columns: [
+          { data: 'Nombre' },
+          { data: 'Usuario' },
+          {
+            data: 'Estado',
+            render: function (data) {
+              return data == '1' ? 'HABILITADO' : 'RETIRADO';
+            }
+          },
+          {
+            data: null,
+            orderable: false,
+            render: function (data, type, row) {
+              let estadoUsuario = row.Estado == '1' ? 'HABILITADO' : 'RETIRADO';
+              let botonEstado = estadoUsuario === 'HABILITADO'
+                ? '<button title="Retirar Usuario" class="btn-retirar-elegant btn-estado">' +
+                '<i class="fa fa-ban"></i> Retirar' +
+                '</button>'
+                : '<button title="Habilitar Usuario" class="btn-habilitar-elegant btn-estado">' +
+                '<i class="fa fa-check"></i> Habilitar' +
+                '</button>';
+              
+              return `<div class="action-buttons-container">
+                        <button title="Cambiar Contraseña" class="btn-action-icon">
+                            <i class="fa fa-key"></i>
+                        </button>
+                        <button title="Cambiar Usuario" class="btn-action-icon">
+                            <i class="fa fa-user"></i>
+                        </button>
+                        <button title="Cambiar Nombre" class="btn-action-icon">
+                            <i class="fa fa-edit"></i>
+                        </button>
+                        ${botonEstado}
+                      </div>`;
+            }
+          }
+
+        ],
+        order: [[1, "asc"]]
+      });
+    }
+
+
+    // Card selection logic matching Acciones del Usuario
+    $('#mainModuleCard').on('click', function(e) {
+        // Only trigger if clicking on the card itself or its non-interactive elements
+        if ($(e.target).closest('button, select, input, .dataTables_wrapper').length && !$(e.target).hasClass('modern-table-card')) {
+            return;
+        }
+        $('.modern-table-card').removeClass('active-card');
+        $(this).addClass('active-card');
+    });
+
+
+    $('#tableModulosUsuario tbody').on('click', 'button', function () {
+      var action = $(this).attr('title');
+      var data = tableModulosUsuario.row($(this).parents('tr')).data();
+      if (action === "Cambiar Contraseña") {
+
+        $('#modalCambiarContrasena').data('usuario', data);
+        $('#modalCambiarContrasena').modal('show');
+
+      } else if (action === "Cambiar Usuario") {
+
+        $('#usuarioActual').val(data.Usuario);
+        $('#modalCambiarUsuario').data('usuario', data);
+        $('#modalCambiarUsuario').modal('show');
+
+      } else if (action === "Ver Contraseña") {
+        showLoadingScreen("Buscando Contraseña");
+        $.ajax({
+          url: `{% url 'obtener_contrasena' %}`,
+          type: "POST",
+          data: {
+            hash: data.Contrasena,
+            csrfmiddlewaretoken: csrfToken
+          },
+          success: function (response) {
+            if (response.contraseña) {
+              toastMixin.fire({
+                animation: true,
+                title: 'Contraseña Encontrada!'
+              });
+              // $('#contrasena').val(response.contraseña);
+              const contrasenasLista = $('#contrasenas-lista');
+              contrasenasLista.empty();
+              contrasenasLista.append('<li class="list-group-item">' + response.contraseña + '</li>');
+              $('#modalVerContrasena').modal('show');
+            } else {
+              Swal.fire('Error', `No se pudo recuperar la contraseña.`, 'error');
+            }
+          },
+          error: function (xhr) {
+            console.error("Error:", xhr.responseText);
+            Swal.fire('Error', `Error al recuperar la contraseña.`, 'error');
+          }
+        });
+
+      } else if (action === "Ver Historial Contraseña") {
+        showLoadingScreen("Buscando Contraseñas");
+        $.ajax({
+          url: `{% url 'obtener_historial_contraseña' %}`,
+          type: "POST",
+          data: {
+            varUsuario: data.PKUsuario,
+            csrfmiddlewaretoken: csrfToken
+          },
+          success: function (response) {
+            if (response.contrasenas_anteriores && response.contrasenas_anteriores.length > 0) {
+              toastMixin.fire({
+                animation: true,
+                title: 'Contraseñas Encontradas!'
+              });
+
+              const contrasenasLista = $('#contrasenas-lista');
+              contrasenasLista.empty();
+
+              response.contrasenas_anteriores.forEach(function (contrasena) {
+                contrasenasLista.append('<li class="list-group-item">' + contrasena + '</li>');
+              });
+
+              $('#modalVerContrasena').modal('show');
+            } else {
+              Swal.fire('Error', `No se encontro el historial de las contraseñas.`, 'error');
+            }
+          },
+          error: function (xhr) {
+            console.error("Error:", xhr.responseText);
+            Swal.fire('Error', `Error al recuperar las contraseñas.`, 'error');
+          }
+        });
+
+      } else if (action === "Cambiar Nombre") {
+
+        $('#nombreActual').val(data.Nombre);
+        $('#modalCambiarNombre').data('usuario', data);
+        $('#modalCambiarNombre').modal('show');
+
+      } else if (action === "Habilitar Usuario" || action === "Retirar Usuario") {
+
+        var data = tableModulosUsuario.row($(this).parents('tr')).data();
+        var nuevoEstado = data.Estado === '1' ? '2' : '1';
+        var accionTexto = nuevoEstado === '1' ? 'habilitar' : 'retirar';
+        var accionTexto2 = nuevoEstado === '1' ? 'habilitado' : 'retirado';
+        Swal.fire({
+          title: `¿Deseas ${accionTexto} a este usuario?`,
+          text: `El usuario será ${accionTexto === 'habilitar' ? 'reintegrado' : 'retirado'}`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#3085d6',
+          cancelButtonColor: '#d33',
+          confirmButtonText: `Sí, ${accionTexto}`
+        }).then((result) => {
+          if (result.isConfirmed) {
+            $.ajax({
+              url: `{% url 'update_estado_usuario' %}`,
+              type: 'POST',
+              data: {
+                usuario: data.Usuario,
+                estado: nuevoEstado,
+                csrfmiddlewaretoken: "{{ csrf_token }}"
+              },
+              success: function (response) {
+                Swal.fire('Éxito', `El usuario ha sido ${accionTexto2} correctamente`, 'success');
+                getUsuarios(); // Recargar la tabla después del cambio
+              },
+              error: function (xhr, status, error) {
+                Swal.fire('Error', `No se pudo ${accionTexto} al usuario`, 'error');
+              }
+            });
+          }
+        });
+      }
+
+    });
+
+
+    $('#guardarContrasenaEditar').on('click', function () {
+
+      var nuevaPass = $('#nuevaContrasenaEditar').val();
+      var confirmarPass = $('#confirmarContrasenaEditar').val();
+      if (nuevaPass !== confirmarPass || nuevaPass.trim() === '') {
+        Swal.fire('Error', 'Las contraseñas no coinciden', 'error');
+        return;
+      }
+
+
+      var usuario = $('#modalCambiarContrasena').data('usuario');
+      var idUsuario = usuario.PKUsuario;
+      var contrasenaAnterior = usuario.Contrasena;
+      $.ajax({
+        url: `{% url 'update_password_usuario' %}`,
+        type: 'POST',
+        data: {
+          id_usuario: idUsuario,
+          password: nuevaPass,
+          password_anterior: contrasenaAnterior,
+          csrfmiddlewaretoken: "{{ csrf_token }}"
+        },
+        success: function (response) {
+          Swal.fire('Éxito', 'La contraseña ha sido actualizada correctamente', 'success');
+          getUsuarios()
+        },
+        error: function (xhr, status, error) {
+          Swal.fire('Error', 'No se pudo actualizar la contraseña', 'error');
+        },
+        complete: function () {
+          $('#modalCambiarContrasena').modal('hide');
+        }
+      });
+    });
+
+
+    $('#guardarUsuario').on('click', function () {
+      var nuevoUsuario = $('#nuevoUsuario').val();
+
+      if (nuevoUsuario.trim() === '') {
+        Swal.fire('Error', 'El nuevo usuario no puede estar vacío', 'error');
+        return;
+      }
+
+      var usuario = $('#modalCambiarUsuario').data('usuario');
+      var nombreUsuarioActual = usuario.Usuario;
+      $.ajax({
+        url: `{% url 'update_usuario_usuario' %}`,
+        type: 'POST',
+        data: {
+          usuarioActual: nombreUsuarioActual,
+          usuarioNuevo: nuevoUsuario,
+          csrfmiddlewaretoken: "{{ csrf_token }}"
+        },
+        success: function (response) {
+          Swal.fire('Éxito', 'El usuario ha sido actualizado correctamente', 'success');
+          getUsuarios()
+        },
+        error: function (xhr, status, error) {
+          Swal.fire('Error', 'No se pudo actualizar el usuario', 'error');
+        },
+        complete: function () {
+          $('#modalCambiarUsuario').modal('hide');
+        }
+      });
+    });
+
+
+    $('#guardarNombre').on('click', function () {
+      var nuevoNombre = $('#nuevoNombre').val();
+
+      if (nuevoNombre.trim() === '') {
+        Swal.fire('Error', 'El nuevo nombre no puede estar vacío', 'error');
+        return;
+      }
+
+      var usuario = $('#modalCambiarNombre').data('usuario');
+      var nombreUsuario = usuario.Usuario;
+      $.ajax({
+        url: `{% url 'update_nombrecompleto_usuario' %}`,
+        type: 'POST',
+        data: {
+          usuario: nombreUsuario,
+          nombre: nuevoNombre,
+          csrfmiddlewaretoken: "{{ csrf_token }}"
+        },
+        success: function (response) {
+          Swal.fire('Éxito', 'El nombre ha sido actualizado correctamente', 'success');
+          getUsuarios()
+        },
+        error: function (xhr, status, error) {
+          Swal.fire('Error', 'No se pudo actualizar el nombre', 'error');
+        },
+        complete: function () {
+          $('#modalCambiarNombre').modal('hide');
+        }
+      });
+    });
+
+
+    $('#guardarNuevoUsuario').on('click', function () {
+
+      var nombreCompleto = $('#selectNombreCompleto option:selected').text();
+      var nuevoUsuario = $('#nuevoUsuarioAgregar').val().trim();
+      var nuevaContrasena = $('#nuevaContrasena').val();
+      var confirmarContrasena = $('#confirmarContrasena').val();
+      var tipoUsuario = $('#tipoUsuario').val();
+      selectedEmpleadoId = $('#selectNombreCompleto').val();
+
+      if (!nombreCompleto || !nuevoUsuario || !nuevaContrasena || !confirmarContrasena || !selectedEmpleadoId) {
+        Swal.fire('Error', 'Todos los campos son obligatorios', 'error');
+        return;
+      }
+
+      if (nuevaContrasena !== confirmarContrasena) {
+        Swal.fire('Error', 'Las contraseñas no coinciden', 'error');
+        return;
+      }
+
+      $.ajax({
+        url: `{% url 'insert_usuario_listado' %}`,
+        type: 'POST',
+        data: {
+          varNombre: nombreCompleto,
+          varUsuario: nuevoUsuario,
+          varEmpleado: selectedEmpleadoId,
+          varPassword: nuevaContrasena,
+          csrfmiddlewaretoken: "{{ csrf_token }}"
+        },
+        success: function (response) {
+          if(response.save == 1){
+            Swal.fire('Éxito', 'Usuario agregado correctamente', 'success');
+            $('#modalAgregarUsuario').modal('hide');
+            getUsuarios();
+          }else{
+            Swal.fire('Error', response.error, 'error');
+          }
+
+        },
+        error: function (xhr, status, error) {
+          Swal.fire('Error', 'No se pudo agregar el usuario', 'error');
+        }
+      });
+    });
+
+
+
+    function getListadoEmpleados() {
+
+
+      $.ajax({
+        url: "{% url 'get_listado_empleados' %}",
+        type: "POST",
+        data: {
+          csrfmiddlewaretoken: csrfToken
+        },
+        success: function (data) {
+          if (data.data.length > 0) {
+            $("#selectNombreCompleto").empty();
+
+            $("#selectNombreCompleto").append('<option value="">Seleccione un empleado</option>');
+
+            data.data.forEach(function (empleado) {
+              $("#selectNombreCompleto").append(
+                `<option value="${empleado.id_ficha}">${empleado.nombre}</option>`
+              );
+            });
+
+            $('#selectNombreCompleto').select2({
+              placeholder: "Seleccione un Empleado",
+              width: "100%",
+              allowClear: true,
+              width: 'resolve',
+              dropdownParent: $('#modalAgregarUsuario')
+            });
+
+          } else {
+            $("#selectNombreCompleto").html('<option value="">No hay usuarios disponibles</option>');
+          }
+        },
+        error: function (xhr, status, error) {
+          console.log("Error al obtener usuarios:", error);
+        }
+      });
+    }
+  });
+
+
+  function showLoadingScreen(text = '') {
+    Swal.fire({
+      title: '',
+      html: `<b>${text}</b>`,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+      allowOutsideClick: false,
+      showConfirmButton: false
+    });
+  }
+
+</script>
+{% endblock %}

@@ -16,6 +16,7 @@ urlpatterns = [
     path('CWS/modulos/control/suministros/', include('CONTROLSUM.urls')),
     path('CWS/', include('CWS.urls')), 
     path('API/', include('API.urls')), 
+    path('CWS/modulos/global/', include('GLOBAL.urls')),
     path('REPORTERIA/', include('REPORTERIA.urls')),
 ]
 

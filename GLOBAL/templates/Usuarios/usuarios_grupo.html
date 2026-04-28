@@ -1,0 +1,571 @@
+{% extends 'componentes/menu_global_security.html' %}
+{% load static %}
+
+{% block title %}
+USUARIOS DEL GRUPO | GLOBAL Security
+{% endblock %}
+
+{% block body %}
+
+<style>
+    /* === DARK GLASS PREMIUM - Usuarios del Grupo (scoped only) === */
+    :root {
+        --system-accent: #0284c7;
+        --ug-cyan: #22d3ee;
+    }
+
+    /* Search Bar - Dark Glass */
+    .search-colaborador-container { max-width: 850px; margin: 0 auto 2.5rem auto; position: relative; }
+
+    .search-input-wrapper {
+        display: flex; align-items: center;
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(10px);
+        border-radius: 100px;
+        padding: 5px 8px 5px 25px;
+        box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        height: 58px; position: relative; z-index: 1001;
+    }
+
+    .search-input-wrapper:focus-within {
+        border-color: rgba(34,211,238,0.35);
+        box-shadow: 0 20px 25px -5px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
+        transform: translateY(-2px);
+    }
+
+    .search-input-field {
+        border: none !important; outline: none !important;
+        width: 100%; font-size: 1.05rem; font-weight: 500;
+        color: #f8fafc; background: transparent;
+        caret-color: #fff !important;
+    }
+
+    .search-input-field::placeholder { color: #64748b; }
+
+    .search-action-btn-stage1 {
+        width: 48px; height: 48px; background: #0284c7;
+        color: white; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        border: none; box-shadow: 0 4px 10px rgba(2,132,199,0.3);
+        flex-shrink: 0; cursor: pointer; transition: all 0.2s ease;
+    }
+    .search-action-btn-stage1:hover { background: #0369a1; transform: scale(1.05); }
+    .search-action-btn-stage1 svg { stroke: white; }
+
+    /* Autocomplete Dropdown - Dark Glass */
+    .autocomplete-dropdown {
+        position: absolute; top: calc(100% + 8px); left: 0; right: 0;
+        background: rgba(15, 23, 42, 0.96);
+        backdrop-filter: blur(12px);
+        border-radius: 16px;
+        box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5);
+        border: 1px solid rgba(255,255,255,0.1);
+        max-height: 400px; overflow-y: auto;
+        z-index: 1050; display: none; padding: 8px 0;
+    }
+
+    .autocomplete-item {
+        padding: 12px 25px;
+        display: flex; justify-content: space-between; align-items: center;
+        cursor: pointer; transition: background 0.2s ease;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .autocomplete-item:last-child { border-bottom: none; }
+    .autocomplete-item:hover { background: rgba(255,255,255,0.05); }
+
+    .user-name { font-weight: 700; color: #f8fafc; font-size: 0.95rem; text-transform: uppercase; }
+    .user-id-sub { font-size: 0.75rem; color: #94a3b8; font-weight: 500; }
+    .user-meta-tag {
+        font-size: 0.65rem; font-weight: 800; color: #94a3b8;
+        background: rgba(255,255,255,0.06); padding: 4px 10px;
+        border-radius: 4px; text-transform: uppercase;
+    }
+
+    /* Main Card - Dark Glass */
+    .modern-table-card {
+        background: linear-gradient(145deg, rgba(15,23,42,0.85), rgba(2,6,23,0.92)) !important;
+        backdrop-filter: blur(16px) !important;
+        -webkit-backdrop-filter: blur(16px) !important;
+        border-radius: 16px;
+        border: 1px solid rgba(34,211,238,0.15) !important;
+        box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.08) !important;
+        overflow: hidden; height: auto;
+        display: flex; flex-direction: column;
+        transition: all 0.25s ease;
+    }
+    .modern-table-card:hover {
+        border-color: rgba(34,211,238,0.3) !important;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.45) !important;
+    }
+
+    /* Card Header */
+    .card-header {
+        background: transparent !important;
+        border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+    }
+
+    .text-navy { color: #ffffff !important; }
+    .fw-500 { font-weight: 600 !important; }
+    .font-size-10 { font-size: 0.62rem !important; }
+
+    .header-filters { display: flex; align-items: center; gap: 1.5rem; }
+    .filter-item { display: flex; align-items: center; gap: 0.75rem; }
+    .filter-label { font-size: 0.65rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    /* Filter Selects - Dark Glass */
+    .table-filter-select {
+        border-radius: 8px !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        padding: 5px 12px !important;
+        font-size: 0.78rem !important; font-weight: 600 !important;
+        color: #e2e8f0 !important;
+        background-color: rgba(15,23,42,0.6) !important;
+        cursor: pointer !important; transition: all 0.2s ease !important;
+        min-width: 154px; height: 38px;
+    }
+    .table-filter-select:focus {
+        border-color: #22d3ee !important; outline: none !important;
+        box-shadow: 0 0 0 3px rgba(34,211,238,0.1) !important;
+    }
+
+    /* DataTable - Dark */
+    .table-modern-style thead th {
+        background: linear-gradient(to right, rgba(15,23,42,0.95), rgba(2,6,23,0.95)) !important;
+        border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+        color: #94a3b8 !important;
+        font-size: 0.65rem !important; padding: 12px !important;
+        text-transform: uppercase !important; font-weight: 800 !important;
+        letter-spacing: 0.05em;
+    }
+
+    .table-modern-style tbody td {
+        padding: 8px 12px !important; font-size: 0.85rem !important;
+        color: #e2e8f0 !important;
+        border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+        background-color: transparent !important;
+    }
+
+    table.dataTable tbody tr td { background-color: transparent !important; }
+    .table-modern-style tbody tr:hover td { background-color: rgba(255,255,255,0.04) !important; }
+
+    #tableUnifiedUsuariosGrupo tbody tr[data-group-state="available"] td {
+        background-color: rgba(14,165,233,0.05) !important;
+    }
+    #tableUnifiedUsuariosGrupo tbody tr[data-group-state="assigned"] td {
+        background-color: rgba(34,197,94,0.05) !important;
+    }
+    #tableUnifiedUsuariosGrupo tbody tr[data-group-state="available"]:hover td {
+        background-color: rgba(14,165,233,0.12) !important;
+    }
+    #tableUnifiedUsuariosGrupo tbody tr[data-group-state="assigned"]:hover td {
+        background-color: rgba(34,197,94,0.12) !important;
+    }
+
+    /* Status Badges - Dark Glass */
+    .badge-flat-status {
+        padding: 5px 12px; border-radius: 6px;
+        font-size: 0.62rem; font-weight: 800;
+        letter-spacing: 0.04em; text-transform: uppercase;
+        display: inline-flex; align-items: center; gap: 6px;
+    }
+    .badge-status-assigned {
+        background: rgba(34,197,94,0.15) !important; color: #4ade80 !important;
+        border: 1px solid rgba(34,197,94,0.3) !important;
+        box-shadow: 0 0 10px rgba(34,197,94,0.1); backdrop-filter: blur(4px);
+    }
+    .badge-status-available {
+        background: rgba(14,165,233,0.15) !important; color: #38bdf8 !important;
+        border: 1px solid rgba(14,165,233,0.3) !important;
+        box-shadow: 0 0 10px rgba(14,165,233,0.1); backdrop-filter: blur(4px);
+    }
+
+    /* Row Action Buttons - Dark Glass */
+    .btn-row-action {
+        padding: 6px 16px !important; border-radius: 8px !important;
+        font-size: 0.65rem !important; font-weight: 800 !important;
+        transition: all 0.2s ease !important;
+        display: inline-flex !important; align-items: center !important;
+        gap: 6px !important; letter-spacing: 0.02em; cursor: pointer;
+    }
+    .btn-row-assign {
+        background: linear-gradient(135deg, rgba(16,185,129,0.2), rgba(5,150,105,0.3)) !important;
+        color: #34d399 !important;
+        border: 1px solid rgba(16,185,129,0.4) !important;
+        box-shadow: 0 0 12px rgba(16,185,129,0.15);
+    }
+    .btn-row-remove {
+        background: linear-gradient(135deg, rgba(239,68,68,0.2), rgba(185,28,28,0.3)) !important;
+        color: #f87171 !important;
+        border: 1px solid rgba(239,68,68,0.4) !important;
+        box-shadow: 0 0 12px rgba(239,68,68,0.15);
+    }
+    .btn-row-action:hover { transform: translateY(-2px); filter: brightness(1.2); box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important; }
+
+    /* Floating Buttons - Premium */
+    .floating-action-container {
+        position: fixed; bottom: 32px; right: 32px;
+        z-index: 1010; display: flex; gap: 15px;
+    }
+    .floating-action-btn {
+        border-radius: 12px; height: 44px; width: 130px;
+        font-size: 0.75rem; font-weight: 800;
+        display: flex; align-items: center; justify-content: center;
+        gap: 8px; transition: all 0.2s ease; cursor: pointer;
+        box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);
+        text-transform: uppercase; color: white !important;
+        backdrop-filter: blur(8px);
+    }
+    .floating-action-btn:hover { transform: translateY(-2px); filter: brightness(1.15); }
+    .btn-secondary-ref {
+        background: linear-gradient(135deg, rgba(71,85,105,0.9), rgba(51,65,85,0.9)) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+    }
+    .btn-primary-ref {
+        background: linear-gradient(135deg, rgba(30,41,59,0.9), rgba(15,23,42,0.9)) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+    }
+
+    /* Empty State */
+    .empty-state-placeholder {
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        padding: 6rem 2rem; text-align: center;
+    }
+    .empty-state-placeholder h6 { color: #e2e8f0; font-weight: 700; }
+    .empty-state-placeholder p { color: #94a3b8; font-size: 0.8rem; }
+
+    /* Select2 - Dark Theme */
+    .select2-container--default .select2-selection--single {
+        background-color: rgba(15,23,42,0.6) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        border-radius: 8px !important; height: 38px !important;
+        display: flex !important; align-items: center !important;
+        padding: 0 10px !important; transition: all 0.2s ease !important;
+    }
+    .select2-container--default.select2-container--open .select2-selection--single {
+        border-color: #22d3ee !important;
+        background-color: rgba(15,23,42,0.85) !important;
+        box-shadow: 0 0 0 3px rgba(34,211,238,0.1) !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        color: #e2e8f0 !important; font-size: 0.78rem !important;
+        font-weight: 600 !important; padding-left: 0 !important; line-height: 38px !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__placeholder { color: #94a3b8 !important; }
+    .select2-container--default .select2-selection--single .select2-selection__arrow { height: 36px !important; right: 8px !important; }
+    .select2-container--default .select2-selection--single .select2-selection__arrow b {
+        border-color: #94a3b8 transparent transparent transparent !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__clear {
+        position: absolute !important; right: 35px !important; top: 50% !important;
+        transform: translateY(-50%) !important; color: #cbd5e1 !important;
+        font-weight: 700 !important; font-size: 1.1rem !important;
+        cursor: pointer !important; z-index: 2 !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__clear:hover { color: #ef4444 !important; }
+
+    .select2-dropdown {
+        background: rgba(15,23,42,0.96) !important;
+        backdrop-filter: blur(12px) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        border-radius: 12px !important;
+        box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5) !important;
+        overflow: hidden !important; z-index: 9999 !important; margin-top: 5px !important;
+    }
+    .select2-search--dropdown { padding: 10px !important; background: transparent !important; }
+    .select2-search--dropdown .select2-search__field {
+        border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 8px !important;
+        padding: 8px 12px !important; font-size: 0.85rem !important;
+        background: rgba(15,23,42,0.6) !important; color: #e2e8f0 !important; outline: none !important;
+    }
+    .select2-results__options { max-height: 250px !important; }
+    .select2-results__option {
+        padding: 10px 15px !important; font-size: 0.82rem !important;
+        color: #e2e8f0 !important; border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+    }
+    .select2-results__option--highlighted[aria-selected] {
+        background-color: rgba(255,255,255,0.05) !important; color: #fff !important;
+    }
+    .select2-results__option[aria-selected=true] {
+        background-color: rgba(34,211,238,0.1) !important; color: #22d3ee !important; font-weight: 700 !important;
+    }
+    .select2-container .select2-results__option:last-child { border-bottom: none !important; }
+    .select2-results__options::-webkit-scrollbar { width: 6px !important; }
+    .select2-results__options::-webkit-scrollbar-track { background: transparent !important; }
+    .select2-results__options::-webkit-scrollbar-thumb { background: #0284c7 !important; border-radius: 10px !important; }
+    .select2-results__options::-webkit-scrollbar-thumb:hover { background: #0369a1 !important; }
+</style>
+
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+<div class="dashboard-container">
+    <!-- Top Search Bar -->
+    <div class="search-colaborador-container">
+        <div class="search-input-wrapper">
+            <input type="text" id="userInputSearchUnified" class="search-input-field" placeholder="Buscar Usuario..." autocomplete="off">
+            <button class="search-action-btn-stage1">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </button>
+        </div>
+        <div id="autocompleteDropdownUnified" class="autocomplete-dropdown"></div>
+    </div>
+
+    <div class="modern-table-card shadow-lg border-primary-subtle">
+        <!-- Integrated Header & Filters -->
+        <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+            <div>
+                <h5 class="m-0 fw-500 text-navy d-flex align-items-center gap-2">
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--system-accent)" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
+                    GESTIÓN DE USUARIOS POR GRUPO
+                </h5>
+                <p class="text-muted m-0 font-size-10 mt-1">Administra accesos y permisos directamente vinculando grupos de seguridad</p>
+            </div>
+            
+            <div class="header-filters">
+                <div class="filter-item">
+                    <label class="filter-label">Módulo:</label>
+                    <select id="selectModuloUnified" class="table-filter-select">
+                        <option value=""></option>
+                        {% for m in modulos %}
+                        <option value="{{ m.PKmodulo }}">{{ m.Nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label class="filter-label">Mostrar:</label>
+                    <select id="filterStatus" class="table-filter-select">
+                        <option value="all">TODOS</option>
+                        <option value="assigned">ASIGNADOS</option>
+                        <option value="available">DISPONIBLES</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body p-0">
+            <!-- Empty State -->
+            <div id="empty-state-unified" class="empty-state-placeholder">
+                <h6 class="fw-700">Comienza buscando un usuario</h6>
+                <p class="font-size-12 mb-0">Selecciona un usuario y un módulo para gestionar sus grupos</p>
+            </div>
+
+            <!-- Unified Table -->
+            <div id="table-container-unified" style="display: none; padding: 1rem 2.5rem;">
+                <table id="tableUnifiedUsuariosGrupo" class="table table-hover align-middle table-modern-style w-100">
+                    <thead>
+                        <tr>
+                            <th style="width: 30%;">Nombre del Grupo</th>
+                            <th style="width: 40%;">Descripción</th>
+                            <th style="width: 15%;" class="text-center">Estado</th>
+                            <th style="width: 15%;" class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    <!-- Floating Action Buttons -->
+    <div class="floating-action-container">
+        <button class="floating-action-btn btn-secondary-ref" id="btnLimpiar">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+            LIMPIAR
+        </button>
+        <a href="{% url 'global_main' %}" style="text-decoration: none;">
+            <button class="floating-action-btn btn-primary-ref" id="btnCerrar">
+                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                CERRAR
+            </button>
+        </a>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function () {
+        const csrfToken = "{{ csrf_token }}";
+        let selectedUsuarioId = null;
+        let selectedModuloId = null;
+        let debounceTimer;
+
+        const toastMixin = Swal.mixin({
+            toast: true,
+            icon: 'success',
+            position: 'top-right',
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true
+        });
+
+        $('#selectModuloUnified').select2({
+            placeholder: "Seleccione módulo...",
+            allowClear: true,
+            width: 'resolve',
+            dropdownAutoWidth: true,
+            language: {
+                noResults: function() { return "No se encontraron módulos"; }
+            }
+        });
+
+        // --- Custom Autocomplete Logic (Stage 1 Correction) ---
+        const $input = $('#userInputSearchUnified');
+        const $dropdown = $('#autocompleteDropdownUnified');
+        let cachedUsers = [];
+
+        function fetchAndShow(query = "") {
+            if (cachedUsers.length > 0) {
+                filterAndRender(query);
+            } else {
+                $.ajax({
+                    url: `{% url 'data_usuarios' %}`,
+                    type: 'POST',
+                    data: { csrfmiddlewaretoken: csrfToken },
+                    success: function(res) {
+                        cachedUsers = res.data || [];
+                        filterAndRender(query);
+                    }
+                });
+            }
+        }
+
+        function filterAndRender(query) {
+            const results = query.length === 0 
+                ? cachedUsers 
+                : cachedUsers.filter(u => 
+                    u.Nombre.toLowerCase().includes(query.toLowerCase()) || 
+                    u.Usuario.toLowerCase().includes(query.toLowerCase()) ||
+                    u.Apellido.toLowerCase().includes(query.toLowerCase())
+                );
+            renderDropdown(results);
+        }
+
+        $input.on('input', function() {
+            const query = $(this).val().trim();
+            clearTimeout(debounceTimer);
+            if (query.length < 1) {
+                $dropdown.hide().empty();
+                return;
+            }
+            debounceTimer = setTimeout(() => {
+                fetchAndShow(query);
+            }, 150);
+        });
+
+        function renderDropdown(users) {
+            $dropdown.empty();
+            if (users.length === 0) { $dropdown.hide(); return; }
+
+            users.forEach(u => {
+                const fullName = `${u.Nombre} ${u.Apellido}`;
+                const item = $(`
+                    <div class="autocomplete-item" data-id="${u.PKUsuario}" data-name="${u.Usuario} - ${fullName}">
+                        <div class="user-info-main">
+                            <span class="user-name">${fullName}</span>
+                            <span class="user-id-sub">ID de Usuario: ${u.Usuario}</span>
+                        </div>
+                        <div class="user-meta-tag">${u.Usuario}</div>
+                    </div>
+                `);
+
+                item.on('click', function() {
+                    selectedUsuarioId = $(this).data('id');
+                    $input.val($(this).data('name'));
+                    $dropdown.hide();
+                    getUnifiedData();
+                });
+                $dropdown.append(item);
+            });
+            $dropdown.show();
+        }
+
+        $(document).on('click', function(e) { if (!$(e.target).closest('.search-colaborador-container').length) $dropdown.hide(); });
+
+        function getUnifiedData() {
+            if (!selectedUsuarioId || !selectedModuloId) return;
+            $("#empty-state-unified").hide();
+            $("#table-container-unified").fadeIn(300);
+
+            if ($.fn.DataTable.isDataTable('#tableUnifiedUsuariosGrupo')) $('#tableUnifiedUsuariosGrupo').DataTable().destroy();
+
+            $.when(
+                $.ajax({ url: `{% url 'data_grupos_asignados' %}`, type: "POST", data: { varUsuario: selectedUsuarioId, varModulo: selectedModuloId, csrfmiddlewaretoken: csrfToken } }),
+                $.ajax({ url: `{% url 'data_grupos_disponibles' %}`, type: "POST", data: { varUsuario: selectedUsuarioId, varModulo: selectedModuloId, csrfmiddlewaretoken: csrfToken } })
+            ).done(function(resAsignados, resDisponibles) {
+                const asignados = (resAsignados[0].data || []).map(g => ({ ...g, assigned: true }));
+                const disponibles = (resDisponibles[0].data || []).map(g => ({ ...g, assigned: false }));
+                const unified = [...asignados, ...disponibles];
+
+                const table = $('#tableUnifiedUsuariosGrupo').DataTable({
+                    data: unified,
+                    autoWidth: false,
+                    pageLength: 50,
+                    dom: 'rtip',
+                    language: { url: "{% static 'app/th/json/es-ES.json' %}" },
+                    createdRow: function(row, data) {
+                        $(row).attr('data-group-state', data.assigned ? 'assigned' : 'available');
+                    },
+                    columns: [
+                        { data: 'Nombres', className: 'fw-700' },
+                        { data: 'Descripcion', render: function(data) { return data || '<span class="text-muted italic">Sin descripción</span>'; } },
+                        { 
+                            data: 'assigned',
+                            className: 'text-center',
+                            render: function(data) {
+                                return data 
+                                    ? '<span class="badge-flat-status badge-status-assigned">ASIGNADO</span>'
+                                    : '<span class="badge-flat-status badge-status-available">DISPONIBLE</span>';
+                            }
+                        },
+                        { 
+                            data: null,
+                            className: 'text-center',
+                            render: function(data) {
+                                return data.assigned
+                                    ? `<button class="btn-row-action btn-row-remove" onclick="quitarGrupo('${data.fkgrupo}')">QUITAR</button>`
+                                    : `<button class="btn-row-action btn-row-assign" onclick="asignarGrupo('${data.fkgrupo}')">ASIGNAR</button>`;
+                            }
+                        }
+                    ]
+                });
+
+                $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+                    const filterValue = $('#filterStatus').val();
+                    if (filterValue === 'all') return true;
+                    return (filterValue === 'assigned') ? table.row(dataIndex).data().assigned : !table.row(dataIndex).data().assigned;
+                });
+                $('#filterStatus').on('change', () => table.draw());
+            });
+        }
+
+        window.asignarGrupo = function(grupoId) {
+            $.post("{% url 'insert_usuario_grupo' %}", { varUsuario: selectedUsuarioId, varGrupo: grupoId, csrfmiddlewaretoken: csrfToken }, function(res) {
+                if (res.save) { toastMixin.fire({ title: 'Grupo asignado con éxito' }); getUnifiedData(); }
+            });
+        };
+
+        window.quitarGrupo = function(grupoId) {
+            $.post("{% url 'eliminar_usuario_grupo' %}", { varUsuario: selectedUsuarioId, varGrupo: grupoId, csrfmiddlewaretoken: csrfToken }, function(res) {
+                if (res.save) { toastMixin.fire({ title: 'Grupo removido con éxito' }); getUnifiedData(); }
+            });
+        };
+
+        $('#selectModuloUnified').on('change', function() { selectedModuloId = $(this).val(); getUnifiedData(); });
+
+        // --- Action Buttons Logic ---
+        $('#btnLimpiar').on('click', function() {
+            selectedUsuarioId = null;
+            selectedModuloId = null;
+            $input.val('');
+            $dropdown.hide().empty();
+            $("#selectModuloUnified").val("").trigger("change");
+            $("#filterStatus").val("all");
+            $("#table-container-unified").hide();
+            $("#empty-state-unified").fadeIn(300);
+        });
+    });
+</script>
+{% endblock %}

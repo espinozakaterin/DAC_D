@@ -1,0 +1,165 @@
+{% extends 'componentes/menu_global_security.html' %}
+{% load static %}
+
+{% block title %}
+Dashboard | GLOBAL Security
+{% endblock %}
+
+{% block title_header %}
+Dashboard Principal
+{% endblock %}
+
+{% block body %}
+
+<div class="dashboard-intro mb-5">
+    <h1 class="display-4 fw-bold" style="color: #ffffff; letter-spacing: -0.03em;">Dashboard Principal</h1>
+    <p class="lead" style="color: #94a3b8;">Supervisión global de seguridad, accesos y métricas del sistema.</p>
+</div>
+
+<!-- Premium Stats Grid -->
+<div class="stat-grid">
+    <!-- Usuarios Card -->
+    <div class="stat-card usuarios" onclick="location.href='{% url 'global_listado_usuario' %}'">
+        <div class="stat-icon icon-blue">
+            <i data-lucide="users"></i>
+        </div>
+        <div class="stat-info flex-grow-1">
+            <h3>Usuarios Activos</h3>
+            <p>{{ usuarios_activos|default:"0" }}</p>
+        </div>
+        <div class="badge-premium" style="font-size: 0.7rem; color: #38bdf8; background: rgba(56, 189, 248, 0.1); padding: 5px 12px; border-radius: 20px; font-weight: 600; border: 1px solid rgba(56, 189, 248, 0.15);">
+            <i data-lucide="trending-up" style="width: 12px; height: 12px; margin-right: 4px;"></i> +12%
+        </div>
+    </div>
+
+    <!-- Autorizaciones Card -->
+    <div class="stat-card autorizaciones" onclick="location.href='{% url 'global_usuarios_autorizados_modulos' %}'">
+        <div class="stat-icon icon-purple">
+            <i data-lucide="shield-check"></i>
+        </div>
+        <div class="stat-info flex-grow-1">
+            <h3>Autorizaciones</h3>
+            <p>{{ autorizaciones|default:"0" }}</p>
+        </div>
+        <div class="badge-premium" style="font-size: 0.7rem; color: #a78bfa; background: rgba(139, 92, 246, 0.1); padding: 5px 12px; border-radius: 20px; font-weight: 600; border: 1px solid rgba(139, 92, 246, 0.15);">
+            <i data-lucide="activity" style="width: 12px; height: 12px; margin-right: 4px;"></i> +5%
+        </div>
+    </div>
+
+    <!-- Módulos Card -->
+    <div class="stat-card modulos" onclick="location.href='{% url 'global_modulos_usuario' %}'">
+        <div class="stat-icon icon-green">
+            <i data-lucide="package"></i>
+        </div>
+        <div class="stat-info flex-grow-1">
+            <h3>Módulos Red</h3>
+            <p>{{ modulos_red|default:"0" }}</p>
+        </div>
+        <div class="badge-premium" style="font-size: 0.7rem; color: #4ade80; background: rgba(34, 197, 94, 0.1); padding: 5px 12px; border-radius: 20px; font-weight: 600; border: 1px solid rgba(34, 197, 94, 0.15);">
+            <i data-lucide="check-circle" style="width: 12px; height: 12px; margin-right: 4px;"></i> Operativo
+        </div>
+    </div>
+
+    <!-- Alertas Card -->
+    <div class="stat-card alertas">
+        <div class="stat-icon icon-orange">
+            <i data-lucide="zap"></i>
+        </div>
+        <div class="stat-info flex-grow-1">
+            <h3>Alertas Hoy</h3>
+            <p>{{ alertas|default:"0" }}</p>
+        </div>
+        <div class="badge-premium" style="font-size: 0.7rem; color: #fb923c; background: rgba(249, 115, 22, 0.1); padding: 5px 12px; border-radius: 20px; font-weight: 600; border: 1px solid rgba(249, 115, 22, 0.15);">
+            <i data-lucide="alert-triangle" style="width: 12px; height: 12px; margin-right: 4px;"></i> Pendientes
+        </div>
+    </div>
+</div>
+
+<!-- Main Content Area -->
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="table-modern-wrapper p-4 h-100 border-0">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="fw-bold mb-0" style="color: #FFFFFF;">Accesos Recientes</h4>
+            </div>
+            
+            <!-- Activity Feed Section -->
+            <div class="activity-timeline py-2">
+                {% if actividad %}
+                    <div class="list-group list-group-flush bg-transparent">
+                        {% for item in actividad %}
+                            <div class="list-group-item bg-transparent border-0 px-0 mb-3 d-flex align-items-start gap-3">
+                                <div class="activity-icon-wrapper" style="background: {{ item.color }}15; color: {{ item.color }}; padding: 10px; border-radius: 12px; border: 1px solid {{ item.color }}30;">
+                                    <i data-lucide="{{ item.icono }}" style="width: 20px; height: 20px;"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <h6 class="mb-0 fw-bold" style="color: #FFFFFF; font-size: 0.9rem;">{{ item.titulo }}</h6>
+                                        <span class="badge" style="background: rgba(255, 255, 255, 0.05); color: #94a3b8; font-size: 0.7rem;">Reciente</span>
+                                    </div>
+                                    <p class="mb-0 small" style="color: #94a3b8; line-height: 1.4;">{{ item.desc }}</p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <div class="mb-3" style="display: inline-flex; width: 64px; height: 64px; background: rgba(0, 229, 255, 0.1); border-radius: 50%; align-items: center; justify-content: center; border: 1px solid rgba(0, 229, 255, 0.2);">
+                            <i data-lucide="shield" style="color: var(--accent); width: 32px; height: 32px;"></i>
+                        </div>
+                        <h5 style="color: #FFFFFF; font-weight: 600;">Sistema sin actividad reciente</h5>
+                        <p style="color: #8A99AF;" class="mx-auto" style="max-width: 300px;">Todo se encuentra bajo supervisión.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="table-modern-wrapper p-4 h-100">
+            <h4 class="fw-bold mb-4" style="color: #ffffff; font-size: 1.1rem;">Acciones Rápidas</h4>
+            <div class="d-grid gap-3">
+                <a href="{% url 'global_listado_usuario' %}?action=new" class="btn-premium acciones-rapidas-item usuario p-3 d-flex align-items-center gap-3">
+                    <div style="background: linear-gradient(135deg, #0ea5e9, #2563eb); color: white; padding: 10px; border-radius: 12px;">
+                        <i data-lucide="user-plus" style="width: 22px; height: 22px;"></i>
+                    </div>
+                    <div>
+                        <div class="fw-bold" style="font-size: 0.95rem; color: #ffffff;">Crear Usuario</div>
+                    </div>
+                    <i data-lucide="chevron-right" class="ms-auto" style="width: 18px; color: #475569;"></i>
+                </a>
+                
+                <a href="{% url 'global_usuarios_autorizados_modulos' %}" class="btn-premium acciones-rapidas-item autorizaciones p-3 d-flex align-items-center gap-3">
+                    <div style="background: linear-gradient(135deg, #8b5cf6, #6366f1); color: white; padding: 10px; border-radius: 12px;">
+                        <i data-lucide="shield-check" style="width: 22px; height: 22px;"></i>
+                    </div>
+                    <div>
+                        <div class="fw-bold" style="font-size: 0.95rem; color: #ffffff;">Autorizaciones</div>
+                    </div>
+                    <i data-lucide="chevron-right" class="ms-auto" style="width: 18px; color: #475569;"></i>
+                </a>
+
+                <a href="{% url 'global_config_tipos_solicitud_tokens' %}" class="btn-premium acciones-rapidas-item tokens p-3 d-flex align-items-center gap-3">
+                    <div style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 10px; border-radius: 12px;">
+                        <i data-lucide="key" style="width: 22px; height: 22px;"></i>
+                    </div>
+                    <div>
+                        <div class="fw-bold" style="font-size: 0.95rem; color: #ffffff;">Configurar Tokens</div>
+                    </div>
+                    <i data-lucide="chevron-right" class="ms-auto" style="width: 18px; color: #475569;"></i>
+                </a>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function () {
+        // Re-initialize Lucide icons for late-loaded content
+        lucide.createIcons();
+    });
+</script>
+{% endblock %}

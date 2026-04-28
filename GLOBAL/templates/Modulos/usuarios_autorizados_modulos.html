@@ -1,0 +1,503 @@
+{% extends 'componentes/menu_global_security.html' %}
+{% load static %}
+
+{% block title %}
+Autorizaciones | GLOBAL Security
+{% endblock %}
+
+{% block title_header %}
+Autorización de Módulos
+{% endblock %}
+
+{% block body %}
+
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+<style>
+    /* === DARK GLASS PREMIUM - Autorizaciones por Módulo (scoped) === */
+    .text-navy { color: #ffffff !important; }
+    .fw-500 { font-weight: 600 !important; }
+    .fw-700 { font-weight: 700 !important; }
+    .fw-800 { font-weight: 800 !important; }
+    .font-size-10 { font-size: 0.62rem !important; }
+    .font-size-12 { font-size: 0.75rem !important; }
+    .text-muted { color: #94a3b8 !important; }
+    .text-secondary { color: #64748b !important; }
+
+    /* Main Card */
+    .modern-table-card {
+        background: linear-gradient(145deg, rgba(15,23,42,0.85), rgba(2,6,23,0.92)) !important;
+        backdrop-filter: blur(16px) !important; -webkit-backdrop-filter: blur(16px) !important;
+        border-radius: 16px;
+        border: 1px solid rgba(34,211,238,0.15) !important;
+        box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.08) !important;
+        height: auto; transition: all 0.25s ease;
+        display: flex; flex-direction: column;
+    }
+    .modern-table-card:hover {
+        border-color: rgba(34,211,238,0.3) !important;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.45) !important;
+    }
+
+    .border-bottom { border-bottom-color: rgba(255,255,255,0.06) !important; }
+    .header-filters { display: flex; align-items: center; gap: 1.5rem; }
+    .filter-item { display: flex; align-items: center; gap: 0.75rem; }
+    .filter-label { font-size: 0.65rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    /* Filter Selects */
+    .table-filter-select {
+        border-radius: 8px !important; border: 1px solid rgba(255,255,255,0.1) !important;
+        padding: 5px 12px !important; font-size: 0.78rem !important; font-weight: 600 !important;
+        color: #e2e8f0 !important; background-color: rgba(15,23,42,0.6) !important;
+        cursor: pointer; transition: all 0.2s ease; min-width: 154px; height: 38px;
+    }
+    .table-filter-select:focus { border-color: #22d3ee !important; outline: none !important; box-shadow: 0 0 0 3px rgba(34,211,238,0.1) !important; }
+
+    /* Select2 - Dark */
+    .select2-container--default .select2-selection--single {
+        background-color: rgba(15,23,42,0.6) !important; border: 1px solid rgba(255,255,255,0.1) !important;
+        border-radius: 8px !important; height: 38px !important;
+        display: flex !important; align-items: center !important;
+        padding: 0 10px !important; transition: all 0.2s ease !important;
+    }
+    .select2-container--default.select2-container--open .select2-selection--single {
+        border-color: #22d3ee !important; box-shadow: 0 0 0 3px rgba(34,211,238,0.1) !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        color: #e2e8f0 !important; font-size: 0.78rem !important; font-weight: 600 !important;
+        padding-left: 0 !important; line-height: 38px !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__placeholder { color: #94a3b8 !important; }
+    .select2-container--default .select2-selection--single .select2-selection__arrow { height: 36px !important; right: 8px !important; }
+    .select2-container--default .select2-selection--single .select2-selection__arrow b { border-color: #94a3b8 transparent transparent transparent !important; }
+
+    .select2-dropdown, .select2-container--default .select2-dropdown {
+        background: rgba(15,23,42,0.96) !important; background-color: rgba(15,23,42,0.96) !important;
+        backdrop-filter: blur(12px) !important; -webkit-backdrop-filter: blur(12px) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 12px !important;
+        box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5) !important;
+        z-index: 10000 !important; overflow: hidden !important; margin-top: 5px !important;
+    }
+    .select2-results__options { max-height: 250px !important; list-style: none !important; padding: 0 !important; margin: 0 !important; }
+    .select2-results__option, .select2-container--default .select2-results__option {
+        padding: 12px 18px !important; font-size: 0.8rem !important;
+        color: #e2e8f0 !important; background: transparent !important; background-color: transparent !important;
+        border-bottom: 1px solid rgba(255,255,255,0.05) !important; list-style: none !important;
+    }
+    .select2-container--default .select2-results__option--highlighted[aria-selected] {
+        background: rgba(255,255,255,0.08) !important; background-color: rgba(255,255,255,0.08) !important; color: #fff !important;
+    }
+    .select2-results__option[aria-selected=true] {
+        background: rgba(34,211,238,0.12) !important; background-color: rgba(34,211,238,0.12) !important;
+        color: #22d3ee !important; font-weight: 700 !important;
+    }
+    .select2-container .select2-results__option:last-child { border-bottom: none !important; }
+    .select2-search--dropdown { padding: 10px !important; background: transparent !important; background-color: transparent !important; }
+    .select2-search--dropdown .select2-search__field {
+        border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 8px !important;
+        padding: 8px 12px !important; font-size: 0.85rem !important;
+        background: rgba(15,23,42,0.6) !important; background-color: rgba(15,23,42,0.6) !important;
+        color: #e2e8f0 !important; outline: none !important;
+    }
+    .select2-search--dropdown .select2-search__field:focus { border-color: #22d3ee !important; box-shadow: 0 0 0 3px rgba(34,211,238,0.1) !important; }
+    .select2-results__options::-webkit-scrollbar { width: 6px !important; }
+    .select2-results__options::-webkit-scrollbar-track { background: transparent !important; }
+    .select2-results__options::-webkit-scrollbar-thumb { background: #0284c7 !important; border-radius: 10px !important; }
+    .select2-results__options::-webkit-scrollbar-thumb:hover { background: #0369a1 !important; }
+
+    /* DataTable - Dark */
+    .table-modern-style thead th {
+        background: linear-gradient(to right, rgba(15,23,42,0.95), rgba(2,6,23,0.95)) !important;
+        border: none !important; color: #94a3b8 !important;
+        font-size: 0.75rem !important; font-weight: 700 !important;
+        text-transform: uppercase !important; padding: 12px 15px !important;
+    }
+    .table-modern-style tbody td {
+        border-color: rgba(255,255,255,0.05) !important;
+        padding: 12px 15px !important; font-size: 0.85rem !important;
+        color: #e2e8f0 !important; background-color: transparent !important;
+    }
+    table.dataTable tbody tr td { background-color: transparent !important; }
+
+    /* DataTable filter */
+    .dataTables_wrapper .dataTables_filter input {
+        border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 8px !important;
+        padding: 4px 10px !important; background: rgba(15,23,42,0.6) !important;
+        color: #e2e8f0 !important; font-size: 0.78rem !important;
+    }
+    .dataTables_wrapper .dataTables_filter input:focus { border-color: #22d3ee !important; outline: none !important; }
+    .dataTables_wrapper .dataTables_filter label { color: #94a3b8 !important; }
+    .dataTables_wrapper .dataTables_info { color: #64748b !important; font-size: 0.72rem !important; }
+
+    /* Badges - Glass */
+    .badge-status { padding: 4px 12px; border-radius: 20px; font-size: 0.62rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; display: inline-flex; align-items: center; gap: 6px; }
+    .badge-status-authorized { background: rgba(34,197,94,0.15) !important; color: #4ade80 !important; border: 1px solid rgba(34,197,94,0.3) !important; }
+    .badge-status-available { background: rgba(14,165,233,0.15) !important; color: #38bdf8 !important; border: 1px solid rgba(14,165,233,0.3) !important; }
+
+    /* Row states */
+    table#tableUnifiedAutorizaciones.dataTable tbody tr.selected,
+    table#tableUnifiedAutorizaciones.dataTable tbody tr.selected td {
+        background-color: transparent !important; box-shadow: none !important; color: #e2e8f0 !important;
+    }
+    #tableUnifiedAutorizaciones tbody tr { cursor: pointer; }
+    #tableUnifiedAutorizaciones tbody tr:hover td { background-color: rgba(255,255,255,0.04) !important; }
+
+    /* Column 1 state colors */
+    #tableUnifiedAutorizaciones tbody tr[data-state="available"] td:nth-child(1),
+    #tableUnifiedAutorizaciones tbody tr[data-state="available"] td:nth-child(1).sorting_1 {
+        background-color: rgba(14,165,233,0.08) !important;
+    }
+    #tableUnifiedAutorizaciones tbody tr[data-state="assigned"] td:nth-child(1),
+    #tableUnifiedAutorizaciones tbody tr[data-state="assigned"] td:nth-child(1).sorting_1 {
+        background-color: rgba(34,197,94,0.08) !important;
+    }
+    /* Selected column 1 */
+    #tableUnifiedAutorizaciones tbody tr[data-state="available"].selected td:nth-child(1) {
+        background-color: rgba(14,165,233,0.25) !important; color: #fff !important;
+    }
+    #tableUnifiedAutorizaciones tbody tr[data-state="assigned"].selected td:nth-child(1) {
+        background-color: rgba(34,197,94,0.25) !important; color: #fff !important;
+    }
+    #tableUnifiedAutorizaciones tbody tr.selected td:nth-child(1) * { color: #ffffff !important; }
+
+    /* Columns 2,3 neutral */
+    #tableUnifiedAutorizaciones tbody tr td:nth-child(2),
+    #tableUnifiedAutorizaciones tbody tr td:nth-child(3),
+    #tableUnifiedAutorizaciones tbody tr.selected td:nth-child(2),
+    #tableUnifiedAutorizaciones tbody tr.selected td:nth-child(3) {
+        background-color: transparent !important; color: #e2e8f0 !important;
+    }
+
+    /* Action Buttons - Glass */
+    .btn-row-action {
+        padding: 6px 16px !important; border-radius: 8px !important;
+        font-size: 0.65rem !important; font-weight: 800 !important;
+        transition: all 0.2s ease !important;
+        display: inline-flex !important; align-items: center !important;
+        gap: 6px !important; letter-spacing: 0.02em; cursor: pointer;
+    }
+    .btn-row-authorize {
+        background: linear-gradient(135deg, rgba(16,185,129,0.2), rgba(5,150,105,0.3)) !important;
+        color: #34d399 !important; border: 1px solid rgba(16,185,129,0.4) !important;
+    }
+    .btn-row-remove {
+        background: linear-gradient(135deg, rgba(239,68,68,0.2), rgba(185,28,28,0.3)) !important;
+        color: #f87171 !important; border: 1px solid rgba(239,68,68,0.4) !important;
+    }
+    .btn-row-action:hover { transform: translateY(-2px); filter: brightness(1.2); }
+
+    /* Empty State */
+    .empty-state-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6rem 2rem; text-align: center; }
+    .empty-state-placeholder p { color: #cbd5e1 !important; }
+    .empty-state-placeholder small { color: #94a3b8 !important; }
+
+    /* Floating Buttons */
+    .floating-action-container { position: fixed; bottom: 32px; right: 32px; z-index: 1010; display: flex; gap: 15px; }
+    .floating-action-btn {
+        border-radius: 12px; height: 44px; padding: 0 25px;
+        font-size: 0.75rem; font-weight: 800; display: flex; align-items: center;
+        gap: 8px; color: white !important; text-transform: uppercase;
+        box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5); backdrop-filter: blur(8px);
+        transition: all 0.2s ease; cursor: pointer;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+    }
+    .floating-action-btn:hover { transform: translateY(-2px); filter: brightness(1.15); }
+    .btn-secondary-ref { background: linear-gradient(135deg, rgba(71,85,105,0.9), rgba(51,65,85,0.9)) !important; }
+    .btn-primary-ref { background: linear-gradient(135deg, rgba(30,41,59,0.9), rgba(15,23,42,0.9)) !important; }
+</style>
+
+<div class="table-modern-wrapper p-4">
+    <div class="modern-table-card shadow-lg border-primary-subtle p-4" style="min-height: 520px;">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3 border-bottom pb-3">
+            <div>
+                <h5 class="m-0 fw-800 text-navy d-flex align-items-center gap-2">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="#0284c7" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
+                    GESTIÓN DE AUTORIZACIONES POR MÓDULO
+                </h5>
+                <p class="text-muted m-0 font-size-10 mt-1">Administra los permisos de acceso de los usuarios vinculándolos a los módulos del sistema</p>
+            </div>
+            
+            <div class="header-filters">
+                <div class="filter-item" id="modulo-filter-item">
+                    <label class="filter-label">MÓDULO:</label>
+                    <select id="selectModulo" class="table-filter-select" style="width: 210px;">
+                        <option value=""></option>
+                    </select>
+                </div>
+
+                <div class="filter-item">
+                    <label class="filter-label">MOSTRAR:</label>
+                    <select id="filterStatus" class="table-filter-select" style="width: 140px;">
+                        <option value="all">TODOS</option>
+                        <option value="assigned">AUTORIZADOS</option>
+                        <option value="available">DISPONIBLES</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex flex-column h-100">
+            <!-- Empty State -->
+            <div id="empty-state-autorizaciones" class="empty-state-placeholder py-5">
+                <svg viewBox="0 0 24 24" width="48" height="48" stroke="#cbd5e1" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" class="mb-3"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <p class="text-muted fw-medium font-size-14">Seleccione un módulo arriba para gestionar autorizaciones</p>
+                <small class="text-secondary mt-1 px-4">Visualizarás la lista de usuarios autorizados y disponibles para el módulo seleccionado</small>
+            </div>
+
+            <!-- Unified Table -->
+            <div id="table-container-autorizaciones" class="table-responsive flex-grow-1" style="display: none; padding-top: 0.5rem;">
+                <table id="tableUnifiedAutorizaciones" class="table table-hover align-middle table-modern-style mb-0 w-100">
+                    <thead>
+                        <tr>
+                            <th style="width: 45%;">Nombre del Usuario</th>
+                            <th style="width: 25%;" class="text-center">Estado</th>
+                            <th style="width: 30%;" class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Floating Action Buttons -->
+<div class="floating-action-container">
+    <button class="floating-action-btn btn-secondary-ref" id="btnLimpiar" title="Limpiar Filtros">
+        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+        LIMPIAR
+    </button>
+    <a href="{% url 'global_main' %}" style="text-decoration: none;">
+        <button class="floating-action-btn btn-primary-ref" title="Cerrar Módulo">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            CERRAR
+        </button>
+    </a>
+</div>
+
+
+{% endblock %}
+
+
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function () {
+        var csrfToken = "{{ csrf_token }}";
+        var id_modulo = null;
+        var tableUnified = null;
+        var fullData = [];
+
+        var toastMixin = Swal.mixin({
+            toast: true,
+            icon: 'success',
+            position: 'top-right',
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true
+        });
+
+        // 1. Initialize Select2 for Module IMMEDIATELY to preserve layout and look
+        var $selectModulo = $('#selectModulo').select2({
+            placeholder: "Seleccione módulo...",
+            allowClear: true,
+            width: 'resolve',
+            dropdownAutoWidth: true
+        });
+
+        // Initialize Select2 for Status Filter
+        $('#filterStatus').select2({
+            minimumResultsForSearch: Infinity,
+            width: 'resolve'
+        });
+
+        /* MENU ID Y SUBMENU ID */
+        $('#modulosMenu, #usuariosAutorizadosDelModulo_submenu').addClass('active');
+
+        getModulos();
+
+        function getModulos() {
+            $.ajax({
+                url: "{% url 'get_usuarios_autorizados_modulos' %}",
+                type: "POST",
+                data: { csrfmiddlewaretoken: csrfToken },
+                success: function (response) {
+                    if (response.data && response.data.length > 0) {
+                        var $select = $('#selectModulo');
+                        $select.empty().append('<option value=""></option>');
+                        response.data.forEach(function (m) {
+                            $select.append(`<option value="${m.PKmodulo}">${m.Nombre}</option>`);
+                        });
+                        
+                        // 3. Re-initialize to ensure internal search engine is updated
+                        $select.select2({
+                            placeholder: "Seleccione módulo...",
+                            allowClear: true,
+                            width: 'resolve',
+                            dropdownAutoWidth: true
+                        });
+                    }
+                }
+            });
+        }
+
+        $('#selectModulo').on('change', function () {
+            id_modulo = $(this).val();
+            getUnifiedData();
+        });
+
+        $('#filterStatus').on('change', function () {
+            if (tableUnified) tableUnified.draw();
+        });
+
+        function getUnifiedData() {
+            if (!id_modulo) {
+                $('#table-container-autorizaciones').hide();
+                $('#empty-state-autorizaciones').fadeIn(300);
+                return;
+            }
+
+            $('#empty-state-autorizaciones').hide();
+            $('#table-container-autorizaciones').fadeIn(300);
+
+            // Fetch both Available and Authorized users
+            $.when(
+                $.ajax({
+                    url: `{% url 'get_usuarios_autorizados_modulos_usuarios_disponibles_data' %}`,
+                    type: "POST",
+                    data: { varModulo: id_modulo, csrfmiddlewaretoken: csrfToken }
+                }),
+                $.ajax({
+                    url: `{% url 'get_usuarios_autorizados_modulos_usuarios_asignados_data' %}`,
+                    type: "POST",
+                    data: { varModulo: id_modulo, csrfmiddlewaretoken: csrfToken }
+                })
+            ).then(function (resAvailable, resAsigned) {
+                var available = resAvailable[0].data || [];
+                var asigned = resAsigned[0].data || [];
+
+                fullData = [];
+                // Process Assigned
+                asigned.forEach(u => {
+                    fullData.push({
+                        fkUsuario: u.fkUsuario,
+                        Nombres: u.Nombres,
+                        Status: 'assigned'
+                    });
+                });
+                // Process Available
+                available.forEach(u => {
+                    fullData.push({
+                        fkUsuario: u.fkUsuario,
+                        Nombres: u.Nombres,
+                        Status: 'available'
+                    });
+                });
+
+                renderTable(fullData);
+            });
+        }
+
+        function renderTable(data) {
+            if ($.fn.DataTable.isDataTable('#tableUnifiedAutorizaciones')) {
+                $('#tableUnifiedAutorizaciones').DataTable().destroy();
+            }
+
+            tableUnified = $('#tableUnifiedAutorizaciones').DataTable({
+                data: data,
+                autoWidth: false,
+                scrollX: true,
+                pageLength: 50,
+                dom: 'rftip',
+                language: { url: "{% static 'app/th/json/es-ES.json' %}" },
+                columns: [
+                    { data: 'Nombres' },
+                    {
+                        data: 'Status',
+                        className: 'text-center',
+                        render: function (data) {
+                            if (data === 'assigned') {
+                                return '<span class="badge-status badge-status-authorized"><i data-lucide="shield-check" style="width:12px;"></i> AUTORIZADO</span>';
+                            }
+                            return '<span class="badge-status badge-status-available"><i data-lucide="circle" style="width:12px;"></i> DISPONIBLE</span>';
+                        }
+                    },
+                    {
+                        data: null,
+                        className: 'text-center',
+                        render: function (data, type, row) {
+                            if (row.Status === 'assigned') {
+                                return `<button class="btn-row-action btn-row-remove" onclick="quitar('${id_modulo}', '${row.fkUsuario}')">
+                                            <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"></path></svg> QUITAR
+                                        </button>`;
+                            }
+                            return `<button class="btn-row-action btn-row-authorize" onclick="asignar('${id_modulo}', '${row.fkUsuario}')">
+                                        <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> AUTORIZAR
+                                    </button>`;
+                        }
+                    }
+                ],
+                drawCallback: function () {
+                    lucide.createIcons();
+                },
+                createdRow: function (row, data, dataIndex) {
+                    $(row).attr('data-state', data.Status);
+                }
+            });
+
+            // Row selection logic
+            $('#tableUnifiedAutorizaciones tbody').off('click', 'tr').on('click', 'tr', function (e) {
+                if ($(e.target).closest('button').length) return;
+                $('#tableUnifiedAutorizaciones tbody tr').removeClass('selected');
+                $(this).addClass('selected');
+            });
+
+            // Custom Filter for Status
+            $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
+                var filter = $('#filterStatus').val();
+                var status = fullData[dataIndex].Status;
+                if (filter === 'all') return true;
+                return status === filter;
+            });
+        }
+
+        window.asignar = function (mod, user) {
+            $.ajax({
+                url: "{% url 'insert_usuarios_autorizados_modulos_usuarios_disponible' %}",
+                type: "POST",
+                data: { varModulo: mod, varUsuario: user, csrfmiddlewaretoken: csrfToken },
+                success: function (data) {
+                    if (data.save == 1) {
+                        toastMixin.fire({ title: 'Usuario Autorizado!' });
+                        getUnifiedData();
+                    } else {
+                        Swal.fire("Error", data.error, "error");
+                    }
+                }
+            });
+        };
+
+        window.quitar = function (mod, user) {
+            $.ajax({
+                url: "{% url 'eliminar_usuarios_autorizados_modulos_usuarios_asignado' %}",
+                type: "POST",
+                data: { varModulo: mod, varUsuario: user, csrfmiddlewaretoken: csrfToken },
+                success: function (data) {
+                    if (data.save == 1) {
+                        toastMixin.fire({ title: 'Autorización Removida!' });
+                        getUnifiedData();
+                    } else {
+                        Swal.fire("Error", data.error, "error");
+                    }
+                }
+            });
+        };
+
+        $('#btnLimpiar').click(function () {
+            $('#selectModulo').val('').trigger('change');
+            $('#filterStatus').val('all').trigger('change');
+        });
+    });
+</script>
+{% endblock %}

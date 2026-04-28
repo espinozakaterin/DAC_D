@@ -53,45 +53,90 @@
 </title>
 
 <style>
+    * { outline: none !important; caret-color: transparent !important; }
+    
     #sidebar,
     .header .header-left {
         background: #205c634c;
     }
 
     body {
-        font-family: 'Roboto', sans-serif;
+        font-family: 'Inter', sans-serif;
         margin: 0;
         display: flex;
         justify-content: center;
         align-items: center;
-        height: 100vh;
-        background-image: linear-gradient(135deg, #2ecc7046 25%, transparent 25%),
-            linear-gradient(225deg, #3498db42 25%, transparent 25%),
-            linear-gradient(45deg, #3498db44 25%, transparent 25%),
-            linear-gradient(315deg, #2ecc7044 25%, #ffffff 25%);
-        background-position: 0 0, 0 0, 0 0, 0 0;
-        background-size: 100%;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    }
 
+    .main-wrapper {
+        width: 100%;
+    }
+
+    .icon-card {
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        border-radius: 20px;
+        border: none;
+        background: white;
+        overflow: hidden;
+        cursor: pointer;
+        height: 100%;
+    }
+
+    .icon-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1) !important;
+    }
+
+    .icon-card:hover .card-img-top {
+        transform: translate(-50%, -50%) scale(1.05);
     }
 
     .img-container {
         width: 100%;
-        padding-top: 75%;
-        /* Aspect ratio 4:3 */
+        padding-top: 70%;
         position: relative;
         overflow: hidden;
+        background: rgba(0,0,0,0.02);
         display: flex;
         align-items: center;
         justify-content: center;
     }
 
     .card-img-top {
-        max-width: 100%;
-        max-height: 100%;
+        max-width: 85%;
+        max-height: 85%;
         position: absolute;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
+        transition: transform 0.4s ease;
+        object-fit: contain;
+    }
+
+    .page-title {
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        color: #0f172a;
+        margin-bottom: 2rem;
+        text-align: center;
+        line-height: 1.2;
+    }
+
+    .btn-module {
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding: 12px;
+        border-radius: 12px;
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+    .btn-module:hover {
+        filter: brightness(1.1);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.15);
     }
 </style>
 
@@ -138,16 +183,13 @@
     <div class="page-wrapper content container-fluid">
         <div class="row">
             <div class="col-lg-12">
-
                 <div class="card comman-shadow shadow-lg">
                     <div class="card-body">
-
                         <div class="row align-items-center">
                             <div class="col">
-                                <h3 class="page-title" style="user-select: none; -webkit-user-select: none; cursor: default; outline: none;">APLICACIONES</h3>
+                                <h3 class="page-title">APLICACIONES</h3>
                             </div>
                         </div>
-
                         <br>
 
 
@@ -156,80 +198,80 @@
                             <div class="row d-flex justify-content-around">
 
                                 <div class="col-6 col-md-3 mb-4">
-                                    <div class="icon-card ">
+                                    <div class="icon-card shadow-sm">
                                         <div class="img-container">
                                             <img class="card-img-top"
-                                                src="{% static 'app/controlsum/images/CSUM1.jpg' %}" alt="CONTROLSUM Logo" style="width: 200%">
+                                                src="{% static 'app/controlsum/images/CSUM1.jpg' %}" alt="CONTROLSUM Logo">
                                         </div>
                                         <div class="card-body clickedModule">
                                             <input type="hidden" value="21" class="moduleValue">
                                             <input type="hidden" value="control/suministros/panel/" class="moduleUrl">
-                                            <button class="btn btn-sm text-center text-white w-100" id="btnSuministros"
+                                            <button class="btn btn-sm text-center text-white w-100 btn-module" id="btnSuministros"
                                                 style="background-image: linear-gradient(to right, #208d3c, #46da5f, #076113);">CONTROL SUMINISTROS</button>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="col-6 col-md-3 mb-4">
-                                    <div class="d-flex justify-content-center">
-                                        <div class="card" style="width: 100%;">
-                                            <div class="img-container">
-                                                <img class="card-img-top"
-                                                    src="{% static 'app/dac/images/dac_logo.png' %}" alt="DAC Logo">
-                                            </div>
-                                            <div class="card-body">
-                                                <button class="btn btn-sm text-center text-white w-100 btnAcceso"
-                                                    id="btnDAC"
-                                                    style="background-image: linear-gradient(to right, #8338a3, #a458c4, #6e3189);">DAC</button>
-                                            </div>
+                                    <div class="icon-card shadow-sm">
+                                        <div class="img-container">
+                                            <img class="card-img-top"
+                                                src="{% static 'app/dac/images/dac_logo.png' %}" alt="DAC Logo">
+                                        </div>
+                                        <div class="card-body clickedModule">
+                                            <input type="hidden" value="1" class="moduleValue"> <!-- Value from screenshot/logic is likely 1 for DAC -->
+                                            <input type="hidden" value="dac/" class="moduleUrl">
+                                            <button class="btn btn-sm text-center text-white w-100 btn-module btnAcceso"
+                                                id="btnDAC"
+                                                style="background-image: linear-gradient(to right, #8338a3, #a458c4, #6e3189);">DAC</button>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="col-6 col-md-3 mb-4">
-                                    <div class="d-flex justify-content-center">
-                                        <div class="card" style="width: 100%;">
-                                            <div class="img-container">
-                                                <img class="card-img-top"
-                                                    src="{% static 'app/evac/images/login/logo.png' %}"
-                                                    alt="EVAC Logo">
-                                            </div>
-                                            <div class="card-body">
-                                                <button class="btn btn-sm text-center text-white w-100 btnAcceso"
-                                                    id="btnEVAC"
-                                                    style="background-image: linear-gradient(to right, #3D59B4, #5693c4, #3251b6);">EVAC</button>
-                                            </div>
+                                    <div class="icon-card shadow-sm">
+                                        <div class="img-container">
+                                            <img class="card-img-top"
+                                                src="{% static 'app/evac/images/login/logo.png' %}"
+                                                alt="EVAC Logo">
+                                        </div>
+                                        <div class="card-body clickedModule">
+                                            <input type="hidden" value="2" class="moduleValue">
+                                            <input type="hidden" value="evac/" class="moduleUrl">
+                                            <button class="btn btn-sm text-center text-white w-100 btn-module btnAcceso"
+                                                id="btnEVAC"
+                                                style="background-image: linear-gradient(to right, #3D59B4, #5693c4, #3251b6);">EVAC</button>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="col-6 col-md-3 mb-4">
-                                    <div class="d-flex justify-content-center">
-                                        <div class="card" style="width: 100%;">
-                                            <div class="img-container">
-                                                <img class="card-img-top"
-                                                    src="{% static 'app/ticketit/images/login/logo.png' %}"
-                                                    alt="TICKETIT Logo">
-                                            </div>
-                                            <div class="card-body">
-                                                <button class="btn btn-sm text-center text-white w-100 btnAcceso"
-                                                    id="btnTICKETIT"
-                                                    style="background-image: linear-gradient(to right, #398891, #45a0aa, #205c63);">TICKETIT</button>
-                                            </div>
+                                    <div class="icon-card shadow-sm">
+                                        <div class="img-container">
+                                            <img class="card-img-top"
+                                                src="{% static 'app/ticketit/images/login/logo.png' %}"
+                                                alt="TICKETIT Logo">
+                                        </div>
+                                        <div class="card-body clickedModule">
+                                            <input type="hidden" value="3" class="moduleValue">
+                                            <input type="hidden" value="ticketit/" class="moduleUrl">
+                                            <button class="btn btn-sm text-center text-white w-100 btn-module btnAcceso"
+                                                id="btnTICKETIT"
+                                                style="background-image: linear-gradient(to right, #398891, #45a0aa, #205c63);">TICKETIT</button>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="col-6 col-md-3 mb-4">
-                                    <div class="icon-card ">
+                                    <div class="icon-card shadow-sm">
                                         <div class="img-container">
                                             <img class="card-img-top" src="{% static 'app/th/images/rh.jpg' %}"
                                                 alt="TH Logo">
                                         </div>
-                                        <div class="card-body">
+                                        <div class="card-body clickedModule">
                                             <input type="hidden" value="19" class="moduleValue">
                                             <input type="hidden" value="talento/humano" class="moduleUrl">
-                                            <button class="btn btn-sm text-center text-white w-100" id="btnTH"
+                                            <button class="btn btn-sm text-center text-white w-100 btn-module" id="btnTH"
                                                 style="background-image: linear-gradient(to right, #398891, #1a8de4, #24d7eb);">TALENTO
                                                 HUMANO</button>
                                         </div>
@@ -237,16 +279,31 @@
                                 </div>
 
                                 <div class="col-6 col-md-3 mb-4">
-                                    <div class="icon-card ">
+                                    <div class="icon-card shadow-sm">
                                         <div class="img-container">
                                             <img class="card-img-top"
-                                                src="{% static 'app/contabilidad/images/logo.png' %}" alt="TH Logo" style="width: 250px;">
+                                                src="{% static 'app/contabilidad/images/logo.png' %}" alt="TH Logo">
                                         </div>
-                                        <div class="card-body">
+                                        <div class="card-body clickedModule">
                                             <input type="hidden" value="12" class="moduleValue">
                                             <input type="hidden" value="contabilidad/panel/" class="moduleUrl">
-                                            <button class="btn btn-sm text-center text-white w-100" id="btnContable"
+                                            <button class="btn btn-sm text-center text-white w-100 btn-module" id="btnContable"
                                                 style="background-image: linear-gradient(to right, #ad6852, #d7e41a, #7c2f2f);">CONTABLE</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-6 col-md-3 mb-4">
+                                    <div class="icon-card shadow-sm">
+                                        <div class="img-container">
+                                            <img class="card-img-top"
+                                                src="{% static 'app/global/globallogo.png' %}" alt="GLOBAL Logo">
+                                        </div>
+                                        <div class="card-body clickedModule">
+                                            <input type="hidden" value="10" class="moduleValue">
+                                            <input type="hidden" value="global/panel/" class="moduleUrl">
+                                            <button class="btn btn-sm text-center text-white w-100 btn-module" id="btnGlobal"
+                                                style="background-image: linear-gradient(to right, #205c63, #3a97a1, #1a4146);">GLOBAL</button>
                                         </div>
                                     </div>
                                 </div>

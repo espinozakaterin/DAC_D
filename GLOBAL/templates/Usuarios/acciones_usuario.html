@@ -1,0 +1,760 @@
+{% extends 'componentes/menu_global_security.html' %}
+{% load static %}
+
+{% block title %}
+ACCIONES DEL USUARIO | GLOBAL Security
+{% endblock %}
+
+{% block body %}
+
+<style>
+    /* Enable Global Page Scroll */
+    html, body, .main-layout, .page-content, .dashboard-container {
+        overflow-y: auto !important;
+        height: auto !important;
+        min-height: 100vh !important;
+    }
+
+    .modern-table-card {
+        background: linear-gradient(145deg, rgba(15, 23, 42, 0.8), rgba(2, 6, 23, 0.9)) !important;
+        backdrop-filter: blur(16px) !important;
+        -webkit-backdrop-filter: blur(16px) !important;
+        border-radius: 16px;
+        border: 1px solid rgba(34, 211, 238, 0.15) !important;
+        padding: 0.65rem !important;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+        height: auto;
+        transition: var(--transition);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .modern-table-card:hover {
+        box-shadow: 0 20px 50px rgba(0,0,0,0.4) !important;
+        border-color: rgba(34, 211, 238, 0.3) !important;
+    }
+
+    /* DataTable Overrides */
+    .table-modern-style thead th {
+        background: linear-gradient(to right, rgba(15, 23, 42, 0.95), rgba(2, 6, 23, 0.95)) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: #94a3b8 !important;
+        font-size: 0.75rem !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        padding: 8px 15px !important;
+    }
+
+    .table-modern-style tbody td {
+        border-color: rgba(255, 255, 255, 0.05) !important;
+        padding: 8px 15px !important;
+        font-size: 0.85rem !important;
+        color: #e2e8f0 !important;
+    }
+
+    .table-modern-style tbody tr:hover td {
+        background-color: rgba(255, 255, 255, 0.05) !important;
+    }
+
+    table.dataTable tbody tr td {
+        background-color: transparent !important;
+    }
+
+    /* State-based Highlights */
+    #tableUnifiedAcciones tbody tr[data-action-state="available"] td {
+        background-color: rgba(14, 165, 233, 0.05) !important;
+    }
+
+    #tableUnifiedAcciones tbody tr[data-action-state="assigned"] td {
+        background-color: rgba(34, 197, 94, 0.05) !important;
+    }
+
+    table.dataTable tbody tr {
+        transition: all 0.25s ease !important;
+    }
+
+    #tableUnifiedAcciones tbody tr[data-action-state="available"]:hover td {
+        background-color: rgba(14, 165, 233, 0.15) !important;
+        box-shadow: inset 0 0 10px rgba(14, 165, 233, 0.05);
+    }
+
+    #tableUnifiedAcciones tbody tr[data-action-state="assigned"]:hover td {
+        background-color: rgba(34, 197, 94, 0.15) !important;
+        box-shadow: inset 0 0 10px rgba(34, 197, 94, 0.05);
+    }
+
+    /* Selection highlights */
+    table#tableUnifiedAcciones.dataTable tbody tr.selected td {
+        background-color: transparent;
+        background-image: none !important;
+        box-shadow: none !important;
+    }
+
+    table#tableUnifiedAcciones.dataTable tbody tr[data-action-state="assigned"].selected td {
+        background-color: rgba(34, 197, 94, 0.2) !important;
+    }
+    table#tableUnifiedAcciones.dataTable tbody tr[data-action-state="assigned"].selected td:first-child {
+        box-shadow: inset 4px 0 0 rgba(34, 197, 94, 1) !important;
+    }
+
+    table#tableUnifiedAcciones.dataTable tbody tr[data-action-state="available"].selected td {
+        background-color: rgba(14, 165, 233, 0.2) !important;
+    }
+    table#tableUnifiedAcciones.dataTable tbody tr[data-action-state="available"].selected td:first-child {
+        box-shadow: inset 4px 0 0 rgba(14, 165, 233, 1) !important;
+    }
+
+    table#tableUnifiedAcciones.dataTable tbody tr td:nth-child(2),
+    table#tableUnifiedAcciones.dataTable tbody tr td:nth-child(3),
+    table#tableUnifiedAcciones.dataTable tbody tr.selected td:nth-child(2),
+    table#tableUnifiedAcciones.dataTable tbody tr.selected td:nth-child(3) {
+        background-color: transparent !important;
+    }
+
+    #tableUnifiedAcciones.dataTable tbody tr.selected td:nth-child(1),
+    #tableUnifiedAcciones.dataTable tbody tr.selected td:nth-child(1) * {
+        color: #ffffff !important;
+    }
+
+    #tableUnifiedAcciones tbody tr:not(.selected):hover td:nth-child(1) {
+        filter: brightness(0.96);
+        cursor: pointer;
+    }
+
+    #tableUnifiedAcciones tbody tr:not(.selected):hover td {
+        filter: brightness(0.97);
+        cursor: pointer;
+    }
+
+    /* Scrollbar Style */
+    .dataTables_scrollBody::-webkit-scrollbar {
+        width: 4px !important;
+        height: 4px !important;
+    }
+    .dataTables_scrollBody::-webkit-scrollbar-track { background: transparent !important; }
+    .dataTables_scrollBody::-webkit-scrollbar-thumb {
+        background: #1e293b !important; 
+        border-radius: 10px !important;
+    }
+
+    /* Premium Search Bar Styles */
+    .search-colaborador-container { max-width: 650px; margin: 0 auto 1.5rem auto; position: relative; }
+    .search-input-wrapper { display: flex; align-items: center; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(10px); border-radius: 50px; padding: 5px 10px 5px 25px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    .search-input-wrapper:focus-within { transform: translateY(-2px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.1); border-color: rgba(34, 211, 238, 0.3); }
+    .search-input-field { border: none; outline: none; width: 100%; padding: 12px 10px; font-size: 1.1rem; font-weight: 500; color: #f8fafc; background: transparent; }
+    .search-input-field::placeholder { color: #64748b; font-weight: 400; }
+    .search-icon-btn { width: 48px; height: 48px; background: #0284c7; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; border: none; flex-shrink: 0; }
+    .search-icon-btn:hover { background: #0369a1; transform: scale(1.05); }
+    .search-results-dropdown { position: absolute; top: 110%; left: 0; right: 0; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(12px); border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); border: 1px solid rgba(255,255,255,0.1); z-index: 1050; overflow: hidden; display: none; max-height: 400px; overflow-y: auto; }
+    .result-item { padding: 12px 25px; display: flex; flex-direction: column; cursor: pointer; transition: background 0.2s ease; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .result-item:last-child { border-bottom: none; }
+    .result-item:hover, .result-item.highlighted { background: rgba(255,255,255,0.05); }
+    .result-name { font-weight: 700; color: #f8fafc; font-size: 0.95rem; }
+    .result-username { font-size: 0.8rem; color: #94a3b8; font-weight: 500; }
+    .search-badge { background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; text-transform: uppercase; margin-left: auto; }
+
+    .empty-state-placeholder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 4rem 1.5rem;
+        text-align: center;
+        color: #94a3b8;
+    }
+
+    .pulsing-icon { animation: pulse 2s infinite; }
+    @keyframes pulse {
+        0% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.1); opacity: 0.7; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+
+    .badge-flat-status {
+        padding: 5px 12px;
+        border-radius: 6px;
+        font-size: 0.62rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .badge-status-assigned {
+        background: rgba(34, 197, 94, 0.1) !important;
+        color: #4ade80 !important;
+        border: 1px solid rgba(34, 197, 94, 0.2) !important;
+    }
+    .badge-status-available {
+        background: rgba(14, 165, 233, 0.1) !important;
+        color: #38bdf8 !important;
+        border: 1px solid rgba(14, 165, 233, 0.2) !important;
+    }
+
+    .fw-500 { font-weight: 500 !important; }
+    .font-size-10 { font-size: 0.62rem !important; }
+    .text-navy { color: #1e293b !important; }
+
+    .btn-row-action {
+        padding: 6px 16px !important;
+        border-radius: 8px !important;
+        font-size: 0.65rem !important;
+        font-weight: 800 !important;
+        transition: all 0.2s ease !important;
+        border: none !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        letter-spacing: 0.02em;
+    }
+    .btn-row-assign { background: var(--accent-gradient) !important; color: white !important; }
+    .btn-row-remove { background: #ef4444 !important; color: white !important; }
+    
+    .table-filter-select {
+        border-radius: 8px;
+        border: 1px solid rgba(255,255,255,0.1);
+        padding: 5px 12px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: #fff;
+        background-color: rgba(15, 23, 42, 0.6);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        min-width: 150px;
+    }
+
+    .table-filter-select:focus {
+        border-color: var(--accent);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+    }
+
+    .floating-action-btn {
+        width: 130px !important;
+        height: 44px !important;
+        border-radius: 12px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        transition: var(--transition) !important;
+        border: 1px solid transparent !important;
+        box-shadow: var(--shadow-lg) !important;
+        font-size: 0.75rem !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        gap: 8px !important;
+        color: white !important;
+    }
+
+    .floating-action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md) !important;
+    }
+
+    #BtnLimpiar {
+        background: linear-gradient(135deg, rgba(71, 85, 105, 0.9), rgba(51, 65, 85, 0.9)) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        backdrop-filter: blur(8px);
+    }
+    #BtnLimpiar:hover {
+        box-shadow: 0 0 15px rgba(71, 85, 105, 0.6) !important;
+        border-color: rgba(255,255,255,0.2) !important;
+    }
+    #BtnCerrar {
+        background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.9)) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        backdrop-filter: blur(8px);
+    }
+    #BtnCerrar:hover {
+        box-shadow: 0 0 15px rgba(30, 41, 59, 0.6) !important;
+        border-color: rgba(255,255,255,0.2) !important;
+    }
+
+    /* Select2 Dark Mode Fixes */
+    .select2-container--default .select2-selection--single {
+        background-color: rgba(15, 23, 42, 0.6) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        border-radius: 8px !important;
+        height: 38px !important;
+        display: flex !important;
+        align-items: center !important;
+        padding: 0 10px !important;
+        transition: all 0.2s ease !important;
+    }
+
+    .select2-container--default.select2-container--open .select2-selection--single {
+        border-color: var(--accent) !important;
+        background-color: rgba(15, 23, 42, 0.9) !important;
+        box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1) !important;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        color: #fff !important;
+        font-size: 0.78rem !important;
+        font-weight: 600 !important;
+        padding-left: 0 !important;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__placeholder {
+        color: #94a3b8 !important;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 36px !important;
+        right: 8px !important;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__clear {
+        margin-right: 15px !important;
+        color: #cbd5e1 !important;
+    }
+
+    .select2-dropdown {
+        background: rgba(15, 23, 42, 0.95) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        border-radius: 12px !important;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5) !important;
+        backdrop-filter: blur(12px) !important;
+        z-index: 9999 !important;
+        margin-top: 5px !important;
+    }
+
+    .select2-search--dropdown {
+        background: transparent !important;
+        padding: 10px !important;
+    }
+
+    .select2-search--dropdown .select2-search__field {
+        background: rgba(0,0,0,0.2) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        color: #fff !important;
+        border-radius: 8px !important;
+    }
+
+    .select2-results__options {
+        max-height: 250px !important;
+    }
+
+    .select2-results__option {
+        padding: 10px 15px !important;
+        font-size: 0.82rem !important;
+        color: #e2e8f0 !important;
+        border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+    }
+
+    .select2-results__option--highlighted[aria-selected] {
+        background-color: rgba(255,255,255,0.1) !important;
+        color: #fff !important;
+    }
+
+    .select2-results__option[aria-selected=true] {
+        background-color: rgba(2, 132, 199, 0.3) !important;
+        color: #fff !important;
+        font-weight: 700 !important;
+    }
+
+    .select2-container .select2-results__option:last-child {
+        border-bottom: none !important;
+    }
+
+    /* Custom Scrollbar for Select2 */
+    .select2-results__options::-webkit-scrollbar { width: 6px !important; }
+    .select2-results__options::-webkit-scrollbar-track { background: transparent !important; }
+    .select2-results__options::-webkit-scrollbar-thumb { background: #0284c7 !important; border-radius: 10px !important; }
+    .select2-results__options::-webkit-scrollbar-thumb:hover { background: #0369a1 !important; }
+
+    /* Scoped DataTables cleanup */
+    .dataTables_wrapper .dataTables_filter {
+        margin-bottom: 12px !important;
+        float: right !important;
+    }
+
+    .dataTables_wrapper .dataTables_filter label {
+        display: flex !important;
+        align-items: center !important;
+        gap: 5px !important;
+        font-size: 0.78rem !important;
+        font-weight: 500 !important;
+        color: var(--text-muted) !important;
+        margin: 0 !important;
+    }
+
+    .dataTables_wrapper .dataTables_filter input {
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        border-radius: 8px !important;
+        padding: 4px 10px !important;
+        background: rgba(15, 23, 42, 0.6) !important;
+        color: #e2e8f0 !important;
+        font-size: 0.78rem !important;
+        width: 110px !important;
+        transition: var(--transition) !important;
+    }
+
+    .dataTables_wrapper .dataTables_filter input:focus {
+        border-color: var(--accent) !important;
+        box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1) !important;
+        outline: none !important;
+    }
+</style>
+
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+<!-- Top Search Bar Section -->
+<div class="search-colaborador-container">
+    <div class="search-input-wrapper" id="searchInputWrapper">
+        <input type="text" id="userInputSearch" class="search-input-field" placeholder="Buscar Colaboradores..." autocomplete="off">
+        <button class="search-icon-btn">
+            <i data-lucide="search" style="width: 22px; height: 22px;"></i>
+        </button>
+    </div>
+    <div class="search-results-dropdown" id="searchResults"></div>
+</div>
+
+<div class="row g-3 justify-content-center">
+    <div class="col-12">
+        <div class="modern-table-card h-100 shadow-lg border-primary-subtle" style="min-height: 520px;">
+            <div class="card-header bg-transparent border-bottom py-3 px-4 d-flex justify-content-between align-items-center" style="border-color: rgba(255,255,255,0.05) !important;">
+                <div>
+                    <h5 class="m-0 fw-500 text-white d-flex align-items-center gap-2">
+                        <i data-lucide="shield-check" style="width: 18px; color: #22d3ee;"></i> ACCIONES DEL USUARIO
+                    </h5>
+                    <p class="m-0 font-size-10 mt-1" style="color: #94a3b8;">Administra los permisos de acciones específicas por módulo para el colaborador seleccionado</p>
+                </div>
+                
+                <div class="d-flex align-items-center gap-2">
+                    <!-- Selected User Badge -->
+                    <div id="selectedUserBadge" class="badge px-3 py-2 border rounded-pill d-none ms-2" style="background: rgba(255,255,255,0.1); color: #fff; font-size: 0.75rem; font-weight: 700; border-color: rgba(255,255,255,0.2) !important;">
+                        <i data-lucide="user" class="me-1" style="width: 14px;"></i> <span id="selectedUserName">N/A</span>
+                    </div>
+
+                    <label for="selectModulo" class="font-size-10 fw-800 mb-0 ms-2" style="color: #94a3b8;">MÓDULO:</label>
+                    <div style="min-width: 200px;">
+                        <select id="selectModulo" class="table-filter-select w-100">
+                            <option value=""></option>
+                            {% for m in modulos %}
+                            <option value="{{ m.PKmodulo }}">{{ m.Nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <label class="font-size-10 fw-800 mb-0 ms-3" style="color: #94a3b8;">MOSTRAR:</label>
+                    <select id="filterStatus" class="table-filter-select">
+                        <option value="all" style="background: #0f172a; color: white;">TODOS</option>
+                        <option value="assigned" style="background: #0f172a; color: white;">ASIGNADAS</option>
+                        <option value="available" style="background: #0f172a; color: white;">DISPONIBLES</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="card-body p-0 d-flex flex-column h-100">
+                <!-- Empty State -->
+                <div id="empty-state-acciones" class="empty-state-placeholder py-5">
+                    <div class="pulsing-icon mb-3">
+                        <i data-lucide="user-search" style="width: 48px; height: 48px; color: #cbd5e1;"></i>
+                    </div>
+                    <p class="fw-medium font-size-14" style="color: #e2e8f0;">Busca y selecciona un colaborador arriba para comenzar</p>
+                    <small class="mt-1 px-4" style="color: #94a3b8;">Luego elige un módulo para gestionar sus acciones disponibles y asignadas</small>
+                </div>
+
+                <!-- Unified Table -->
+                <div id="table-container-acciones" class="table-responsive flex-grow-1" style="display: none;">
+                    <table id="tableUnifiedAcciones" class="table table-hover align-middle table-modern-style mb-0 w-100">
+                        <thead>
+                            <tr>
+                                <th style="width: 60%;">Acción</th>
+                                <th style="width: 20%;" class="text-center">Estado</th>
+                                <th style="width: 20%;" class="text-center">Operación</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Floating Action Buttons -->
+<div style="position: fixed; bottom: 30px; right: 30px; z-index: 1010; display: flex; gap: 15px;">
+    <button class="floating-action-btn" id="BtnLimpiar" title="Limpiar Selección Actual">
+        <i data-lucide="rotate-ccw" style="width: 16px;"></i> LIMPIAR
+    </button>
+    
+    <a href="{% url 'global_main' %}" style="text-decoration: none;">
+        <button class="floating-action-btn" id="BtnCerrar" title="Cerrar esta sección">
+            <i data-lucide="log-out" style="width: 16px;"></i> CERRAR
+        </button>
+    </a>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function () {
+        const csrfToken = "{{ csrf_token }}";
+        let selectedUsuarioId = null;
+        let allUsers = [];
+
+        // Initialize Select2
+        $('#selectModulo').select2({
+            placeholder: "Seleccione módulo...",
+            allowClear: true,
+            width: 'resolve',
+            dropdownAutoWidth: true,
+            language: {
+                noResults: function() { return "No se encontraron módulos"; }
+            }
+        });
+
+        const toastMixin = Swal.mixin({
+            toast: true,
+            icon: 'success',
+            title: 'General Title',
+            animation: false,
+            position: 'top-right',
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true
+        });
+
+        /* Setup active menu */
+        $('#usuariosMenu, #gruposUsuario_submenu').addClass('active');
+
+        // Fetch Users for search
+        function getUsuarios() {
+            $.ajax({
+                url: "{% url 'data_usuarios' %}",
+                type: "POST",
+                data: { csrfmiddlewaretoken: csrfToken },
+                success: function(response) {
+                    allUsers = response.data || [];
+                }
+            });
+        }
+
+        // Search logic
+        $('#userInputSearch').on('input', function() {
+            let term = $(this).val().toLowerCase().trim();
+            if (term.length < 1) {
+                $('#searchResults').hide();
+                return;
+            }
+
+            let matches = allUsers.filter(u => 
+                u.Nombre.toLowerCase().includes(term) || 
+                u.Usuario.toLowerCase().includes(term)
+            ).slice(0, 10);
+
+            if (matches.length > 0) {
+                let html = matches.map(u => `
+                    <div class="result-item" data-id="${u.PKUsuario}" data-name="${u.Nombre}" data-user="${u.Usuario}">
+                        <div class="d-flex align-items-center">
+                            <div class="result-name">${u.Nombre}</div>
+                            <span class="search-badge">${u.Usuario}</span>
+                        </div>
+                        <div class="result-username">ID de Usuario: ${u.Usuario}</div>
+                    </div>
+                `).join('');
+                $('#searchResults').html(html).show();
+            } else {
+                $('#searchResults').html('<div class="p-3 text-muted text-center font-size-14">No se encontraron colaboradores</div>').show();
+            }
+        });
+
+        // Select User click
+        $(document).on('click', '.result-item', function() {
+            let userId = $(this).data('id');
+            let userName = $(this).data('name');
+            let userCode = $(this).data('user');
+            
+            selectedUsuarioId = userId;
+            $('#userInputSearch').val(userName);
+            $('#searchResults').hide();
+            
+            $('#selectedUserName').text(`${userName} (${userCode})`);
+            $('#selectedUserBadge').removeClass('d-none').hide().fadeIn(300);
+            
+            if (window.lucide) lucide.createIcons();
+            
+            if ($('#selectModulo').val()) {
+                getUnifiedAcciones(selectedUsuarioId, $('#selectModulo').val());
+            }
+        });
+
+        // Change Module
+        $('#selectModulo').on('change', function() {
+            if (selectedUsuarioId && $(this).val()) {
+                getUnifiedAcciones(selectedUsuarioId, $(this).val());
+            } else {
+                // Return to empty state if either is missing
+                $('#table-container-acciones').hide();
+                $('#empty-state-acciones').show();
+            }
+        });
+
+        // Unified Actions Logic
+        function getUnifiedAcciones(usuarioId, moduloId) {
+            if ($.fn.DataTable.isDataTable('#tableUnifiedAcciones')) {
+                $('#tableUnifiedAcciones').DataTable().destroy();
+            }
+            $('#tableUnifiedAcciones tbody').empty();
+
+            $("#empty-state-acciones").hide();
+            $("#table-container-acciones").hide();
+
+            $.when(
+                $.ajax({
+                    url: `{% url 'data_acciones_asignadas' %}`,
+                    type: "POST",
+                    data: { varUsuario: usuarioId, varModulo: moduloId, csrfmiddlewaretoken: csrfToken }
+                }),
+                $.ajax({
+                    url: `{% url 'data_acciones_disponibles' %}`,
+                    type: "POST",
+                    data: { varUsuario: usuarioId, varModulo: moduloId, csrfmiddlewaretoken: csrfToken }
+                })
+            ).done(function(resAsignadas, resDisponibles) {
+                let dataAsignadas = (resAsignadas[0].data || []).map(a => ({ ...a, assigned: true }));
+                let dataDisponibles = (resDisponibles[0].data || []).map(a => ({ ...a, assigned: false }));
+                let unifiedData = [...dataAsignadas, ...dataDisponibles];
+
+                $("#table-container-acciones").fadeIn(300);
+
+                $('#tableUnifiedAcciones').DataTable({
+                    data: unifiedData,
+                    autoWidth: false,
+                    scrollX: true,
+                    scrollY: '400px',
+                    scrollCollapse: true,
+                    pageLength: 50,
+                    dom: 'rftip',
+                    language: { url: "{% static 'app/th/json/es-ES.json' %}" },
+                    createdRow: function(row, data) {
+                        $(row).attr('data-action-state', data.assigned ? 'assigned' : 'available');
+                    },
+                    columns: [
+                        { data: 'Nombres', className: 'fw-700' },
+                        { 
+                            data: 'assigned',
+                            className: 'text-center',
+                            render: function(data) {
+                                return data 
+                                    ? `<span class="badge-flat-status badge-status-assigned"><i data-lucide="check-circle" style="width:13px; height:13px;"></i> ASIGNADA</span>`
+                                    : `<span class="badge-flat-status badge-status-available"><i data-lucide="circle" style="width:13px; height:13px;"></i> DISPONIBLE</span>`;
+                            }
+                        },
+                        {
+                            data: null,
+                            className: 'text-center',
+                            render: function(data) {
+                                let actionId = data.fkAccion;
+                                return data.assigned
+                                    ? `<button class="btn-row-action btn-row-remove" data-id="${actionId}" data-action="quitar">
+                                        <i data-lucide="trash-2" style="width:14px"></i> QUITAR
+                                       </button>`
+                                    : `<button class="btn-row-action btn-row-assign" data-id="${actionId}" data-action="asignar">
+                                        <i data-lucide="plus-circle" style="width:14px"></i> ASIGNAR
+                                       </button>`;
+                            }
+                        }
+                    ],
+                    order: [[1, "desc"], [0, "asc"]],
+                    drawCallback: function() {
+                        if (window.lucide) lucide.createIcons();
+                    }
+                });
+            }).fail(function() {
+                Swal.fire('Error', 'No se pudieron sincronizar las acciones.', 'error');
+            });
+        }
+
+        // Custom Filter Logic for Status
+        $.fn.dataTable.ext.search.push(
+            function(settings, data, dataIndex) {
+                if (settings.nTable.id !== 'tableUnifiedAcciones') return true;
+                let filterValue = $('#filterStatus').val();
+                if (filterValue === 'all') return true;
+                let rowData = $('#tableUnifiedAcciones').DataTable().row(dataIndex).data();
+                if (!rowData) return true;
+                return filterValue === 'assigned' ? rowData.assigned : !rowData.assigned;
+            }
+        );
+
+        $('#filterStatus').on('change', function() {
+            if ($.fn.DataTable.isDataTable('#tableUnifiedAcciones')) {
+                $('#tableUnifiedAcciones').DataTable().draw();
+            }
+        });
+
+        // Action Handlers
+        $('#tableUnifiedAcciones').on('click', '.btn-row-action', function(e) {
+            e.preventDefault();
+            let actionId = $(this).data('id');
+            let actionType = $(this).data('action');
+            let $btn = $(this);
+            
+            $btn.addClass('disabled').attr('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status"></span>');
+            
+            ejecutarAccion(actionType, actionId);
+        });
+
+        function ejecutarAccion(tipo, actionId) {
+            let url = tipo === 'asignar' ? "{% url 'asignar_accion' %}" : "{% url 'quitar_accion' %}";
+            let verb = tipo === 'asignar' ? "agregada" : "quitada";
+
+            $.post(url, {
+                usuario_id: selectedUsuarioId,
+                accion_id: actionId,
+                csrfmiddlewaretoken: csrfToken
+            }, function (response) {
+                if (response.status === "success") {
+                    toastMixin.fire({
+                        icon: 'success',
+                        title: `Acción ${verb} correctamente.`
+                    });
+                    getUnifiedAcciones(selectedUsuarioId, $('#selectModulo').val());
+                } else {
+                    Swal.fire('Error', response.message || 'No se pudo completar la operación', 'error');
+                    getUnifiedAcciones(selectedUsuarioId, $('#selectModulo').val());
+                }
+            }).fail(function() {
+                Swal.fire('Error', 'Error de red al procesar la acción', 'error');
+                getUnifiedAcciones(selectedUsuarioId, $('#selectModulo').val());
+            });
+        }
+
+        // Search Bar Helpers
+        $('.search-icon-btn').on('click', function() {
+            $('#searchResults .result-item').first().click();
+        });
+
+        $('#userInputSearch').on('keypress', function(e) {
+            if (e.which === 13) $('#searchResults .result-item').first().click();
+        });
+
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('.search-colaborador-container').length) $('#searchResults').hide();
+        });
+
+        // Limpiar
+        $('#BtnLimpiar').on('click', function() {
+            selectedUsuarioId = null;
+            $('#userInputSearch').val('');
+            $('#selectedUserBadge').addClass('d-none');
+            $('#selectModulo').val(null).trigger('change');
+            if ($.fn.DataTable.isDataTable('#tableUnifiedAcciones')) {
+                $('#tableUnifiedAcciones').DataTable().destroy();
+                $('#tableUnifiedAcciones tbody').empty();
+            }
+            $('#table-container-acciones').hide();
+            $('#empty-state-acciones').show();
+        });
+
+        // Init
+        getUsuarios();
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,663 @@
+{% extends 'componentes/menu_global_security.html' %}
+{% load static %}
+
+{% block title %}
+MENUS DEL GRUPO
+{% endblock %}
+
+{% block body %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+<style>
+    /* === DARK GLASS PREMIUM - Menús del Grupo (scoped) === */
+
+    /* Main Card */
+    .modern-table-card {
+        background: linear-gradient(145deg, rgba(15,23,42,0.85), rgba(2,6,23,0.92)) !important;
+        backdrop-filter: blur(16px) !important;
+        -webkit-backdrop-filter: blur(16px) !important;
+        border-radius: 16px;
+        border: 1px solid rgba(34,211,238,0.15) !important;
+        padding: 0.65rem !important;
+        box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.08) !important;
+        height: auto;
+        transition: all 0.25s ease;
+        display: flex; flex-direction: column;
+        overflow: visible;
+    }
+    .modern-table-card:hover {
+        border-color: rgba(34,211,238,0.3) !important;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.45) !important;
+    }
+
+    /* Card Header */
+    .card-header {
+        background: transparent !important;
+        border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+    }
+
+    /* DataTable - Dark */
+    .table-modern-style thead th {
+        background: linear-gradient(to right, rgba(15,23,42,0.95), rgba(2,6,23,0.95)) !important;
+        border: none !important;
+        color: #94a3b8 !important;
+        font-size: 0.72rem !important; font-weight: 700 !important;
+        text-transform: uppercase !important;
+        padding: 8px 12px !important; letter-spacing: 0.04em;
+        background-image: none !important;
+    }
+
+    .table-modern-style tbody td {
+        border-color: rgba(255,255,255,0.05) !important;
+        padding: 8px 12px !important;
+        font-size: 0.82rem !important;
+        vertical-align: middle !important;
+        color: #e2e8f0 !important;
+        background-color: transparent !important;
+    }
+
+    table.dataTable tbody tr td { background-color: transparent !important; }
+    .table-modern-style tbody tr:hover td { background-color: rgba(255,255,255,0.04) !important; }
+
+    /* Right panel subtle bg */
+    .bg-light-subtle { background: rgba(255,255,255,0.02) !important; }
+    .border-end { border-color: rgba(255,255,255,0.06) !important; }
+
+    /* Selected row */
+    table.dataTable tbody tr.selected td {
+        background-color: rgba(14,165,233,0.15) !important;
+        color: #fff !important;
+    }
+
+    /* Authorized row highlight */
+    table.dataTable tbody tr[style*="background-color: rgb(194, 255, 219)"] td,
+    table.dataTable tbody tr[style*="#c2ffdb"] td {
+        background-color: rgba(34,197,94,0.12) !important;
+    }
+
+    /* Filters */
+    .header-filters { display: flex; align-items: center; gap: 1.5rem; }
+    .filter-item { display: flex; align-items: center; gap: 0.75rem; }
+    .filter-label { font-size: 0.65rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    /* Section labels */
+    .text-muted { color: #94a3b8 !important; }
+    .text-navy { color: #ffffff !important; }
+    .font-size-10 { font-size: 0.65rem !important; }
+    .fw-500 { font-weight: 600 !important; }
+
+    /* DataTable filter input */
+    .dataTables_wrapper .dataTables_filter input {
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        border-radius: 8px !important;
+        padding: 4px 10px !important;
+        background: rgba(15,23,42,0.6) !important;
+        color: #e2e8f0 !important;
+        font-size: 0.78rem !important;
+    }
+    .dataTables_wrapper .dataTables_filter input:focus {
+        border-color: #22d3ee !important;
+        box-shadow: 0 0 0 3px rgba(34,211,238,0.1) !important;
+        outline: none !important;
+    }
+    .dataTables_wrapper .dataTables_filter label {
+        color: #94a3b8 !important;
+        font-size: 0.75rem !important;
+    }
+    .dataTables_wrapper .dataTables_info { color: #64748b !important; font-size: 0.72rem !important; }
+
+    /* Scrollbar */
+    .dataTables_scrollBody::-webkit-scrollbar { width: 4px !important; height: 4px !important; }
+    .dataTables_scrollBody::-webkit-scrollbar-track { background: transparent !important; }
+    .dataTables_scrollBody::-webkit-scrollbar-thumb { background: #1e293b !important; border-radius: 10px !important; }
+
+    /* Select2 - Dark Theme */
+    .select2-container--default .select2-selection--single {
+        background-color: rgba(15,23,42,0.6) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        border-radius: 8px !important; height: 38px !important;
+        display: flex !important; align-items: center !important;
+        padding: 0 10px !important; transition: all 0.2s ease !important;
+    }
+    .select2-container--default.select2-container--open .select2-selection--single {
+        border-color: #22d3ee !important;
+        box-shadow: 0 0 0 3px rgba(34,211,238,0.1) !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        color: #e2e8f0 !important; font-size: 0.78rem !important;
+        font-weight: 600 !important; padding-left: 0 !important; line-height: 38px !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__placeholder { color: #94a3b8 !important; }
+    .select2-container--default .select2-selection--single .select2-selection__arrow { height: 36px !important; right: 8px !important; }
+    .select2-container--default .select2-selection--single .select2-selection__arrow b {
+        border-color: #94a3b8 transparent transparent transparent !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__clear {
+        position: absolute !important; right: 35px !important; top: 50% !important;
+        transform: translateY(-50%) !important; color: #cbd5e1 !important;
+        font-weight: 700 !important; font-size: 1.1rem !important;
+        cursor: pointer !important; z-index: 2 !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__clear:hover { color: #ef4444 !important; }
+
+    .select2-dropdown {
+        background: rgba(15,23,42,0.96) !important;
+        backdrop-filter: blur(12px) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        border-radius: 12px !important;
+        box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5) !important;
+        overflow: hidden !important; z-index: 9999 !important; margin-top: 5px !important;
+    }
+    .select2-search--dropdown { padding: 10px !important; background: transparent !important; }
+    .select2-search--dropdown .select2-search__field {
+        border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 8px !important;
+        padding: 8px 12px !important; font-size: 0.85rem !important;
+        background: rgba(15,23,42,0.6) !important; color: #e2e8f0 !important; outline: none !important;
+    }
+    .select2-results__options { max-height: 250px !important; }
+    .select2-results__option {
+        padding: 10px 15px !important; font-size: 0.82rem !important;
+        color: #e2e8f0 !important; border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+    }
+    .select2-results__option--highlighted[aria-selected] {
+        background-color: rgba(255,255,255,0.05) !important; color: #fff !important;
+    }
+    .select2-results__option[aria-selected=true] {
+        background-color: rgba(34,211,238,0.1) !important; color: #22d3ee !important; font-weight: 700 !important;
+    }
+    .select2-container .select2-results__option:last-child { border-bottom: none !important; }
+    .select2-results__options::-webkit-scrollbar { width: 6px !important; }
+    .select2-results__options::-webkit-scrollbar-track { background: transparent !important; }
+    .select2-results__options::-webkit-scrollbar-thumb { background: #0284c7 !important; border-radius: 10px !important; }
+    .select2-results__options::-webkit-scrollbar-thumb:hover { background: #0369a1 !important; }
+
+    /* Floating Buttons - Premium */
+    .floating-action-btn {
+        width: 130px !important; height: 44px !important;
+        border-radius: 12px !important;
+        display: flex !important; align-items: center !important; justify-content: center !important;
+        transition: all 0.2s ease !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5) !important;
+        font-size: 0.75rem !important; font-weight: 700 !important;
+        text-transform: uppercase !important; gap: 8px !important;
+        color: white !important; backdrop-filter: blur(8px);
+    }
+    .floating-action-btn:hover { transform: translateY(-2px); filter: brightness(1.15); }
+
+    /* Softer danger icons */
+    .text-danger, .fa-circle-xmark { color: rgba(255, 80, 80, 0.75) !important; }
+
+    /* Better table spacing */
+    .table-modern-style th,
+    .table-modern-style td { padding: 10px 14px !important; }
+</style>
+
+
+<div class="row g-3 justify-content-center pt-3">
+    <div class="col-12">
+        <div class="modern-table-card shadow-lg border-primary-subtle" style="min-height: 520px;">
+            <!-- Card Header (Reference Mirror) -->
+            <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                    <h5 class="m-0 fw-500 text-navy d-flex align-items-center gap-2">
+                        <i data-lucide="menu-square" style="width: 18px; color: var(--accent);"></i> MENÚS DEL GRUPO
+                    </h5>
+                    <p class="text-muted m-0 font-size-10 mt-1">Visualiza y gestiona los menús asignados a los grupos registrados</p>
+                </div>
+                <div class="header-filters">
+                    <div class="filter-item">
+                        <label class="filter-label">MÓDULO:</label>
+                        <select id="selectModulo" class="table-filter-select">
+                            <option value=""></option>
+                            {% for m in modulos %}
+                            <option value="{{ m.PKmodulo }}">{{ m.Nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card Body (Asymmetrical 7/5 Split) -->
+            <div class="card-body p-0 d-flex flex-column h-100">
+                <div id="panel-menus" class="d-flex flex-column flex-grow-1">
+                    <div class="row g-0 flex-grow-1">
+                        <!-- Left Panel: Menus List (Col-7) -->
+                        <div class="col-7 border-end">
+                            <div class="px-3 pt-3 pb-1">
+                                <span class="font-size-10 fw-800 text-muted text-uppercase" style="letter-spacing:0.06em;">
+                                    <i data-lucide="list" style="width:13px; margin-right:4px;"></i> Listado de Menús
+                                </span>
+                            </div>
+                            <div class="table-responsive px-2">
+                                <table id="tableMenus" class="table table-hover align-middle table-modern-style mb-0 w-100">
+                                    <thead>
+                                        <tr>
+                                            <th>Nombre Página</th>
+                                            <th class="text-center">Autorizado</th>
+                                            <th>Nombre</th>
+                                            <th>Botón</th>
+                                            <th class="text-center">Posición</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Right Panel: Groups List (Col-5) -->
+                        <div class="col-5 bg-light-subtle">
+                            <div class="px-3 pt-3 pb-1">
+                                <span class="font-size-10 fw-800 text-muted text-uppercase" style="letter-spacing:0.06em;">
+                                    <i data-lucide="users" style="width:13px; margin-right:4px;"></i> Listado de Grupos
+                                </span>
+                            </div>
+                            <div class="table-responsive px-2">
+                                <table id="tableGrupos" class="table table-hover align-middle table-modern-style mb-0 w-100">
+                                    <thead>
+                                        <tr>
+                                            <th>Nombre</th>
+                                            <th>Descripción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<div style="position: fixed; bottom: 30px; right: 30px; z-index: 1010; display: flex; gap: 15px;">
+    <button class="floating-action-btn" id="btnLimpiar" style="background: #475569 !important;" title="Limpiar Selección Actual">
+        <i data-lucide="rotate-ccw" style="width: 16px;"></i> LIMPIAR
+    </button>
+    
+    <a href="{% url 'global_main' %}" style="text-decoration: none;">
+        <button class="floating-action-btn" id="btnCerrar" style="background: #1e293b !important;" title="Cerrar esta sección">
+            <i data-lucide="log-out" style="width: 16px;"></i> CERRAR
+        </button>
+    </a>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function () {
+
+        var csrfToken = "{{ csrf_token }}";
+        var tableFirmas, firma_id;
+
+        function sanitizarTexto(texto) {
+            if (!texto) return "";
+            return texto.replace(/\\/g, "").replace(/\"/g, "");
+        }
+
+        var toastMixin = Swal.mixin({
+            toast: true,
+            icon: 'success',
+            title: 'General Title',
+            animation: false,
+            position: 'top-right',
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
+            }
+        });
+
+        /* MENU ID Y SUBMENU ID */
+        $('#gruposMenu, #menusDelGrupo_submenu').addClass('active');
+
+        var id_Modulo = $('#selectModulo').val();
+        var selectedGrupoId = null;
+
+        // Standardized Select2 Initialization (Mirroring Usuarios del Grupo)
+        $('#selectModulo').select2({
+            placeholder: "Seleccione módulo...",
+            allowClear: true,
+            width: 'resolve',
+            dropdownAutoWidth: true,
+            language: {
+                noResults: function() { return "No se encontraron módulos"; }
+            }
+        });
+
+        $('#selectModulo').on('change', function() {
+            id_Modulo = $(this).val();
+            if (id_Modulo != null && id_Modulo != "") {
+                getMenus(id_Modulo);
+                getGrupos(id_Modulo);
+            } else {
+                // Full Reset to Initial State
+                if ($.fn.DataTable.isDataTable('#tableMenus')) {
+                    $('#tableMenus').DataTable().destroy();
+                    $('#tableMenus tbody').empty();
+                }
+                if ($.fn.DataTable.isDataTable('#tableGrupos')) {
+                    $('#tableGrupos').DataTable().destroy();
+                    $('#tableGrupos tbody').empty();
+                }
+                selectedGrupoId = null;
+            }
+        });
+
+
+        $('#tableMenus tbody').on('dblclick', 'tr', function () {
+            table = $('#tableMenus').DataTable();
+            var rowData = table.row($(this)).data();
+            var index = table.row($(this)).index();
+
+            if (!rowData) {
+                console.error("No se pudo obtener los datos de la fila.");
+                return;
+            }
+
+            ActualizarMenu(rowData, index);
+        });
+
+        if (id_Modulo != null && id_Modulo != "") {
+            getMenus(id_Modulo);
+            getGrupos(id_Modulo);
+        }
+
+        function getMenus(menuModuloSeleccionado) {
+
+            $("#tableMenus").DataTable().clear().destroy();
+
+            var cardHeight = $(".card-expanded").height();
+            var tableHeight = cardHeight * 0.5;
+
+            tableMenus = $('#tableMenus').DataTable({
+                autoWidth: false,
+                scrollX: true,
+                scrollY: tableHeight + 'px',
+                scrollCollapse: true,
+                pageLength: 50,
+                dom: 'rftip',
+                language: {
+                    url: "{% static 'app/th/json/es-ES.json' %}",
+                },
+                ajax: {
+                    url: `{% url 'get_menus_grupo_menus_data' %}`,
+                    type: "POST",
+                    dataSrc: 'data',
+                    data: {
+                        varModulo: menuModuloSeleccionado,
+                        csrfmiddlewaretoken: csrfToken
+                    },
+                },
+                colReorder: {
+                    realtime: false,
+                },
+                buttons: [
+                    {
+                        extend: 'excel',
+                        text: '<i class="fas fa-file-excel"></i>',
+                        titleAttr: 'Exportar a Excel',
+                        className: 'btn btn-success',
+                    },
+                    {
+                        extend: 'pdf',
+                        text: '<i class="fas fa-file-pdf"></i>',
+                        titleAttr: 'Exportar a PDF',
+                        className: 'btn btn-danger',
+                    },
+                    {
+                        extend: 'print',
+                        text: '<i class="fas fa-print"></i>',
+                        titleAttr: 'Imprimir',
+                        className: 'btn btn-primary',
+                        orientation: 'landscape'
+                    }
+                ],
+                columns: [
+                    {
+                        data: 'NombrePagina',
+                    },
+                    {
+                        data: 'Autorizado',
+                        className: 'text-center',
+                        render: function (data, type, row) {
+                            var badge = "";
+                            if (data == true) {
+                                badge += '<i class="fa-regular fa-circle-check" style="color: #00ba4c;"></i>';
+                            } else {
+                                badge += '<i class="fa-regular fa-circle-xmark" style="color: #ff0d0d;"></i>';
+                            }
+                            return badge;
+                        },
+                    },
+                    {
+                        data: 'Nombre',
+                    },
+                    {
+                        data: 'Boton',
+                    },
+                    {
+                        data: 'Posicion',
+                    },
+                ],
+                createdRow: function (row, data, dataIndex) {
+                    if (data.Autorizado == true) {
+                        $(row).css('background-color', '#c2ffdb');
+                    }
+                },
+                order: [[3, "asc"]],
+            });
+
+        }
+
+
+        function getGrupos(menuModuloSeleccionado) {
+            $("#tableGrupos").DataTable().clear().destroy();
+            var cardHeight = $(".card-expanded").height();
+            var tableHeight = cardHeight * 0.5;
+
+            tableGrupos = $('#tableGrupos').DataTable({
+                autoWidth: false,
+                scrollX: true,
+                scrollY: tableHeight + 'px',
+                scrollCollapse: true,
+                pageLength: 50,
+                dom: 'rftip',
+                language: {
+                    url: "{% static 'app/th/json/es-ES.json' %}",
+                },
+                ajax: {
+                    url: `{% url 'get_menus_grupo_grupos_data' %}`,
+                    type: "POST",
+                    data: {
+                        varModulo: menuModuloSeleccionado,
+                        csrfmiddlewaretoken: csrfToken
+                    },
+                },
+                colReorder: {
+                    realtime: false,
+                },
+                buttons: [
+                    {
+                        extend: 'excel',
+                        text: '<i class="fas fa-file-excel"></i>',
+                        titleAttr: 'Exportar a Excel',
+                        className: 'btn btn-success',
+                    },
+                    {
+                        extend: 'pdf',
+                        text: '<i class="fas fa-file-pdf"></i>',
+                        titleAttr: 'Exportar a PDF',
+                        className: 'btn btn-danger',
+                    },
+                    {
+                        extend: 'print',
+                        text: '<i class="fas fa-print"></i>',
+                        titleAttr: 'Imprimir',
+                        className: 'btn btn-primary',
+                        orientation: 'landscape'
+                    }
+                ],
+                columns: [
+                    { data: 'Nombre' },
+                    { data: 'Descripcion' }
+                ],
+                order: [[0, "asc"]],
+            });
+        }
+
+        $('#tableGrupos tbody').on('click', 'tr', function () {
+            $('#tableGrupos tbody tr').removeClass('selected');
+
+            $(this).addClass('selected');
+
+            selectedGrupoId = tableGrupos.row(this).data().PKgrupo;
+            ListarMenusGrupo(selectedGrupoId);
+
+        });
+
+
+        $('#tableMenus tbody').on('dblclick', 'tr', function () {
+
+            tabla = $('#tableMenus').DataTable();
+            var rowData = tabla.row($(this)).data();
+            var index = tabla.row($(this)).index();
+
+            $('#tableMenus tbody tr').removeClass('selected');
+
+            $(this).addClass('selected');
+
+            if (!rowData) {
+                console.error("No se pudo obtener los datos de la fila.");
+                return;
+            }
+
+            ActualizarMenu(rowData, index, selectedGrupoId);
+        });
+        function ListarMenusGrupo(id_Grupo) {
+            let menusDT = $('#tableMenus').DataTable();
+            let menusRows = menusDT.rows().data();
+
+            menusRows.each(function (rowData, index) {
+                rowData.Autorizado = false
+            });
+            menusDT.clear().rows.add(menusRows).draw();
+
+
+            $.ajax({
+                url: "{% url 'data_menus_grupo' %}",
+                type: "POST",
+                data: {
+                    varGrupo: id_Grupo,
+                    varModulo: id_Modulo,
+                    csrfmiddlewaretoken: csrfToken
+                },
+                success: function (data) {
+                    let menusGrupo = data.data;
+
+                    let tableMenus = $('#tableMenus').DataTable();
+                    let rowsMenus = tableMenus.rows().data();
+
+                    rowsMenus.each(function (rowData, index) {
+                        menusGrupo.forEach(menuGrupo => {
+                            if (rowData.PKMenu == menuGrupo.fkMenu) {
+                                rowData.Autorizado = true;
+                            }
+                        });
+                    });
+
+                    tableMenus.clear().rows.add(rowsMenus).draw();
+
+                },
+                error: function (xhr, status, error) {
+                    console.log("Error al obtener menús del grupo:", error);
+                }
+            });
+        }
+
+
+        function ActualizarMenu(filaData, filaIndex, grupoSeleccionadoId) {
+
+            if (grupoSeleccionadoId == null) {
+                return;
+            }
+
+            var PKmenu = filaData.PKMenu;
+            var Autorizado = filaData.Autorizado;
+            var Inverso = !Autorizado;
+            var ElGrupo = filaData.TipoMenu;
+
+            var tableMenu = $('#tableMenus').DataTable();
+            var rowsMenu = tableMenu.rows().data();
+
+            if (ElGrupo == 2) {
+                var codigoGrupo = filaData.Boton;
+                if (codigoGrupo.length > 4) {
+                    codigoGrupo = codigoGrupo.substring(0, 4);
+                }
+
+                rowsMenu.each(function (rowData, index) {
+                    var codigoBoton = rowData.Boton;
+                    if (rowData.Boton.length > 4) {
+                        codigoBoton = rowData.Boton.substring(0, 4);
+                    }
+
+                    if (codigoGrupo == codigoBoton) {
+                        $.ajax({
+                            url: "{% url 'insert_delete_menu_grupo' %}",
+                            type: "POST",
+                            data: {
+                                varIdGrupo: grupoSeleccionadoId,
+                                varPKMenu: PKmenu,
+                                varAutorizado: Autorizado,
+                                csrfmiddlewaretoken: csrfToken
+                            },
+                            success: function (data) {
+                                console.log("Menú actualizado exitosamente.");
+                                filaData.Autorizado = Inverso;
+                            },
+                            error: function (xhr, status, error) {
+                                console.error("Error al actualizar el menú:", error);
+                            }
+                        });
+                    }
+                });
+            } else {
+
+                $.ajax({
+                    url: "{% url 'insert_delete_menu_grupo' %}",
+                    type: "POST",
+                    data: {
+                        varIdGrupo: grupoSeleccionadoId,
+                        varPKMenu: PKmenu,
+                        varAutorizado: Autorizado,
+                        csrfmiddlewaretoken: csrfToken
+                    },
+                    success: function (data) {
+                        console.log("Menú actualizado exitosamente.");
+                        filaData.Autorizado = Inverso;
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Error al actualizar el menú:", error);
+                    }
+                });
+
+            }
+
+        }
+        
+        // Trigger full reset via the change event
+        $('#btnLimpiar').on('click', function() {
+            $('#selectModulo').val("").trigger("change");
+        });
+    });
+</script>
+
+{% endblock %}

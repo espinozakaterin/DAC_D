@@ -1,0 +1,1187 @@
+{% extends 'componentes/menu_global_security.html' %}
+{% load static %}
+
+{% block title %}
+MODULOS DEL USUARIO
+{% endblock %}
+
+
+{% block body %}
+
+<style>
+    /* Enable Global Page Scroll - Matching the standard system layout */
+    html, body, .main-layout, .page-content, .dashboard-container {
+        overflow-y: auto !important;
+        height: auto !important;
+        min-height: 100vh !important;
+    }
+    .modulos-page-header {
+        background: #fff;
+        border-radius: 16px;
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid var(--border-color);
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .header-icon-accent {
+        width: 44px;
+        height: 44px;
+        background: rgba(14, 165, 233, 0.1);
+        color: var(--accent);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .premium-page-title {
+        font-weight: 700;
+        color: var(--primary);
+        letter-spacing: -0.01em;
+        margin: 0;
+    }
+
+    .modern-table-card {
+        background: linear-gradient(145deg, rgba(15, 23, 42, 0.8), rgba(2, 6, 23, 0.9)) !important;
+        backdrop-filter: blur(16px) !important;
+        -webkit-backdrop-filter: blur(16px) !important;
+        border-radius: 16px;
+        border: 1px solid rgba(34, 211, 238, 0.15) !important;
+        padding: 0.65rem !important;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+        height: auto;
+        transition: var(--transition);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .modern-table-card:hover {
+        box-shadow: 0 20px 50px rgba(0,0,0,0.4) !important;
+        border-color: rgba(34, 211, 238, 0.3) !important;
+    }
+
+    .modern-label {
+        font-size: 0.72rem;
+        font-weight: 800;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* DataTable Overrides to match Dashboard style */
+    .table-modern-style thead th {
+        background: linear-gradient(to right, rgba(15, 23, 42, 0.95), rgba(2, 6, 23, 0.95)) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: #94a3b8 !important;
+        font-size: 0.75rem !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        padding: 4px 12px !important; /* Reduced vertical padding */
+    }
+
+    .table-modern-style tbody td {
+        border-color: rgba(255, 255, 255, 0.05) !important;
+        padding: 5px 12px !important;
+        font-size: 0.85rem !important;
+        color: #e2e8f0 !important;
+    }
+
+    .table-modern-style tbody tr:hover td {
+        background-color: rgba(255, 255, 255, 0.05) !important;
+    }
+
+
+    /* 1. BASE THEMES: Identification Columns & States */
+    /* Base background for all cells to remove DataTable's default white */
+    table.dataTable tbody tr td {
+        background-color: transparent !important;
+    }
+
+    /* Available Modules Base (Soft Blue) */
+    #tableUnifiedModulos tbody tr[data-module-state="available"] td {
+        background-color: rgba(14, 165, 233, 0.05) !important;
+    }
+
+    /* Assigned Modules Base (Soft Green) */
+    #tableUnifiedModulos tbody tr[data-module-state="assigned"] td {
+        background-color: rgba(34, 197, 94, 0.05) !important;
+    }
+
+    /* Smooth transition for rows */
+    table.dataTable tbody tr {
+        transition: all 0.25s ease !important;
+    }
+
+    /* Hover effects for unified table */
+    #tableUnifiedModulos tbody tr[data-module-state="available"]:hover td {
+        background-color: rgba(14, 165, 233, 0.15) !important;
+        box-shadow: inset 0 0 10px rgba(14, 165, 233, 0.05);
+    }
+
+    #tableUnifiedModulos tbody tr[data-module-state="assigned"]:hover td {
+        background-color: rgba(34, 197, 94, 0.15) !important;
+        box-shadow: inset 0 0 10px rgba(34, 197, 94, 0.05);
+    }
+
+    /* Collaborators List Base */
+    #tableModulosUsuario tbody tr td {
+        background-color: transparent !important;
+    }
+    
+    #tableModulosUsuario tbody tr:hover td {
+        background-color: rgba(255, 255, 255, 0.05) !important;
+    }
+
+    /* 2. SELECTION HIGHLIGHTS (STRICTLY SCOPED) */
+    
+    /* DIRECT OVERRIDE: Remove table selection styles not needed for top search bar */
+    /* (Styles for tableUnifiedModulos remain) */
+
+    /* Unified Table Header Height (Global) */
+    #tableUnifiedModulos thead th {
+        padding: 8px 15px !important;
+        height: auto !important;
+        line-height: 1.2 !important;
+        background-image: none !important;
+    }
+
+    /* 1. SELECTION ISOLATION FOR MODULES TABLE (Continued) */
+    /* Force clean slate to kill any theme/DT blue on right columns during selection */
+    table#tableUnifiedModulos.dataTable tbody tr.selected td {
+        background-color: transparent; /* Default row white, reset later by specific rules */
+        background-image: none !important;
+        box-shadow: none !important;
+    }
+
+    /* 2. STATE-BASED HIGHLIGHTS (STRICTLY SELECTED STATE) */
+    
+    /* ASIGNADO SELECCIONADO (CWS, POSCA, etc.) -> FONDO VERDE */
+    table#tableUnifiedModulos.dataTable tbody tr[data-module-state="assigned"].selected td {
+        background-color: rgba(34, 197, 94, 0.2) !important; /* Deeper Green */
+    }
+    table#tableUnifiedModulos.dataTable tbody tr[data-module-state="assigned"].selected td:first-child {
+        box-shadow: inset 4px 0 0 rgba(34, 197, 94, 1) !important;
+    }
+
+    /* DISPONIBLE SELECCIONADO (BANCARIO, etc.) -> FONDO AZUL EXACTO */
+    table#tableUnifiedModulos.dataTable tbody tr[data-module-state="available"].selected td {
+        background-color: rgba(14, 165, 233, 0.2) !important; /* Deeper Blue */
+    }
+    table#tableUnifiedModulos.dataTable tbody tr[data-module-state="available"].selected td:first-child {
+        box-shadow: inset 4px 0 0 rgba(14, 165, 233, 1) !important;
+    }
+
+    /* 3. ABSOLUTE COLUMN ISOLATION (REMOVED WHITE ZONE) */
+    table#tableUnifiedModulos.dataTable tbody tr td:nth-child(3),
+    table#tableUnifiedModulos.dataTable tbody tr td:nth-child(4),
+    table#tableUnifiedModulos.dataTable tbody tr.selected td:nth-child(3),
+    table#tableUnifiedModulos.dataTable tbody tr.selected td:nth-child(4) {
+        background-color: transparent !important;
+    }
+
+    /* 4. TEXT READABILITY ON SELECTION */
+    #tableUnifiedModulos.dataTable tbody tr.selected td:nth-child(1),
+    #tableUnifiedModulos.dataTable tbody tr.selected td:nth-child(2),
+    #tableUnifiedModulos.dataTable tbody tr.selected td:nth-child(1) *,
+    #tableUnifiedModulos.dataTable tbody tr.selected td:nth-child(2) * {
+        color: #ffffff !important;
+    }
+
+    /* Hover effect restricted to identification zone */
+    #tableUnifiedModulos tbody tr:not(.selected):hover td:nth-child(-n+2) {
+        filter: brightness(0.96);
+        cursor: pointer;
+    }
+
+    /* Hover effect without breaking active selection */
+    #tableUnifiedModulos tbody tr:not(.selected):hover td {
+        filter: brightness(0.97);
+        cursor: pointer;
+    }
+
+    .central-actions .btn {
+        width: 100px !important;
+        height: 38px !important;
+        border-radius: 20px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        transition: var(--transition) !important;
+        border: 1px solid transparent !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+        font-size: 0.65rem !important;
+        font-weight: 800 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.04em !important;
+        gap: 6px !important;
+    }
+
+    .central-actions .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+    }
+
+    /* Floating Action Buttons Replicated Styles */
+    .floating-action-btn {
+        width: 120px !important;
+        height: 38px !important;
+        border-radius: 20px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        transition: var(--transition) !important;
+        border: 1px solid transparent !important;
+        box-shadow: var(--shadow-lg) !important;
+        font-size: 0.65rem !important;
+        font-weight: 800 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.04em !important;
+        gap: 6px !important;
+        color: white !important;
+    }
+
+    .floating-action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md) !important;
+    }
+
+    .btn-add-modern { background: var(--accent-gradient) !important; color: white !important; }
+    .btn-remove-modern { background: #ef4444 !important; color: white !important; }
+
+    /* Central Space Optimization */
+    .central-actions {
+        position: relative;
+    }
+
+    .action-buttons-group {
+        position: relative;
+        z-index: 1;
+        background: #f8fafc;
+        padding: 12px 8px;
+        border-radius: 32px;
+        border: 1px solid #e2e8f0;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    /* Scoped DataTables cleanup */
+    .dataTables_wrapper .dataTables_filter {
+        margin-bottom: 12px !important;
+        float: right !important;
+    }
+
+    .dataTables_wrapper .dataTables_filter label {
+        display: flex !important;
+        align-items: center !important;
+        gap: 5px !important;
+        font-size: 0.78rem !important;
+        font-weight: 500 !important;
+        color: var(--text-muted) !important;
+        margin: 0 !important;
+    }
+
+    .dataTables_wrapper .dataTables_filter input {
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        border-radius: 8px !important;
+        padding: 4px 10px !important;
+        background: rgba(15, 23, 42, 0.6) !important;
+        color: #e2e8f0 !important;
+        font-size: 0.78rem !important;
+        width: 110px !important; /* Reduced width for a more compact look */
+        transition: var(--transition) !important;
+    }
+
+    .dataTables_wrapper .dataTables_filter input:focus {
+        border-color: var(--accent) !important;
+        box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1) !important;
+        outline: none !important;
+    }
+
+    /* Pagination and Info Text Styling */
+    .dataTables_wrapper .dataTables_info,
+    .dataTables_wrapper .dataTables_paginate {
+        font-size: 0.75rem !important;
+        color: var(--text-muted) !important;
+        margin-top: 12px !important;
+    }
+
+    /* Compact & Proportional Centering */
+    .dashboard-compact-wrapper {
+        max-width: 1300px;
+        margin: 0 auto;
+        padding: 0 15px;
+    }
+
+    .modern-table-card {
+        padding: 0.75rem !important;
+    }
+
+    .premium-page-title {
+        font-size: 1.15rem !important;
+    }
+
+    /* High Density Table Styling - Perfect Balancing */
+    .table-modern-style thead th {
+        padding: 3px 10px !important; /* Ultra-compact vertical padding */
+        font-size: 0.68rem !important;
+        text-align: center !important;
+        vertical-align: middle !important;
+        position: relative !important;
+        padding-right: 25px !important; /* Standard space for compact arrows */
+    }
+
+    /* Ultra-Compact Sorting Indicators (Stacked Vertically at Side) */
+    .table-modern-style thead th.sorting::before,
+    .table-modern-style thead th.sorting_asc::before,
+    .table-modern-style thead th.sorting_desc::before {
+        right: 10px !important;
+        content: "▲" !important;
+        font-size: 0.5rem !important;
+        bottom: 50% !important;
+        transform: translateY(2px) !important;
+        opacity: 0.3;
+    }
+
+    .table-modern-style thead th.sorting::after,
+    .table-modern-style thead th.sorting_asc::after,
+    .table-modern-style thead th.sorting_desc::after {
+        right: 10px !important;
+        content: "▼" !important;
+        font-size: 0.5rem !important;
+        top: 50% !important;
+        transform: translateY(2px) !important;
+        opacity: 0.3;
+        margin: 0 !important; /* Remove any default margins */
+    }
+
+    /* Highlight active sort state */
+    .table-modern-style thead th.sorting_asc::before,
+    .table-modern-style thead th.sorting_desc::after {
+        opacity: 0.9 !important;
+        color: var(--accent) !important;
+    }
+
+    .table-modern-style tbody td {
+        padding: 4px 12px !important;
+        font-size: 0.8rem !important;
+    }
+
+    /* Fix Header Width Misalignment (Gap at the right end) */
+    .dataTables_scrollHeadInner, 
+    .dataTables_scrollHeadInner table {
+        width: 100% !important;
+    }
+
+    /* Standardized Scroll Area to ensure uniformity across the module */
+    .dataTables_scrollBody {
+        height: auto !important;
+        max-height: 250px !important;
+        border-bottom: 1px solid #f1f5f9 !important;
+    }
+
+    /* Scrollbar Style - Professional Navy Theme */
+    .dataTables_scrollBody::-webkit-scrollbar {
+        width: 4px !important;
+        height: 4px !important;
+    }
+
+    .dataTables_scrollBody::-webkit-scrollbar-track {
+        background: transparent !important;
+    }
+
+    .dataTables_scrollBody::-webkit-scrollbar-thumb {
+        background: #1e293b !important; 
+        border-radius: 10px !important;
+    }
+
+    .dataTables_scrollBody::-webkit-scrollbar-thumb:hover {
+        background: #0f172a !important;
+    }
+
+    .table-responsive {
+        overflow-x: auto !important;
+        /* Se remueve max-height y overflow-y para evitar doble scroll con DataTables scrollY */
+    }
+
+    /* Refined Closing Button - Integrated Style */
+    .btn-cerrar-premium {
+        display: inline-flex !important;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 24px;
+        border-radius: 8px;
+        font-weight: 500;
+        font-size: 0.85rem;
+        color: var(--text-muted) !important;
+        background: #fff !important;
+        border: 1px solid var(--border-color) !important;
+        text-decoration: none !important;
+        transition: all 0.2s ease;
+        margin-top: 0.75rem;
+        float: right;
+    }
+
+    .btn-cerrar-premium:hover {
+        background: #f8fafc !important;
+        color: #dc2626 !important;
+        border-color: #fca5a5 !important;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .btn-limpiar-premium {
+        display: inline-flex !important;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 24px;
+        border-radius: 8px;
+        font-weight: 500;
+        font-size: 0.85rem;
+        color: var(--text-muted) !important;
+        background: #fff !important;
+        border: 1px solid var(--border-color) !important;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-top: 0.75rem;
+        float: right;
+        margin-right: 12px;
+    }
+
+    .btn-limpiar-premium:hover {
+        background: #f8fafc !important;
+        color: var(--accent) !important;
+        border-color: #bae6fd !important;
+        box-shadow: var(--shadow-sm);
+    }
+
+    /* Empty State Dynamic Logic */
+    .empty-state-placeholder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 3.5rem 1.5rem;
+        background: transparent;
+        border: none;
+        color: #94a3b8;
+        transition: opacity 0.3s ease;
+    }
+
+    .empty-state-placeholder i {
+        margin-bottom: 0.85rem;
+        color: #cbd5e1;
+    }
+
+    .empty-state-placeholder p {
+        font-size: 0.8rem;
+        font-weight: 500;
+        margin: 0;
+        text-align: center;
+        line-height: 1.4;
+    }
+
+    /* Dynamic layout adjustment: Hide placeholder when table is active */
+    .modern-table-card:has(.dataTables_wrapper) .empty-state-placeholder {
+        display: none !important;
+    }
+
+    /* Standard Visibility Logic: Hide table headers/body when in empty state */
+    .modern-table-card:has(.empty-state-placeholder):not(:has(.dataTables_wrapper)) .table-responsive {
+        display: none !important;
+    }
+
+    /* Selection & Hover Overrides for Unified Table */
+    .table-modern-style tbody tr:hover td {
+        background-color: rgba(0, 0, 0, 0.02) !important;
+    }
+
+    /* Merged Module Info Styling */
+    .module-info-cell {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .module-name {
+        font-weight: 700;
+        color: #1e293b;
+        font-size: 0.9rem;
+    }
+
+    .module-desc {
+        font-size: 0.72rem;
+        color: #64748b;
+        font-weight: 400;
+        line-height: 1.2;
+    }
+
+    /* Filter Dropdown Styling */
+    .table-filter-select {
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        padding: 5px 12px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: #475569;
+        background-color: #f8fafc;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        min-width: 150px;
+    }
+    
+    .table-filter-select:focus {
+        border-color: var(--accent);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+    }
+
+    /* Premium Search Bar Styles */
+    .search-colaborador-container {
+        max-width: 800px;
+        margin: 0 auto 2.5rem auto;
+        position: relative;
+    }
+
+    .search-input-wrapper {
+        display: flex;
+        align-items: center;
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(10px);
+        border-radius: 50px;
+        padding: 5px 10px 5px 25px;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .search-input-wrapper:focus-within {
+        transform: translateY(-2px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.1);
+        border-color: rgba(34, 211, 238, 0.3);
+    }
+
+    .search-input-field {
+        border: none;
+        outline: none;
+        width: 100%;
+        padding: 12px 10px;
+        font-size: 1.1rem;
+        font-weight: 500;
+        color: #f8fafc;
+        background: transparent;
+    }
+
+    .search-input-field::placeholder {
+        color: #64748b;
+        font-weight: 400;
+    }
+
+    .search-icon-btn {
+        width: 48px;
+        height: 48px;
+        background: #0284c7; /* Blue to match "DISPONIBLE" badge */
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: none;
+        flex-shrink: 0;
+    }
+
+    .search-icon-btn:hover {
+        background: #0369a1; /* Slightly darker blue for hover */
+        transform: scale(1.05);
+    }
+
+    /* Search Results Dropdown */
+    .search-results-dropdown {
+        position: absolute;
+        top: 110%;
+        left: 0;
+        right: 0;
+        background: rgba(15, 23, 42, 0.95);
+        backdrop-filter: blur(12px);
+        border-radius: 16px;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+        border: 1px solid rgba(255,255,255,0.1);
+        z-index: 1050;
+        overflow: hidden;
+        display: none;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .result-item {
+        padding: 12px 25px;
+        display: flex;
+        flex-direction: column;
+        cursor: pointer;
+        transition: background 0.2s ease;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .result-item:last-child {
+        border-bottom: none;
+    }
+
+    .result-item:hover, .result-item.highlighted {
+        background: rgba(255,255,255,0.05);
+    }
+
+    .result-name {
+        font-weight: 700;
+        color: #f8fafc;
+        font-size: 0.95rem;
+    }
+
+    .result-username {
+        font-size: 0.8rem;
+        color: #94a3b8;
+        font-weight: 500;
+    }
+
+    .search-badge {
+        background: #f1f5f9;
+        color: #475569;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        margin-left: auto;
+    }
+</style>
+
+    <!-- Top Search Bar Section (Premium Layout) -->
+    <div class="search-colaborador-container">
+        <div class="search-input-wrapper" id="searchInputWrapper">
+            <input type="text" id="userInputSearch" class="search-input-field" placeholder="Buscar Colaboradores..." autocomplete="off">
+            <button class="search-icon-btn">
+                <i data-lucide="search" style="width: 22px; height: 22px;"></i>
+            </button>
+        </div>
+        <!-- Results Dropdown -->
+        <div class="search-results-dropdown" id="searchResults">
+            <!-- Dynamic results here -->
+        </div>
+    </div>
+
+    <div class="row g-3 justify-content-center">
+        <!-- Unified Module Management Table (Full Width) -->
+        <div class="col-12">
+            <div class="modern-table-card h-100 shadow-lg border-primary-subtle" style="min-height: 520px;">
+                <div class="card-header bg-transparent border-bottom py-3 px-4 d-flex justify-content-between align-items-center" style="border-color: rgba(255,255,255,0.05) !important;">
+                    <div>
+                        <h5 class="m-0 fw-800 text-white d-flex align-items-center gap-2">
+                            <i data-lucide="layout-list" style="width: 18px; color: #22d3ee;"></i> GESTIÓN DE MÓDULOS DEL USUARIO
+                        </h5>
+                        <p class="m-0 font-size-10 mt-1" style="color: #94a3b8;">Administra accesos y permisos directamente desde la lista unificada</p>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <!-- Current Selected User Badge -->
+                        <div id="selectedUserBadge" class="badge px-3 py-2 border rounded-pill d-none" style="background: rgba(255,255,255,0.1); color: #fff; font-size: 0.75rem; font-weight: 700; border-color: rgba(255,255,255,0.2) !important;">
+                            <i data-lucide="user" class="me-1" style="width: 14px;"></i> <span id="selectedUserName">N/A</span>
+                        </div>
+
+                        <label class="font-size-10 fw-800 mb-0 ms-2" style="color: #94a3b8;">MOSTRAR:</label>
+                        <select id="filterStatus" class="table-filter-select" style="background: rgba(15, 23, 42, 0.6); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;">
+                            <option value="all" style="background: #0f172a; color: white;">TODOS</option>
+                            <option value="assigned" style="background: #0f172a; color: white;">ASIGNADOS</option>
+                            <option value="available" style="background: #0f172a; color: white;">DISPONIBLES</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="card-body p-0 d-flex flex-column h-100">
+                    <!-- Empty State (Placeholder before selection) -->
+                    <div id="empty-state-modules" class="empty-state-placeholder py-5 flex-grow-1">
+                        <div class="pulsing-icon mb-3">
+                            <i data-lucide="user-search" style="width: 48px; height: 48px; color: #cbd5e1;"></i>
+                        </div>
+                        <p class="fw-medium font-size-14" style="color: #e2e8f0;">Busca y selecciona un colaborador arriba para comenzar</p>
+                        <small class="mt-1 px-4 text-center" style="color: #94a3b8;">Visualizarás todos los módulos del sistema y su estado actual de asignación</small>
+                    </div>
+
+                    <!-- Single Integrated Table (Hidden until selection) -->
+                    <div id="table-container-modules" class="table-responsive flex-grow-1" style="display: none;">
+                        <table id="tableUnifiedModulos" class="table table-hover align-middle table-modern-style mb-0 w-100">
+                            <thead>
+                                <tr>
+                                    <th style="width: 20%;">Módulo</th>
+                                    <th style="width: 45%;">Descripción</th>
+                                    <th style="width: 15%;" class="text-center">Estado</th>
+                                    <th style="width: 20%;" class="text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Premium Status Theming */
+    .btn-assignment {
+        background: #10b981 !important;
+        color: white !important;
+        border-radius: 10px !important;
+        font-weight: 700 !important;
+        font-size: 0.7rem !important;
+        padding: 8px 16px !important;
+        border: none !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+    }
+    .btn-removal {
+        background: #ef4444 !important;
+        color: white !important;
+        border-radius: 10px !important;
+        font-weight: 700 !important;
+        font-size: 0.7rem !important;
+        padding: 8px 16px !important;
+        border: none !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+    }
+
+    /* Dashboard Integrated Structure */
+    .modulos-dashboard-header {
+        background: #fdfdfd;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .zone-container {
+        display: flex;
+        flex-direction: column;
+        min-height: 520px;
+        transition: background-color 0.3s ease;
+    }
+
+    .zone-header {
+        background: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
+        padding: 10px 15px;
+        font-size: 0.65rem;
+        font-weight: 800;
+        color: var(--text-muted);
+        letter-spacing: 0.08em;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .zone-header-assigned {
+        background: #f0fdf4 !important;
+        color: #166534 !important;
+    }
+
+    .zone-header-available {
+        background: #fef2f2 !important;
+        color: #991b1b !important;
+    }
+
+    /* Unified Table Professional Styles */
+    .badge-flat-status {
+        padding: 5px 12px;
+        border-radius: 6px;
+        font-size: 0.62rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .badge-status-assigned {
+        background: rgba(34, 197, 94, 0.15) !important;
+        color: #4ade80 !important;
+        border: 1px solid rgba(34, 197, 94, 0.3) !important;
+        box-shadow: 0 0 10px rgba(34, 197, 94, 0.1);
+        backdrop-filter: blur(4px);
+    }
+    .badge-status-available {
+        background: rgba(14, 165, 233, 0.15) !important;
+        color: #38bdf8 !important;
+        border: 1px solid rgba(14, 165, 233, 0.3) !important;
+        box-shadow: 0 0 10px rgba(14, 165, 233, 0.1);
+        backdrop-filter: blur(4px);
+    }
+
+    .btn-row-action {
+        padding: 6px 16px !important;
+        border-radius: 8px !important;
+        font-size: 0.65rem !important;
+        font-weight: 800 !important;
+        transition: all 0.2s ease !important;
+        border: none !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        letter-spacing: 0.02em;
+    }
+
+    .btn-row-assign {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.3)) !important;
+        color: #34d399 !important;
+        border: 1px solid rgba(16, 185, 129, 0.4) !important;
+        box-shadow: 0 0 12px rgba(16, 185, 129, 0.15);
+        backdrop-filter: blur(4px);
+    }
+    .btn-row-remove {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(185, 28, 28, 0.3)) !important;
+        color: #f87171 !important;
+        border: 1px solid rgba(239, 68, 68, 0.4) !important;
+        box-shadow: 0 0 12px rgba(239, 68, 68, 0.15);
+        backdrop-filter: blur(4px);
+    }
+
+    .btn-row-action:hover {
+        transform: translateY(-2px);
+        filter: brightness(1.2);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+    }
+
+    .btn-row-action:active {
+        transform: translateY(0);
+    }
+
+    .text-navy { color: #1e293b !important; }
+    .font-size-10 { font-size: 0.62rem !important; }
+    .font-size-14 { font-size: 0.88rem !important; }
+
+
+    .pulsing-icon {
+        animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+        0% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.1); opacity: 0.7; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+</style>
+
+<!-- Floating Action Buttons -->
+<div style="position: fixed; bottom: 30px; right: 30px; z-index: 1010; display: flex; gap: 15px;">
+    <button class="floating-action-btn" id="BtnLimpiar" style="background: #475569 !important; border-radius: 12px; height: 44px; width: 130px; font-size: 0.75rem;" title="Limpiar Selección Actual">
+        <i data-lucide="rotate-ccw" style="width: 16px;"></i> LIMPIAR
+    </button>
+    
+    <a href="{% url 'global_main' %}" style="text-decoration: none;">
+        <button class="floating-action-btn" id="BtnCerrar" style="background: #1e293b !important; border-radius: 12px; height: 44px; width: 130px; font-size: 0.75rem;" title="Cerrar esta sección">
+            <i data-lucide="log-out" style="width: 16px;"></i> CERRAR
+        </button>
+    </a>
+</div>
+
+{% endblock %}
+
+
+
+{% block scripts %}
+<script>
+    $(document).ready(function () {
+        // Custom Filter Logic for Status
+        $.fn.dataTable.ext.search.push(
+            function(settings, data, dataIndex) {
+                if (settings.nTable.id !== 'tableUnifiedModulos') return true;
+                
+                var filterValue = $('#filterStatus').val();
+                if (filterValue === 'all') return true;
+                
+                var rowData = $('#tableUnifiedModulos').DataTable().row(dataIndex).data();
+                if (!rowData) return true;
+                
+                var isAssigned = rowData.assigned;
+                if (filterValue === 'assigned') return isAssigned;
+                if (filterValue === 'available') return !isAssigned;
+                
+                return true;
+            }
+        );
+
+        // Filter event listener
+        $(document).on('change', '#filterStatus', function() {
+            if ($.fn.DataTable.isDataTable('#tableUnifiedModulos')) {
+                $('#tableUnifiedModulos').DataTable().draw();
+            }
+        });
+
+        var csrfToken = "{{ csrf_token }}";
+        var tableFirmas, firma_id;
+
+        var toastMixin = Swal.mixin({
+            toast: true,
+            icon: 'success',
+            title: 'General Title',
+            animation: false,
+            position: 'top-right',
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
+            }
+        });
+
+        /* MENU ID Y SUBMENU ID */
+        $('#usuariosMenu, #gruposUsuario_submenu').addClass('active');
+
+        selectedUsuarioId = null;
+        id_moduloA = null; // Currently selected module ID
+
+        // Integrated Module Management Logic
+        function getUnifiedModulos(usuarioSeleccionado) {
+            if ($.fn.DataTable.isDataTable('#tableUnifiedModulos')) {
+                $('#tableUnifiedModulos').DataTable().destroy();
+            }
+            $('#tableUnifiedModulos tbody').empty(); 
+            
+
+            $("#empty-state-modules").show();
+            $("#table-container-modules").hide();
+            
+            // Fetch both datasets concurrently
+            $.when(
+                $.ajax({
+                    url: `{% url 'data_modulos_asignados' %}`,
+                    type: "POST",
+                    data: { varUsuario: usuarioSeleccionado, csrfmiddlewaretoken: csrfToken }
+                }),
+                $.ajax({
+                    url: `{% url 'data_modulos_disponibles' %}`,
+                    type: "POST",
+                    data: { varUsuario: usuarioSeleccionado, csrfmiddlewaretoken: csrfToken }
+                })
+            ).done(function(resAsignados, resDisponibles) {
+                // Merge data client-side
+                let dataAsignados = (resAsignados[0].data || []).map(m => ({ ...m, assigned: true }));
+                let dataDisponibles = (resDisponibles[0].data || []).map(m => ({ ...m, assigned: false }));
+                let unifiedData = [...dataAsignados, ...dataDisponibles];
+
+                $("#empty-state-modules").hide();
+                $("#table-container-modules").fadeIn(300);
+
+                tableUnifiedModulos = $('#tableUnifiedModulos').DataTable({
+                    data: unifiedData,
+                    destroy: true, // Prevents "Cannot reinitialise" warning
+                    autoWidth: false,
+                    scrollX: true,
+                    scrollY: '450px',
+                    scrollCollapse: true,
+                    pageLength: 25,
+                    dom: 'rftip',
+                    language: { url: "{% static 'app/th/json/es-ES.json' %}" },
+                    createdRow: function(row, data, dataIndex) {
+                        // Use data-attribute for high-priority CSS selection
+                        $(row).attr('data-module-state', data.assigned ? 'assigned' : 'available');
+                    },
+                    columns: [
+                        { data: 'Nombres', className: 'fw-700' },
+                        { data: 'Descripcion', className: 'font-size-10' },
+                        { 
+                            data: 'assigned',
+                            className: 'text-center',
+                            render: function(data) {
+                                return data 
+                                    ? `<span class="badge-flat-status badge-status-assigned"><i data-lucide="check-circle" style="width:13px; height:13px;"></i> ASIGNADO</span>`
+                                    : `<span class="badge-flat-status badge-status-available"><i data-lucide="circle" style="width:13px; height:13px;"></i> DISPONIBLE</span>`;
+                            }
+                        },
+                        {
+                            data: null,
+                            className: 'text-center',
+                            render: function(data) {
+                                return data.assigned
+                                    ? `<button class="btn-row-action btn-row-remove" data-id="${data.fkModulo}" data-action="quitar">
+                                        <i data-lucide="trash-2" style="width:14px"></i> QUITAR
+                                       </button>`
+                                    : `<button class="btn-row-action btn-row-assign" data-id="${data.fkModulo}" data-action="asignar">
+                                        <i data-lucide="plus-circle" style="width:14px"></i> ASIGNAR
+                                       </button>`;
+                            }
+                        }
+                    ],
+                    order: [[2, "desc"], [0, "asc"]], // Show assigned first
+                    drawCallback: function(settings) {
+                        if (window.lucide) lucide.createIcons();
+                    }
+                });
+            }).fail(function() {
+                Swal.fire('Error', 'No se pudieron sincronizar los módulos del sistema.', 'error');
+            });
+        }
+
+        // In-Row Action Handling
+        $('#tableUnifiedModulos').on('click', '.btn-row-action', function(e) {
+            e.preventDefault();
+            let moduloId = $(this).data('id');
+            let action = $(this).data('action');
+            
+            // Visual feedback - disable button immediately
+            $(this).addClass('disabled').attr('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status"></span>');
+            
+            ejecutarAccionModulo(action, moduloId);
+        });
+
+        // Row Selection Logic for Unified Module Table
+        $('#tableUnifiedModulos tbody').on('click', 'tr', function() {
+            if ($(this).hasClass('section-header-row')) return;
+            $('#tableUnifiedModulos tbody tr').removeClass('selected');
+            $(this).addClass('selected');
+        });
+
+        // Collaborators Logic - Search System
+        var allUsers = [];
+
+        function getUsuarios() {
+            $.ajax({
+                url: `{% url 'data_usuarios' %}`,
+                type: "POST",
+                data: { csrfmiddlewaretoken: csrfToken },
+                success: function(response) {
+                    allUsers = response.data || [];
+                }
+            });
+        }
+
+        // Search Implementation
+        $('#userInputSearch').on('input', function() {
+            let term = $(this).val().toLowerCase().trim();
+            if (term.length < 1) {
+                $('#searchResults').hide();
+                return;
+            }
+
+            // Filter top 10 matches by name or username
+            let matches = allUsers.filter(u => 
+                u.Nombre.toLowerCase().includes(term) || 
+                u.Usuario.toLowerCase().includes(term)
+            ).slice(0, 10);
+
+            if (matches.length > 0) {
+                let html = matches.map(u => `
+                    <div class="result-item" data-id="${u.PKUsuario}" data-name="${u.Nombre}">
+                        <div class="d-flex align-items-center">
+                            <div class="result-name">${u.Nombre}</div>
+                            <span class="search-badge">${u.Usuario}</span>
+                        </div>
+                        <div class="result-username">ID de Usuario: ${u.Usuario}</div>
+                    </div>
+                `).join('');
+                $('#searchResults').html(html).show();
+                if (window.lucide) lucide.createIcons();
+            } else {
+                $('#searchResults').html('<div class="p-3 text-muted text-center font-size-14">No se encontraron colaboradores</div>').show();
+            }
+        });
+
+        // Select User from Results
+        $(document).on('click', '.result-item', function() {
+            let userId = $(this).data('id');
+            let userName = $(this).data('name');
+            
+            selectedUsuarioId = userId;
+            $('#userInputSearch').val(userName);
+            $('#searchResults').hide();
+            
+            // UI Feedback: Show selected user badge
+            $('#selectedUserName').text(userName);
+            $('#selectedUserBadge').removeClass('d-none').hide().fadeIn(300);
+            if (window.lucide) lucide.createIcons();
+            
+            getUnifiedModulos(userId);
+        });
+        
+        // Execute Search on Lupa Button Click or Enter Key
+        $('.search-icon-btn').on('click', function() {
+            ejecutarSeleccionPrimerResultado();
+        });
+
+        $('#userInputSearch').on('keypress', function(e) {
+            if (e.which === 13) { // Enter Key
+                ejecutarSeleccionPrimerResultado();
+            }
+        });
+
+        function ejecutarSeleccionPrimerResultado() {
+            let firstResult = $('#searchResults .result-item').first();
+            if (firstResult.length > 0) {
+                firstResult.click();
+            } else if ($('#userInputSearch').val().trim().length > 0) {
+                // If no results are shown, trigger input to search again
+                $('#userInputSearch').trigger('input');
+            }
+        }
+
+        // Hide results on outside click
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('.search-colaborador-container').length) {
+                $('#searchResults').hide();
+            }
+        });
+
+        $('#BtnLimpiar').on('click', function () {
+            limpiarSeleccion();
+        });
+
+        function limpiarSeleccion() {
+            selectedUsuarioId = null;
+            $('#userInputSearch').val('');
+            $('#searchResults').hide();
+            $('#selectedUserBadge').addClass('d-none');
+
+            if ($.fn.DataTable.isDataTable('#tableUnifiedModulos')) {
+                $('#tableUnifiedModulos').DataTable().destroy();
+                $('#tableUnifiedModulos tbody').empty();
+            }
+            $("#table-container-modules").hide();
+            $("#empty-state-modules").show();
+        }
+
+        // Action Handler (Unified)
+        function ejecutarAccionModulo(accion, moduloId) {
+            let url = accion === 'asignar' ? "{% url 'asignar_modulo' %}" : "{% url 'quitar_modulo' %}";
+            let msg = accion === 'asignar' ? 'asignado' : 'quitado';
+
+            $.post(url, {
+                usuario_id: selectedUsuarioId,
+                modulo_id: moduloId,
+                csrfmiddlewaretoken: csrfToken
+            }, function (response) {
+                if (response.status === "success") {
+                    getUnifiedModulos(selectedUsuarioId);
+                    toastMixin.fire({
+                        icon: 'success',
+                        title: `Módulo ${msg} exitosamente.`
+                    });
+                } else {
+                    Swal.fire('Error', response.message || 'No se pudo completar la acción.', 'error');
+                }
+            });
+        }
+
+        // Initialize view
+        getUsuarios();
+
+    });
+
+
+
+</script>
+{% endblock %}

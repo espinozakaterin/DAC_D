@@ -1,0 +1,682 @@
+{% extends 'componentes/menu_global_security.html' %}
+{% load static %}
+
+{% block title %}
+Listado de Grupos | GLOBAL Security
+{% endblock %}
+
+{% block title_header %}
+Administración de Grupos
+{% endblock %}
+
+{% block body %}
+
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+<style>
+    /* === DARK GLASS PREMIUM - Listado de Grupos (scoped) === */
+
+    /* Main Card */
+    .modern-table-card {
+        background: linear-gradient(145deg, rgba(15,23,42,0.85), rgba(2,6,23,0.92)) !important;
+        backdrop-filter: blur(16px) !important; -webkit-backdrop-filter: blur(16px) !important;
+        border-radius: 16px;
+        border: 1px solid rgba(34,211,238,0.15) !important;
+        padding: 0.65rem !important;
+        box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.08) !important;
+        height: auto; transition: all 0.25s ease;
+        display: flex; flex-direction: column;
+    }
+    .modern-table-card:hover {
+        border-color: rgba(34,211,238,0.3) !important;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.45) !important;
+    }
+
+    /* Header area */
+    .border-bottom { border-bottom-color: rgba(255,255,255,0.06) !important; }
+    .text-navy { color: #ffffff !important; }
+    .fw-500 { font-weight: 600 !important; }
+    .fw-700 { font-weight: 700 !important; }
+    .font-size-10 { font-size: 0.62rem !important; }
+    .font-size-12 { font-size: 0.75rem !important; }
+    .text-muted { color: #94a3b8 !important; }
+    .form-label.text-muted { color: #94a3b8 !important; }
+
+    /* "Nuevo Grupo" button - premium */
+    .btn-modern.btn-primary-modern {
+        background: linear-gradient(135deg, rgba(2,132,199,0.8), rgba(3,105,161,0.9)) !important;
+        color: #fff !important; border: 1px solid rgba(34,211,238,0.3) !important;
+        border-radius: 10px !important; font-weight: 700 !important;
+        box-shadow: 0 4px 12px rgba(2,132,199,0.3); transition: all 0.2s ease;
+    }
+    .btn-modern.btn-primary-modern:hover {
+        transform: translateY(-1px); filter: brightness(1.15);
+        box-shadow: 0 6px 16px rgba(2,132,199,0.4);
+    }
+
+    /* Table */
+    .table-modern thead th {
+        background: linear-gradient(to right, rgba(15,23,42,0.95), rgba(2,6,23,0.95)) !important;
+        color: #94a3b8 !important; font-size: 0.68rem !important;
+        padding: 10px 14px !important; text-transform: uppercase !important;
+        font-weight: 800 !important; letter-spacing: 0.04em;
+        border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+        background-image: none !important;
+    }
+    .table-modern tbody td {
+        color: #e2e8f0 !important; font-size: 0.82rem !important;
+        padding: 10px 14px !important;
+        border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+        background-color: transparent !important;
+    }
+    table.dataTable tbody tr td { background-color: transparent !important; }
+    .table-modern tbody tr:hover td { background-color: rgba(255,255,255,0.04) !important; }
+
+    /* Selected row */
+    table.table-modern#tableListadoGrupos tbody tr.selected td,
+    table.table-modern#tableListadoGrupos tbody tr.selected > .sorting_1,
+    table.table-modern#tableListadoGrupos tbody tr.table-primary td {
+        background-color: rgba(34,211,238,0.2) !important;
+        color: #ffffff !important; font-weight: 600 !important; box-shadow: none !important;
+    }
+
+    /* Action buttons in table */
+    .table-modern tbody .btn-sm {
+        background: rgba(255,255,255,0.06) !important; border: 1px solid rgba(255,255,255,0.1) !important;
+        color: #cbd5e1 !important; border-radius: 6px !important; transition: all 0.2s ease;
+    }
+    .table-modern tbody .btn-sm:hover { background: rgba(255,255,255,0.12) !important; color: #fff !important; }
+    .table-modern tbody .btn-danger { border-color: rgba(239,68,68,0.3) !important; color: #f87171 !important; }
+    .table-modern tbody .btn-danger:hover { background: rgba(239,68,68,0.15) !important; }
+
+    /* DataTable filter/search */
+    .dataTables_wrapper .dataTables_filter input {
+        border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 8px !important;
+        padding: 4px 10px !important; background: rgba(15,23,42,0.6) !important;
+        color: #e2e8f0 !important; font-size: 0.78rem !important;
+    }
+    .dataTables_wrapper .dataTables_filter input:focus { border-color: #22d3ee !important; outline: none !important; box-shadow: 0 0 0 3px rgba(34,211,238,0.1) !important; }
+    .dataTables_wrapper .dataTables_filter label { color: #94a3b8 !important; font-size: 0.75rem !important; }
+    .dataTables_wrapper .dataTables_info { color: #64748b !important; font-size: 0.72rem !important; }
+    .dataTables_scrollBody::-webkit-scrollbar { width: 4px !important; height: 4px !important; }
+    .dataTables_scrollBody::-webkit-scrollbar-track { background: transparent !important; }
+    .dataTables_scrollBody::-webkit-scrollbar-thumb { background: #1e293b !important; border-radius: 10px !important; }
+
+    /* Table spacing */
+    .table-responsive { margin-top: 1.8rem !important; padding-right: 10px !important; }
+    .table-modern-wrapper { padding-left: 2.5rem !important; padding-right: 2.5rem !important; }
+    .dataTables_wrapper { padding-right: 1.5rem !important; }
+
+    /* Select2 - Dark */
+    .select2-container--default .select2-selection--single {
+        background-color: rgba(15,23,42,0.6) !important; border: 1px solid rgba(255,255,255,0.1) !important;
+        border-radius: 8px !important; height: 38px !important;
+        display: flex !important; align-items: center !important;
+        padding: 0 10px !important; transition: all 0.2s ease !important;
+    }
+    .select2-container--default.select2-container--open .select2-selection--single {
+        border-color: #22d3ee !important; box-shadow: 0 0 0 3px rgba(34,211,238,0.1) !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        color: #e2e8f0 !important; font-size: 0.78rem !important; font-weight: 600 !important;
+        padding-left: 0 !important; line-height: 38px !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__placeholder { color: #94a3b8 !important; }
+    .select2-container--default .select2-selection--single .select2-selection__arrow { height: 36px !important; right: 8px !important; }
+    .select2-container--default .select2-selection--single .select2-selection__arrow b { border-color: #94a3b8 transparent transparent transparent !important; }
+
+    .select2-dropdown, .select2-container--default .select2-dropdown {
+        background: rgba(15,23,42,0.96) !important; background-color: rgba(15,23,42,0.96) !important;
+        backdrop-filter: blur(12px) !important; -webkit-backdrop-filter: blur(12px) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 12px !important;
+        box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5) !important;
+        z-index: 9999 !important; overflow: hidden !important; margin-top: 5px !important;
+    }
+    .select2-results__options { max-height: 250px !important; list-style: none !important; padding: 0 !important; margin: 0 !important; }
+    .select2-results__option, .select2-container--default .select2-results__option {
+        padding: 10px 15px !important; font-size: 0.82rem !important;
+        color: #e2e8f0 !important; background: transparent !important; background-color: transparent !important;
+        border-bottom: 1px solid rgba(255,255,255,0.05) !important; list-style: none !important;
+    }
+    .select2-container--default .select2-results__option--highlighted[aria-selected] {
+        background: rgba(255,255,255,0.08) !important; background-color: rgba(255,255,255,0.08) !important; color: #fff !important;
+    }
+    .select2-results__option[aria-selected=true] {
+        background: rgba(34,211,238,0.12) !important; background-color: rgba(34,211,238,0.12) !important;
+        color: #22d3ee !important; font-weight: 700 !important;
+    }
+    .select2-container .select2-results__option:last-child { border-bottom: none !important; }
+    .select2-search--dropdown { padding: 10px !important; background: transparent !important; background-color: transparent !important; }
+    .select2-search--dropdown .select2-search__field {
+        border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 8px !important;
+        padding: 8px 12px !important; font-size: 0.85rem !important;
+        background: rgba(15,23,42,0.6) !important; background-color: rgba(15,23,42,0.6) !important;
+        color: #e2e8f0 !important; outline: none !important;
+    }
+    .select2-search--dropdown .select2-search__field:focus { border-color: #22d3ee !important; box-shadow: 0 0 0 3px rgba(34,211,238,0.1) !important; }
+    .select2-results__options::-webkit-scrollbar { width: 6px !important; }
+    .select2-results__options::-webkit-scrollbar-track { background: transparent !important; }
+    .select2-results__options::-webkit-scrollbar-thumb { background: #0284c7 !important; border-radius: 10px !important; }
+    .select2-results__options::-webkit-scrollbar-thumb:hover { background: #0369a1 !important; }
+
+    /* Floating Buttons - Premium */
+    .floating-action-container { position: fixed; bottom: 32px; right: 32px; z-index: 1010; display: flex; gap: 15px; }
+    .floating-action-btn {
+        border-radius: 12px; height: 44px; padding: 0 25px;
+        font-size: 0.75rem; font-weight: 800; display: flex; align-items: center;
+        gap: 8px; color: white !important; text-transform: uppercase;
+        box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5); backdrop-filter: blur(8px);
+        transition: all 0.2s ease; cursor: pointer;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+    }
+    .floating-action-btn:hover { transform: translateY(-2px); filter: brightness(1.15); }
+    .btn-secondary-ref { background: linear-gradient(135deg, rgba(71,85,105,0.9), rgba(51,65,85,0.9)) !important; }
+    .btn-primary-ref { background: linear-gradient(135deg, rgba(30,41,59,0.9), rgba(15,23,42,0.9)) !important; }
+
+    /* Empty State */
+    .empty-state-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10rem 2rem; text-align: center; }
+    .empty-state-placeholder h6 { color: #e2e8f0; font-weight: 700; }
+    .empty-state-placeholder p { color: #94a3b8; }
+
+    /* ══════════════════════════════════════════════════════════════
+       MODAL EDITAR GRUPO - Full Fix: Interaction + Dark/Glass Design
+       ══════════════════════════════════════════════════════════════ */
+
+    /* 1. INTERACTION FIX — Break out of stacking context */
+    #modalEditarGrupo,
+    #modalAgregarGrupo {
+        z-index: 1060 !important;
+        pointer-events: auto !important;
+    }
+    .modal-backdrop {
+        z-index: 1055 !important;
+        background-color: rgba(0, 0, 0, 0.7) !important;
+        backdrop-filter: blur(6px) !important;
+        -webkit-backdrop-filter: blur(6px) !important;
+    }
+    #modalEditarGrupo .modal-dialog,
+    #modalAgregarGrupo .modal-dialog {
+        z-index: 1061 !important;
+        pointer-events: auto !important;
+    }
+    #modalEditarGrupo .modal-content,
+    #modalAgregarGrupo .modal-content {
+        pointer-events: auto !important;
+        position: relative;
+        z-index: 1062 !important;
+    }
+
+    /* 2. DARK/GLASS MODAL CONTENT */
+    #modalEditarGrupo .modal-content,
+    #modalAgregarGrupo .modal-content {
+        background: linear-gradient(160deg, rgba(15,23,42,0.97), rgba(2,6,23,0.99)) !important;
+        backdrop-filter: blur(20px) !important;
+        -webkit-backdrop-filter: blur(20px) !important;
+        border: 1px solid rgba(34,211,238,0.2) !important;
+        border-radius: 16px !important;
+        box-shadow:
+            0 25px 60px rgba(0,0,0,0.6),
+            0 0 40px rgba(34,211,238,0.06),
+            inset 0 1px 0 rgba(255,255,255,0.06) !important;
+        color: #e2e8f0 !important;
+        overflow: hidden;
+    }
+
+    /* 3. MODAL HEADER */
+    #modalEditarGrupo .modal-header,
+    #modalAgregarGrupo .modal-header {
+        background: linear-gradient(135deg, rgba(15,23,42,0.9), rgba(2,6,23,0.95)) !important;
+        border-bottom: 1px solid rgba(34,211,238,0.12) !important;
+        padding: 1.1rem 1.5rem !important;
+    }
+    #modalEditarGrupo .modal-header .modal-title,
+    #modalAgregarGrupo .modal-header .modal-title {
+        color: #ffffff !important;
+        font-weight: 700 !important;
+        font-size: 1rem !important;
+        letter-spacing: 0.02em;
+    }
+    #modalEditarGrupo .modal-header .btn-close,
+    #modalAgregarGrupo .modal-header .btn-close {
+        pointer-events: auto !important;
+        cursor: pointer !important;
+        filter: invert(1) grayscale(100%) brightness(200%) !important;
+        opacity: 0.6 !important;
+        transition: opacity 0.2s ease !important;
+    }
+    #modalEditarGrupo .modal-header .btn-close:hover,
+    #modalAgregarGrupo .modal-header .btn-close:hover {
+        opacity: 1 !important;
+    }
+
+    /* 4. MODAL BODY */
+    #modalEditarGrupo .modal-body,
+    #modalAgregarGrupo .modal-body {
+        background: transparent !important;
+        padding: 1.5rem !important;
+        pointer-events: auto !important;
+    }
+
+    /* Labels */
+    #modalEditarGrupo .modal-body .form-label,
+    #modalAgregarGrupo .modal-body .form-label {
+        color: #94a3b8 !important;
+        font-weight: 600 !important;
+        font-size: 0.78rem !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.04em !important;
+        margin-bottom: 0.4rem !important;
+    }
+
+    /* Inputs */
+    #modalEditarGrupo .modal-body .form-control,
+    #modalAgregarGrupo .modal-body .form-control {
+        background-color: rgba(15,23,42,0.7) !important;
+        color: #e2e8f0 !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        border-radius: 10px !important;
+        padding: 0.6rem 0.9rem !important;
+        font-size: 0.88rem !important;
+        pointer-events: auto !important;
+        cursor: text !important;
+        transition: all 0.2s ease !important;
+    }
+    #modalEditarGrupo .modal-body .form-control:focus,
+    #modalAgregarGrupo .modal-body .form-control:focus {
+        border-color: #22d3ee !important;
+        box-shadow: 0 0 0 3px rgba(34,211,238,0.12) !important;
+        background-color: rgba(15,23,42,0.85) !important;
+        color: #ffffff !important;
+        outline: none !important;
+    }
+    #modalEditarGrupo .modal-body .form-control::placeholder,
+    #modalAgregarGrupo .modal-body .form-control::placeholder {
+        color: #475569 !important;
+    }
+
+    /* 5. MODAL FOOTER */
+    #modalEditarGrupo .modal-footer,
+    #modalAgregarGrupo .modal-footer {
+        background: rgba(15,23,42,0.5) !important;
+        border-top: 1px solid rgba(255,255,255,0.06) !important;
+        padding: 1rem 1.5rem !important;
+        pointer-events: auto !important;
+        gap: 10px;
+    }
+
+    /* Guardar button */
+    #modalEditarGrupo .modal-footer .btn-primary,
+    #modalAgregarGrupo .modal-footer .btn-primary {
+        background: linear-gradient(135deg, rgba(2,132,199,0.85), rgba(3,105,161,0.95)) !important;
+        border: 1px solid rgba(34,211,238,0.3) !important;
+        color: #ffffff !important;
+        border-radius: 10px !important;
+        font-weight: 700 !important;
+        font-size: 0.82rem !important;
+        padding: 0.5rem 1.5rem !important;
+        pointer-events: auto !important;
+        cursor: pointer !important;
+        box-shadow: 0 4px 14px rgba(2,132,199,0.3) !important;
+        transition: all 0.2s ease !important;
+    }
+    #modalEditarGrupo .modal-footer .btn-primary:hover,
+    #modalAgregarGrupo .modal-footer .btn-primary:hover {
+        filter: brightness(1.15) !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 6px 18px rgba(2,132,199,0.4) !important;
+    }
+
+    /* Cancelar button */
+    #modalEditarGrupo .modal-footer .btn-secondary,
+    #modalAgregarGrupo .modal-footer .btn-secondary {
+        background: linear-gradient(135deg, rgba(71,85,105,0.7), rgba(51,65,85,0.8)) !important;
+        border: 1px solid rgba(255,255,255,0.08) !important;
+        color: #cbd5e1 !important;
+        border-radius: 10px !important;
+        font-weight: 600 !important;
+        font-size: 0.82rem !important;
+        padding: 0.5rem 1.5rem !important;
+        pointer-events: auto !important;
+        cursor: pointer !important;
+        transition: all 0.2s ease !important;
+    }
+    #modalEditarGrupo .modal-footer .btn-secondary:hover,
+    #modalAgregarGrupo .modal-footer .btn-secondary:hover {
+        background: linear-gradient(135deg, rgba(100,116,139,0.8), rgba(71,85,105,0.9)) !important;
+        color: #ffffff !important;
+    }
+
+    /* 6. ALL modal interactive elements — ensure clickable */
+    #modalEditarGrupo *,
+    #modalAgregarGrupo * {
+        pointer-events: auto;
+    }
+</style>
+
+<div class="modern-table-card shadow-lg border-primary-subtle p-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3 border-bottom pb-3">
+        <div class="d-flex align-items-center gap-2">
+            <div>
+                <h5 class="m-0 fw-500 text-navy d-flex align-items-center gap-2">
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="#0284c7" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
+                    LISTADO DE GRUPOS
+                </h5>
+                <p class="text-muted m-0 font-size-10 mt-1">Administra y visualiza los grupos de seguridad registrados en el sistema</p>
+            </div>
+        </div>
+
+        <div class="d-flex align-items-center gap-3">
+            <div class="d-flex align-items-center gap-2">
+                <label for="selectModulo" class="form-label mb-0 fw-semibold text-muted small">MÓDULO:</label>
+                <select id="selectModulo" class="table-filter-select" style="min-width: 200px;">
+                    <option value="" data-description="">Seleccione módulo...</option>
+                    {% for m in modulos %}
+                    <option value="{{ m.PKmodulo }}" data-description="{{ m.Descripcion }}">
+                        {{ m.Nombre }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button id="btnAgregarGrupo" class="btn-modern btn-primary-modern px-3 py-2" style="font-size: 0.85rem;">
+                <i data-lucide="plus-square" style="width: 18px;"></i>
+                Nuevo Grupo
+            </button>
+        </div>
+    </div>
+
+    <div id="empty-state-grupos" class="empty-state-placeholder">
+        <h6 class="fw-700">Seleccione un módulo para comenzar</h6>
+        <p class="font-size-12 mb-0">Administración de grupos de seguridad registrados en el sistema</p>
+    </div>
+
+    <div id="table-container-grupos" style="display: none;">
+        <div class="table-responsive">
+            <table id="tableListadoGrupos" class="table-modern w-100">
+                <thead>
+                    <tr>
+                        <th>Nombre del Grupo</th>
+                        <th>Descripción</th>
+                        <th style="width: 150px;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% include 'grupos/modales_grupos/m_listado_grupo_agregar_grupo.html' %}
+{% include 'grupos/modales_grupos/m_listado_grupo_editar_grupo.html' %}
+
+<!-- Floating Buttons -->
+<div class="floating-action-container">
+    <button class="floating-action-btn btn-secondary-ref" id="btnLimpiar" title="Limpiar Filtros">
+        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+        LIMPIAR
+    </button>
+    <a href="{% url 'global_main' %}" style="text-decoration: none;">
+        <button class="floating-action-btn btn-primary-ref" title="Cerrar Módulo">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            CERRAR
+        </button>
+    </a>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+  $(document).ready(function () {
+    var csrfToken = "{{ csrf_token }}";
+    var selectedGrupoId = null, id_modulo = null;
+
+    /* ── Move modals to <body> to escape stacking contexts ── */
+    $('#modalEditarGrupo, #modalAgregarGrupo').appendTo('body');
+
+
+
+    $('#btnAgregarGrupo').on('click', function () {
+      $('#modalAgregarGrupo').modal('show');
+    });
+    var toastMixin = Swal.mixin({
+      toast: true,
+      icon: 'success',
+      title: 'General Title',
+      animation: false,
+      position: 'top-right',
+      showConfirmButton: false,
+      timer: 2000,
+      timerProgressBar: true,
+      didOpen: (toast) => {
+        toast.addEventListener('mouseenter', Swal.stopTimer);
+        toast.addEventListener('mouseleave', Swal.resumeTimer);
+      }
+    });
+    /* MENU ID Y SUBMENU ID */
+    $('#usuariosMenu, #gruposUsuario_submenu').addClass('active');
+
+
+    $('#selectModulo').select2({
+      placeholder: "Seleccione módulo...",
+      allowClear: true,
+      width: 'resolve',
+      dropdownAutoWidth: true,
+      language: {
+        noResults: function() { return "No se encontraron módulos"; }
+      }
+    });
+
+    $('#selectModulo').change(function () {
+      id_modulo = $(this).val();
+      getGrupos();
+    });
+
+    id_modulo = $("#selectModulo").val();
+    getGrupos()
+    function getGrupos() {
+      if (!id_modulo) {
+        $("#table-container-grupos").hide();
+        $("#empty-state-grupos").fadeIn(300);
+        return;
+      }
+
+      $("#empty-state-grupos").hide();
+      $("#table-container-grupos").fadeIn(300);
+
+      if ($.fn.DataTable.isDataTable('#tableListadoGrupos')) {
+          $('#tableListadoGrupos').DataTable().destroy();
+      }
+      
+      var cardHeight = $(".card-expanded").height();
+      var tableHeight = cardHeight * 0.5;
+
+      tableListadoGrupos = $('#tableListadoGrupos').DataTable({
+        autoWidth: false,
+        scrollX: true,
+        scrollY: tableHeight + 'px',
+        scrollCollapse: true,
+        pageLength: 50,
+        dom: 'rftip',
+        language: {
+          url: "{% static 'app/th/json/es-ES.json' %}",
+        },
+        ajax: {
+          url: `{% url 'obtener_grupos_data' %}`,
+          type: "POST",
+          dataSrc: 'data',
+          data: {
+            csrfmiddlewaretoken: csrfToken,
+            modulo_id: id_modulo
+          },
+        },
+        colReorder: {
+          realtime: false,
+        },
+        buttons: [
+          {
+            extend: 'excel',
+            text: '<i class="fas fa-file-excel"></i>',
+            titleAttr: 'Exportar a Excel',
+            className: 'btn btn-success',
+          },
+          {
+            extend: 'pdf',
+            text: '<i class="fas fa-file-pdf"></i>',
+            titleAttr: 'Exportar a PDF',
+            className: 'btn btn-danger',
+          },
+          {
+            extend: 'print',
+            text: '<i class="fas fa-print"></i>',
+            titleAttr: 'Imprimir',
+            className: 'btn btn-primary',
+            orientation: 'landscape'
+          }
+        ],
+        columns: [
+          { data: 'Nombre' },
+          { data: 'Descripcion' },
+          {
+            data: null,
+            orderable: false,
+            render: function (data, type, row) {
+
+              return '<button title="Editar Grupo" class="btn btn-sm btn-secondary me-1">' +
+                '<i class="fa fa-edit"></i>' +
+                '</button>' +
+                '<button title="Eliminar Grupo" class="btn btn-sm btn-danger me-1">' +
+                '<i class="fa fa-trash"></i>' +
+                '</button>';
+            }
+          }
+        ]
+      });
+    }
+
+    $('#tableListadoGrupos tbody').on('click', 'tr', function () {
+      $('#tableListadoGrupos tbody tr').removeClass('selected');
+      $(this).addClass('selected');
+      selectedGrupoId = tableListadoGrupos.row(this).data().PKgrupo;
+    });
+
+    // Delegación de eventos para los botones de la tabla
+    $('#tableListadoGrupos tbody').on('click', 'button', function () {
+      var action = $(this).attr('title');
+      var data = tableListadoGrupos.row($(this).parents('tr')).data();
+      if (action === "Editar Grupo") {
+        $('#Nombre').val(data.Nombre);
+        $('#Descripcion').val(data.Descripcion);
+        $('#modalEditarGrupo').data('grupo', data);
+        $('#modalEditarGrupo').modal('show');
+      } else if (action === "Eliminar Grupo") {
+        var data = tableListadoGrupos.row($(this).parents('tr')).data();
+        var Nombre = data.Nombre;
+        var GrupoID = data.PKgrupo;
+        Swal.fire({
+          title: `¿Deseas eliminar a este grupo?`,
+          text: `El Grupo ${Nombre}, será ELIMINADO`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#3085d6',
+          cancelButtonColor: '#d33',
+          confirmButtonText: `Sí, Eliminar`
+        }).then((result) => {
+          if (result.isConfirmed) {
+            $.ajax({
+              url: `{% url 'delete_grupo' %}`,
+              type: 'POST',
+              data: {
+                grupo_id: GrupoID,
+                csrfmiddlewaretoken: "{{ csrf_token }}"
+              },
+              success: function (response) {
+                Swal.fire('Éxito', `El grupo ha sido ELMINADO correctamente`, 'success');
+                getGrupos(); // Recargar la tabla después del cambio
+              },
+              error: function (xhr, status, error) {
+                Swal.fire('Error', `No se pudo ELIMINAR al usuario`, 'error');
+              }
+            });
+          }
+        });
+      }
+    });
+
+
+    $('#guardarGrupoEditado').on('click', function () {
+      var Descripcion = $('#Descripcion').val()
+      var Nombre = $('#Nombre').val()
+      if (Nombre.trim() === '') {
+        Swal.fire('Error', 'El nuevo nombre no puede estar vacío', 'error');
+        return;
+      }
+      var grupo = $('#modalEditarGrupo').data('grupo');
+
+      $.ajax({
+        url: `{% url 'update_grupo' %}`,
+        type: 'POST',
+        data: {
+          grupo_id: grupo.PKgrupo,
+          nombre: Nombre,
+          descripcion: Descripcion,
+          modulo_id: id_modulo,
+
+          csrfmiddlewaretoken: "{{ csrf_token }}"
+        },
+        success: function (response) {
+          Swal.fire('Éxito', 'El grupo ha sido actualizado correctamente', 'success');
+          $('#modalEditarGrupo').modal('hide');
+          getGrupos();
+        },
+        error: function (xhr, status, error) {
+          Swal.fire('Error', 'No se pudo actualizar el grupo', 'error');
+        },
+        complete: function () {
+          $('#modalCambiarNombre').modal('hide');
+        }
+
+      });
+
+    });
+
+
+    //SE AGREGO CONSULTA PARA ESTE INSERT , NO HABIA SP
+    $('#guardarNuevoGrupo').on('click', function () {
+      var NombreAdd = $('#NombreAdd').val().trim();
+      var DescripcionAdd = $('#DescripcionAdd').val().trim();
+
+      if (!Nombre || !Descripcion) {
+        Swal.fire('Error', 'Todos los campos son obligatorios', 'error');
+        return;
+      }
+
+
+      $.ajax({
+        url: `{% url 'insert_grupo' %}`,
+        type: 'POST',
+        data: {
+          nombre: NombreAdd,
+          descripcion: DescripcionAdd,
+          modulo_id: id_modulo,
+          csrfmiddlewaretoken: "{{ csrf_token }}"
+        },
+        success: function (response) {
+          Swal.fire('Éxito', 'Grupo agregado correctamente', 'success');
+          $('#modalAgregarGrupo').modal('hide');
+          getGrupos();
+        },
+        error: function (xhr, status, error) {
+          Swal.fire('Error', 'No se pudo agregar el grupo', 'error');
+        }
+      });
+    });
+
+    // Lógica para el botón Limpiar
+    $('#btnLimpiar').click(function() {
+        $('#selectModulo').val('').trigger('change');
+    });
+  });
+</script>
+{% endblock %}
