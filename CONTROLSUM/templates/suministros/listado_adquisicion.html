@@ -8,58 +8,369 @@ GESTION DE ADQUISICIONES
 
 {% block body %}
 
-<div class="row align-items-center">
-    <div class="col d-flex align-items-center">
-        <h3 class="page-title mb-0">
-            <i class="fas fa-box"></i> <strong>LISTADO DE ADQUISICIONES</strong>
-        </h3>
-    </div>
+<style>
+    /* Premium UI Refinements */
+    :root {
+        --corp-blue-dark: #0b2f52;
+        --corp-blue-light: #1d3f8f;
+        --corp-gradient: linear-gradient(135deg, #0b2f52 0%, #1d3f8f 100%);
+        --premium-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    }
 
-    <div class="col-auto text-end float-end ms-auto download-grp">
-        <button class="btn btn-sm btn-success" style="background-color: #697a8a; text-align: justify;" id="btnNuevo"
-            title="Crear Nuevo"><i class="fas fa-plus me-2"></i>
-            <strong>Nueva Adquisición</strong></button>
+    .page-header-premium {
+        background: var(--corp-gradient);
+        border-radius: 15px !important;
+        box-shadow: 0 8px 20px rgba(11, 47, 82, 0.15) !important;
+        padding: 1.5rem 2rem !important;
+        margin-bottom: 2rem;
+        border: none;
+    }
+
+    .header-icon-box-outer {
+        width: 52px;
+        height: 52px;
+        background: rgba(255, 255, 255, 0.12);
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+
+    .header-icon-circle-inner {
+        width: 28px;
+        height: 28px;
+        background: #ffffff;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .header-icon-circle-inner i {
+        color: #0b2f52;
+        font-size: 0.85rem;
+    }
+
+    .filter-card {
+        border-radius: 20px !important;
+        border: none !important;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03) !important;
+        background: #ffffff;
+        margin-top: 1rem !important;
+    }
+
+    /* Table Styles */
+    #Tabla_Adquisicion,
+    .dataTables_scrollHead table,
+    .dataTables_scrollBody table {
+        border: none !important;
+        border-collapse: separate !important;
+        border-spacing: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+    }
+
+    table.dataTable thead th,
+    #Tabla_Adquisicion thead th,
+    .dataTables_scrollHead table.dataTable thead th {
+        background-color: #0d325a !important;
+        color: #ffffff !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
+        font-size: 0.7rem !important;
+        letter-spacing: 0.8px !important;
+        padding: 12px 8px !important;
+        border: none !important;
+        text-align: center !important;
+        vertical-align: middle !important;
+    }
+
+    /* Fix for double blue header: Force-hide duplicate thead in scroll body */
+    .dataTables_scrollBody thead {
+        visibility: collapse !important;
+        height: 0 !important;
+        line-height: 0 !important;
+    }
+    .dataTables_scrollBody thead th,
+    .dataTables_scrollBody thead tr {
+        height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border: none !important;
+        background: transparent !important;
+        line-height: 0 !important;
+    }
+
+    #Tabla_Adquisicion tbody tr td {
+        border: none !important;
+        border-bottom: 1px solid #f8fafc !important;
+        padding: 12px 8px !important;
+        font-size: 0.8rem !important;
+        color: #1f2937 !important;
+        vertical-align: middle !important;
+        text-align: center !important;
+        background-color: #ffffff !important;
+    }
+
+    #Tabla_Adquisicion tbody tr:nth-child(even) td {
+        background-color: #fafbfd !important;
+    }
+
+    #Tabla_Adquisicion tbody tr:hover td {
+        background-color: rgba(13, 50, 90, 0.04) !important;
+    }
+
+    /* Modern Badges */
+    .badge-pill {
+        padding: 0.4rem 0.8rem !important;
+        font-weight: 600 !important;
+        font-size: 0.75rem !important;
+        border-radius: 50px !important;
+        text-transform: uppercase !important;
+    }
+    .bg-success { background-color: #dff6e5 !important; color: #198754 !important; }
+    .bg-danger { background-color: #fde7e7 !important; color: #dc3545 !important; }
+    .custom-red { background-color: #fee2e2 !important; color: #b91c1c !important; }
+
+    /* Outlined Export Buttons */
+    .dt-buttons .btn {
+        background: transparent !important;
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+        font-size: 0.85rem !important;
+        padding: 6px 15px !important;
+        margin-right: 10px !important;
+        transition: all 0.2s ease !important;
+        box-shadow: none !important;
+    }
+
+    .dt-buttons .btn-success {
+        border: 1px solid #10b981 !important;
+        color: #10b981 !important;
+    }
+    .dt-buttons .btn-success:hover {
+        background: #10b981 !important;
+        color: #ffffff !important;
+    }
+
+    .dt-buttons .btn-danger {
+        border: 1px solid #ef4444 !important;
+        color: #ef4444 !important;
+    }
+    .dt-buttons .btn-danger:hover {
+        background: #ef4444 !important;
+        color: #ffffff !important;
+    }
+
+    .dt-buttons .btn-secondary {
+        border: 1px solid #3b82f6 !important;
+        color: #3b82f6 !important;
+    }
+    .dt-buttons .btn-secondary:hover {
+        background: #3b82f6 !important;
+        color: #ffffff !important;
+    }
+
+    /* Search Bar Customization */
+    .dataTables_filter input {
+        border-radius: 50px !important;
+        border: 1px solid #e2e8f0 !important;
+        padding: 0.5rem 1rem 0.5rem 2.5rem !important;
+        background: #ffffff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2394a3b8' class='bi bi-search' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3E%3C/svg%3E") no-repeat 12px center !important;
+        width: 250px !important;
+        height: 38px !important; /* Exact parity height */
+        font-size: 0.9rem !important; /* Prevent inheritance from font-size: 0 label */
+        outline: none !important;
+        transition: all 0.2s ease !important;
+    }
+
+    .dataTables_filter input::placeholder {
+        color: #7b8794 !important;
+        opacity: 1 !important;
+    }
+
+    .dataTables_filter input:focus {
+        border-color: #3b82f6 !important;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+    }
+
+    /* Hide "Buscar:" text but keep input */
+    .dataTables_filter label {
+        font-size: 0 !important;
+        color: transparent !important;
+        margin-bottom: 0 !important;
+        position: relative !important;
+    }
+
+    /* Aggressive Clean: Remove any strange dots or indicators */
+    .dataTables_filter label::before,
+    .dataTables_filter label::after,
+    .dataTables_filter input::before,
+    .dataTables_filter input::after,
+    .dataTables_filter::after,
+    .dataTables_filter::before {
+        display: none !important;
+        content: none !important;
+    }
+
+    /* Prevent any injected spans or icons */
+    .dataTables_filter label *:not(input) {
+        display: none !important;
+    }
+
+    /* Registration Info Alignment */
+    .dataTables_wrapper .dataTables_info {
+        float: left !important;
+        padding-top: 1.5rem !important;
+        font-size: 0.85rem !important;
+        color: #64748b !important;
+        font-weight: 500 !important;
+        clear: none !important;
+    }
+
+    /* Professional Pagination */
+    .dataTables_wrapper .dataTables_paginate {
+        float: right !important;
+        margin-top: 1rem !important;
+        display: flex !important;
+        align-items: center !important;
+        clear: none !important;
+    }
+
+    .dataTables_wrapper .dataTables_paginate .paginate_button {
+        min-width: 34px !important;
+        height: 34px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        border-radius: 8px !important;
+        border: 1px solid #e2e8f0 !important;
+        margin: 0 3px !important;
+        padding: 0 12px !important;
+        background: #ffffff !important;
+        color: #475569 !important;
+        font-weight: 600 !important;
+        font-size: 0.85rem !important;
+        cursor: pointer !important;
+        text-decoration: none !important;
+        transition: all 0.2s ease !important;
+    }
+
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+        background: #0d325a !important;
+        color: #ffffff !important;
+        border-color: #0d325a !important;
+        border-radius: 10px !important;
+        box-shadow: 0 4px 12px rgba(13, 50, 90, 0.3) !important;
+        font-weight: 700 !important;
+    }
+
+    .dataTables_wrapper .dataTables_paginate .paginate_button:hover:not(.current):not(.disabled) {
+        background: #f8fafc !important;
+        border-color: #cbd5e1 !important;
+        color: #1e293b !important;
+    }
+
+    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+        opacity: 0.4 !important;
+        cursor: default !important;
+        background: #f8fafc !important;
+        color: #94a3b8 !important;
+        border-color: #f1f5f9 !important;
+    }
+
+    /* Dynamic Select Colors (Parity with Requisitions) */
+    .select-active { background-color: #dcfce7 !important; color: #15803d !important; border-color: #10b981 !important; }
+    .select-disabled { background-color: #fee2e2 !important; color: #b91c1c !important; border-color: #ef4444 !important; }
+    .select-all { background-color: #eef4ff !important; color: #1e40af !important; border-color: #3b82f6 !important; }
+    .select-active i, .select-active select { color: #15803d !important; font-weight: 700 !important; }
+    .select-disabled i, .select-disabled select { color: #b91c1c !important; font-weight: 700 !important; }
+    .select-all i, .select-all select { color: #1e40af !important; font-weight: 700 !important; }
+
+    /* Layout Refinement */
+    .dataTables_wrapper .dt-buttons { float: left !important; margin-bottom: 1.5rem !important; }
+    .dataTables_wrapper .dataTables_filter { float: right !important; margin-bottom: 1.5rem !important; }
+
+    /* STABLE FLUID LAYOUT */
+    #Tabla_Adquisicion, 
+    .dataTables_scrollHead table,
+    .dataTables_scrollBody table {
+        border: none !important;
+        border-collapse: separate !important;
+        border-spacing: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+    }
+</style>
+
+<!-- Header Premium -->
+<div class="card page-header-premium border-0 shadow-lg mb-4">
+    <div class="card-body p-4 d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center">
+            <div class="header-icon-box-outer me-4">
+                <div class="header-icon-circle-inner">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+            </div>
+            <div>
+                <h3 class="text-white fw-bold mb-0" style="letter-spacing: 0.5px; font-size: 1.8rem;">GESTIÓN DE ADQUISICIONES</h3>
+                <p class="mb-0 small" style="color: #cbd5e1; font-weight: 500;">
+                    <i class="fas fa-info-circle me-1" style="font-size: 0.8rem;"></i> Control administrativo y seguimiento de adquisiciones
+                </p>
+            </div>
+        </div>
+        <button class="btn shadow-sm px-4" id="btnNuevo" style="border-radius: 50px; background: #ffffff; color: #0b2f52 !important; font-weight: 700; height: 46px; border: none; display: flex; align-items: center;">
+            <i class="fas fa-plus-circle me-2" style="font-size: 1.1rem;"></i> Nueva Adquisición
+        </button>
     </div>
 </div>
 
-<div class="row mb-3">
-    <div class="col-auto">
-        <label for="Filtro" class="form-label"><strong>Filtrar por Estado</strong></label>
-        <select id="Filtro" class="form-select" aria-label="Filtrar por Estado">
-            <option value="0">Todo el listado</option>
-            <option value="1">Listado de Adquisiciones Activas</option>
-            <option value="3">Listado de Adquisiciones Deshabilitadas</option>
-        </select>
-    </div>
-</div>
+<!-- Main Content Card -->
+<div class="card border-0 shadow-sm mb-4" style="border-radius: 18px; background: #ffffff !important; overflow: hidden;">
+    <div class="card-body p-4">
+        
+        <!-- Filter Row -->
+        <div class="row align-items-center mb-4 g-3">
+            <div class="col-md-5">
+                <label class="form-label text-muted small fw-bold text-uppercase mb-2 d-flex align-items-center">
+                    <i class="fas fa-filter me-2 text-primary"></i> FILTRAR POR ESTADO (REGISTRO)
+                </label>
+                <div class="input-group shadow-sm rounded-3 overflow-hidden" style="border: 1px solid #e2e8f0; width: 100%;">
+                    <span class="input-group-text bg-white border-0 px-3"><i class="fas fa-bars text-muted small"></i></span>
+                    <select id="Filtro" class="form-select border-0 ps-2" style="height: 42px; font-size: 0.9rem; background: transparent; cursor: pointer;">
+                        <option value="0">Todo el listado</option>
+                        <option value="1">Listado de Adquisiciones Activas</option>
+                        <option value="3">Listado de Adquisiciones Deshabilitadas</option>
+                    </select>
+                </div>
+            </div>
+        </div>
 
-<div class="row">
-    <div class="bg-white shadow rounded-4 p-3">
-        <table id="Tabla_Adquisicion"
-            class="table table-hover table-bordered table-striped table-sm align-middle mb-0 rounded-4">
-                <thead class="text-white text-center rounded-4" style="background-color: #697a8a; text-align: justify;">
+        <!-- Table -->
+        <div class="table-responsive">
+            <table id="Tabla_Adquisicion" class="table table-hover align-middle mb-0 w-100">
+                <thead>
                     <tr>
-                        <th style="border-radius: 10px 0 0 0;">No.</th>
-                        <th class="text-center">Requisición No.</th>
-                        <th class="text-center">Solicitante</th>
-                        <th class="text-center">Grupo/Área</th>
-                        <th class="text-center">Acreedor</th>
-                        <th class="text-center">Fecha de Adquisición</th>
-                        <th class="text-center">Método de Pago</th>
-                        <th class="text-center">Costo Total</th>
-                        <th class="text-center">Estado</th>
-                        <th style="border-radius: 10px 0 0 0;">Acciones</th>
+                        <th>NÓ.</th>
+                        <th>REQUISICIÓN NO.</th>
+                        <th>SOLICITANTE</th>
+                        <th>GRUPO/ÁREA</th>
+                        <th>ACREEDOR</th>
+                        <th>FECHA</th>
+                        <th>PAGO</th>
+                        <th>COSTO TOTAL</th>
+                        <th>ESTADO</th>
+                        <th>ACCIONES</th>
                     </tr>
                 </thead>
-
-                <tbody class="text-center">
-                </tbody>
+                <tbody></tbody>
             </table>
+        </div>
     </div>
 </div>
-
-<hr>
-
 
 {% include 'Modales_S/agregar_adquisicion.html' %}
 {% include 'Modales_S/agregar_devolucion.html' %}
@@ -122,18 +433,19 @@ GESTION DE ADQUISICIONES
         fillAdquisicion()
 
         function fillAdquisicion() {
-
             $("#Tabla_Adquisicion").DataTable().clear().destroy();
 
             Tabla_Adquisicion = $("#Tabla_Adquisicion").DataTable({
                 autoWidth: false,
                 scrollX: true,
-                scrollY: '350px',
+                scrollY: '450px',
                 scrollCollapse: true,
                 pageLength: 30,
                 dom: 'Brftip',
                 language: {
                     url: "{% static 'app/th/json/es-ES.json' %}",
+                    search: "",
+                    searchPlaceholder: "Buscar..."
                 },
                 ajax: {
                     url: `{% url 'get_adquisicion_data' %}`,
@@ -144,159 +456,230 @@ GESTION DE ADQUISICIONES
                         csrfmiddlewaretoken: csrfToken
                     },
                 },
-                colReorder: {
-                    realtime: false,
+                initComplete: function () {
+                    // Set placeholder explicitly to ensure it's not overridden
+                    $('#Tabla_Adquisicion_filter input').attr('placeholder', 'Buscar...');
+                },
+                drawCallback: function(settings) {
+                    var activationVal = $("#Filtro").val();
+                    var rowColor = "";
+
+                    if (activationVal == "1") rowColor = "#dcfce7"; // Soft Green (Exact parity)
+                    else if (activationVal == "3") rowColor = "#fee2e2"; // Soft Red (Exact parity)
+
+                    if (rowColor) {
+                        $("#Tabla_Adquisicion tbody tr td").attr('style', 'background-color: ' + rowColor + ' !important;');
+                    } else {
+                        $("#Tabla_Adquisicion tbody tr td").css('background-color', '');
+                    }
                 },
                 buttons: [
-    {
-        extend: 'excelHtml5',
-        text: '<i class="fas fa-file-excel"></i> Excel',
-        titleAttr: 'Exportar a Excel',
-        className: 'btn btn-success btn-sm',
-        exportOptions: {
-            columns: [0, 1, 2, 3, 4, 5, 6, 7, 8]
-        }
-    },
-    {
-        extend: 'pdfHtml5',
-        text: '<i class="fas fa-file-pdf"></i> PDF',
-        titleAttr: 'Exportar a PDF',
-        className: 'btn btn-danger btn-sm',
-        pageSize: 'A4',
-        orientation: 'portrait',
-        exportOptions: {
-            columns: [ 1, 2, 3, 4, 5, 6, 7, 8]
-        },
-        customize: function (doc) {
-            doc.content[1].table.widths = Array(doc.content[1].table.body[0].length).fill('*');
-            doc.styles.tableHeader.fillColor = '#2c4770';
-            doc.styles.tableHeader.color = 'white';
-            doc.styles.tableHeader.alignment = 'center';
-            doc.styles.tableHeader.fontSize = 9;
-            doc.defaultStyle.alignment = 'center';
-            doc.defaultStyle.fontSize = 7;
-            doc.pageMargins = [15, 20, 15, 20];
-            doc.content[0].text = "REPORTE DE ADQUISICIONES";
-            doc.content[0].alignment = 'center';
-            doc.content[0].margin = [0, 0, 0, 10];
-        }
-    },
-    {
-                        extend: 'pdfHtml5', // Changed from 'print'
+                    {
+                        extend: 'excelHtml5',
+                        text: '<i class="fas fa-file-excel"></i> Excel',
+                        titleAttr: 'Exportar a Excel',
+                        className: 'btn btn-success btn-sm',
+                        autoFilter: true,
+                        sheetName: 'Adquisiciones',
+                        exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7, 8] },
+                        customize: function (xlsx) {
+                            var sheet = xlsx.xl.worksheets['sheet1.xml'];
+                            $('row:first c', sheet).attr('s', '2'); // Bold
+                            $('row c', sheet).attr('s', '51'); // Centered
+                        }
+                    },
+                    {
+                        extend: 'pdfHtml5',
+                        text: '<i class="fas fa-file-pdf"></i> PDF',
+                        titleAttr: 'Exportar a PDF',
+                        className: 'btn btn-danger btn-sm',
+                        pageSize: 'A4',
+                        orientation: 'portrait',
+                        exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7, 8] },
+                        customize: function (doc) {
+                            var now = new Date();
+                            var dateStr = now.toLocaleDateString();
+                            var timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                            var userStr = "{{ request.user.first_name }} {{ request.user.last_name }}".trim() || "{{ request.user.username }}";
+
+                            doc.content[0] = {
+                                stack: [
+                                    { text: 'REPORTE DE ADQUISICIONES – CONTROL DE SUMINISTROS', fontSize: 14, bold: true, alignment: 'center', margin: [0, 0, 0, 5], color: '#0d325a' },
+                                    { text: `Generado por: ${userStr} | Fecha: ${dateStr} | Hora: ${timeStr}`, fontSize: 8, alignment: 'center', color: '#64748b', margin: [0, 0, 0, 10] }
+                                ],
+                                margin: [0, 0, 0, 10]
+                            };
+
+                            doc.pageMargins = [20, 30, 20, 30];
+
+                            if (doc.content[1] && doc.content[1].table) {
+                                var table = doc.content[1];
+                                var tableBody = table.table.body;
+                                table.layout = {
+                                    hLineWidth: function(i) { return .5; },
+                                    vLineWidth: function(i) { return .5; },
+                                    hLineColor: function(i) { return '#e2e8f0'; },
+                                    vLineColor: function(i) { return '#e2e8f0'; },
+                                    paddingLeft: function(i) { return 4; },
+                                    paddingRight: function(i) { return 4; }
+                                };
+                                table.table.widths = ['5%', '8%', '14%', '15%', '14%', '10%', '10%', '12%', '12%'];
+                                doc.styles.tableHeader = { fillColor: '#0d325a', color: 'white', alignment: 'center', bold: true, fontSize: 9, margin: [0, 4, 0, 4] };
+                                for (var i = 1; i < tableBody.length; i++) {
+                                    for (var j = 0; j < tableBody[i].length; j++) {
+                                        if (typeof tableBody[i][j] === 'string') { tableBody[i][j] = { text: tableBody[i][j] }; }
+                                        tableBody[i][j].alignment = 'center';
+                                        tableBody[i][j].fontSize = 8;
+                                        if (i % 2 === 0) tableBody[i][j].fillColor = '#f8fafc';
+                                    }
+                                    
+                                    var cellState = tableBody[i][8];
+                                    if (cellState) {
+                                        var txt = (cellState.text || cellState || "").toString();
+                                        cellState.bold = true;
+                                        if (txt.includes('ACTIVA')) cellState.color = '#15803d';
+                                        else if (txt.includes('DESHABILITADA')) cellState.color = '#b91c1c';
+                                    }
+                                }
+                            }
+                            doc['footer'] = (function(page, pages) {
+                                return {
+                                    columns: [
+                                        { text: 'Control de Suministros ©', alignment: 'left', fontSize: 7, margin: [20, 0], color: '#64748b' },
+                                        { text: 'Página ' + page.toString() + ' de ' + pages.toString(), alignment: 'right', fontSize: 7, margin: [0, 0, 20], color: '#64748b' }
+                                    ],
+                                    margin: [0, 10]
+                                }
+                            });
+                        }
+                    },
+                    {
+                        extend: 'pdfHtml5',
                         text: '<i class="fas fa-print"></i> Imprimir',
                         titleAttr: 'Imprimir',
                         className: 'btn btn-secondary btn-sm',
                         pageSize: 'A4',
                         orientation: 'portrait',
-                        exportOptions: {
-                            columns: [ 1, 2, 3, 4, 5, 6, 7, 8]
-                        },
-                        action: function ( e, dt, button, config ) {
-                            var oldPdfMake = window.pdfMake.createPdf;
-                            try {
-                                window.pdfMake.createPdf = function(doc) {
-                                    var pdf = oldPdfMake(doc);
+                        exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7, 8] },
+                        action: function (e, dt, button, config) {
+                            var data = dt.buttons.exportData(config.exportOptions);
+                            var now = new Date();
+                            var dateStr = now.toLocaleDateString();
+                            var timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                            var userStr = "{{ request.user.first_name }} {{ request.user.last_name }}".trim() || "{{ request.user.username }}";
+
+                            var doc = {
+                                pageSize: config.pageSize,
+                                pageOrientation: config.orientation,
+                                pageMargins: [20, 30, 20, 30],
+                                content: [
+                                    {
+                                        stack: [
+                                            { text: 'REPORTE DE ADQUISICIONES – CONTROL DE SUMINISTROS', fontSize: 14, bold: true, alignment: 'center', margin: [0, 0, 0, 5], color: '#0d325a' },
+                                            { text: `Generado por: ${userStr} | Fecha: ${dateStr} | Hora: ${timeStr}`, fontSize: 8, alignment: 'center', color: '#64748b', margin: [0, 0, 0, 10] }
+                                        ],
+                                        margin: [0, 0, 0, 10]
+                                    },
+                                    {
+                                        table: {
+                                            headerRows: 1,
+                                            widths: ['5%', '8%', '14%', '15%', '14%', '10%', '10%', '12%', '12%'],
+                                            body: [
+                                                data.header.map(function(h) { return { text: h, fillColor: '#0d325a', color: 'white', alignment: 'center', bold: true, fontSize: 9, margin: [0, 4, 0, 4] }; })
+                                            ]
+                                        },
+                                        layout: {
+                                            hLineWidth: function(i) { return .5; },
+                                            vLineWidth: function(i) { return .5; },
+                                            hLineColor: function(i) { return '#e2e8f0'; },
+                                            vLineColor: function(i) { return '#e2e8f0'; },
+                                            paddingLeft: function(i) { return 4; },
+                                            paddingRight: function(i) { return 4; }
+                                        }
+                                    }
+                                ],
+                                footer: function(page, pages) {
                                     return {
-                                        download: function() { pdf.print(); },
-                                        open: function() { pdf.print(); },
-                                        print: function() { pdf.print(); }
-                                    };
-                                };
-                                $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
-                            } finally {
-                                window.pdfMake.createPdf = oldPdfMake;
-                            }
-                        },
-                        customize: function (doc) {
-                            // Mismas reglas exactas del PDF
-                            doc.content[1].table.widths = Array(doc.content[1].table.body[0].length).fill('*');
-                            doc.styles.tableHeader.fillColor = '#2c4770';
-                            doc.styles.tableHeader.color = 'white';
-                            doc.styles.tableHeader.alignment = 'center';
-                            doc.styles.tableHeader.fontSize = 9;
-                            doc.defaultStyle.alignment = 'center';
-                            doc.defaultStyle.fontSize = 7;
-                            doc.pageMargins = [15, 20, 15, 20];
-                            doc.content[0].text = "REPORTE DE ADQUISICIONES";
-                            doc.content[0].alignment = 'center';
-                            doc.content[0].margin = [0, 0, 0, 10];
+                                        columns: [
+                                            { text: 'Control de Suministros ©', alignment: 'left', fontSize: 7, margin: [20, 0], color: '#64748b' },
+                                            { text: 'Página ' + page.toString() + ' de ' + pages.toString(), alignment: 'right', fontSize: 7, margin: [0, 0, 20], color: '#64748b' }
+                                        ],
+                                        margin: [0, 10]
+                                    }
+                                }
+                            };
+
+                            data.body.forEach(function(row, i) {
+                                var bodyRow = row.map(function(cell, j) {
+                                    var cellObj = { text: cell, alignment: 'center', fontSize: 8 };
+                                    if (i % 2 !== 0) cellObj.fillColor = '#f8fafc'; // Zebra
+                                    if (j === 8) { // State color
+                                        cellObj.bold = true;
+                                        var txt = cell.toString();
+                                        if (txt.includes('ACTIVA')) cellObj.color = '#15803d';
+                                        else if (txt.includes('DESHABILITADA')) cellObj.color = '#b91c1c';
+                                    }
+                                    return cellObj;
+                                });
+                                doc.content[1].table.body.push(bodyRow);
+                            });
+
+                            pdfMake.createPdf(doc).print();
                         }
-    }
-],
+                    }
+                ],
                 columns: [
-                    {
-                        data: 'id_adquisicion'
-                    },
-                    {
-                        data: 'id_requisicion'
-                    },
-                    {
-                        data: 'Nombre',
-                    },
-                    {
-                        data: 'GrupoNombre'
-                    },
-                    {
-                        data: 'nombre_proveedor'
-                    },
-                    {
-                        data: 'fecha_adquisicion',
-                    },
-                    {
-                        data: 'metodo_pago'
-                    },
-                    {
-                        data: 'costo_total',
-                        className: 'formattMoney',
-                        render: $.fn.dataTable.render.number(',', '.', 2, 'L ')
-                    },
+                    { data: 'id_adquisicion', className: 'text-center' },
+                    { data: 'id_requisicion', className: 'text-center' },
+                    { data: 'Nombre', className: 'text-center' },
+                    { data: 'GrupoNombre', className: 'text-center' },
+                    { data: 'nombre_proveedor', className: 'text-center' },
+                    { data: 'fecha_adquisicion', className: 'text-center' },
+                    { data: 'metodo_pago', className: 'text-center' },
+                    { data: 'costo_total', className: 'text-center formattMoney', render: $.fn.dataTable.render.number(',', '.', 2, 'L ') },
                     {
                         data: 'estado',
                         className: 'text-center',
                         render: function (data, type, row) {
-                            var badge = "";
-                            if (data == 3) {
-                                badge +=
-                                    '<span class="badge badge-pill custom-red">DESHABILITADO</span>';
-                            } else {
-                                badge +=
-                                    '<span class="badge badge-pill bg-success">ACTIVO</span>';
-                            }
-
-                            return badge;
-                        },
+                            if (data == 3) return '<span class="badge badge-pill bg-danger">DESHABILITADO</span>';
+                            return '<span class="badge badge-pill bg-success">ACTIVO</span>';
+                        }
                     },
                     {
                         data: null,
-                        width: '3%',
-                        title: "Acciones",
+                        className: 'text-center',
                         render: function (data, type, row) {
-                            if (row.estado == 3) {
-                                return `
-                            <div class="text-center">
-                                <div class="btn-group">
-                                    <button class="btn btn-danger btn-sm anularAdquisicion rounded-pill shadow-sm" title="Cambiar estado Adquisicion" data-id="${row.id_adquisicion}" data-estado="${row.estado}">
-                                        <i class="fas fa-sync-alt"></i>
-                                    </button>                                 
-                                </div>
-                            </div>
-                            `;
-                            }
-                            return `
-                            <div class="text-center">
-                                <div class="btn-group">
-                                    <button class="btn btn-primary btn-sm detallesAdquisicion rounded-pill shadow-sm" title="Detalles Adquisicion" data-id="${row.id_adquisicion}" data-id_proveedor="${row.id_proveedor}" data-nombre_proveedor="${row.nombre_proveedor}" data-id_requisicion="${row.id_requisicion}" data-id_detalle_requisicion="${row.id_detalle_requisicion}" data-nombre_suministro="${row.nombre}" data-suministros="${row.id_suministros}" data-estadoD="${row.estado}">
+                            var buttons = `<div class="btn-group">`;
+                            if (row.estado != 3) {
+                                buttons += `
+                                    <button class="btn btn-primary btn-sm detallesAdquisicion rounded-pill shadow-sm me-1" title="Detalles" 
+                                        data-id="${row.id_adquisicion}" 
+                                        data-id_requisicion="${row.id_requisicion}" 
+                                        data-id_proveedor="${row.id_proveedor}" 
+                                        data-nombre_proveedor="${row.nombre_proveedor}" 
+                                        data-estadoD="${row.estado}">
                                         <i class="fas fa-list"></i>
-                                    </button> 
-                                    <button class="btn btn-warning btn-sm editarAdquisicion rounded-pill shadow-sm" title="Editar Adquisicion" data-id="${row.id_adquisicion}" data-id_requisicion="${row.id_requisicion}" data-solicitante="${row.PKUsuario}" data-metodo_pago="${row.id_metodo_pago}" data-grupo="${row.PKgrupo}" data-proveedor="${row.id_proveedor}" data-suministros="${row.id_suministros}" data-estado="${row.estado}">
+                                    </button>
+                                    <button class="btn btn-warning btn-sm editarAdquisicion rounded-pill shadow-sm me-1" title="Editar" 
+                                        data-id="${row.id_adquisicion}" 
+                                        data-id_requisicion="${row.id_requisicion}" 
+                                        data-solicitante="${row.id_requisicion}" 
+                                        data-grupo="${row.PKgrupo}" 
+                                        data-proveedor="${row.id_proveedor}" 
+                                        data-metodo_pago="${row.id_metodo_pago}">
                                         <i class="fas fa-edit"></i>
-                                    </button>  
-                                    <button class="btn btn-danger btn-sm anularAdquisicion rounded-pill shadow-sm" title="Cambiar estado Adquisicion" data-id="${row.id_adquisicion}" data-estado="${row.estado}">
-                                        <i class="fas fa-sync-alt"></i>
-                                    </button>   
-                                </div>
-                            </div>
-                            `;
+                                    </button>`;
+                            }
+                            
+                            // Color dinámico para cambiar estado: Rojo si está Activo, Verde si está Deshabilitado
+                            var btnClass = (row.estado == 3) ? 'btn-success' : 'btn-danger';
+                            
+                            buttons += `
+                                <button class="btn ${btnClass} btn-sm anularAdquisicion rounded-pill shadow-sm" title="Cambiar Estado" data-id="${row.id_adquisicion}" data-estado="${row.estado}">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>`;
+                            return buttons;
                         }
                     }
                 ],
@@ -523,9 +906,19 @@ GESTION DE ADQUISICIONES
 
         $('#Filtro').change(function (e) {
             e.preventDefault();
+            select_estado_adquisicion = $(this).val();
+            
+            const $container = $(this).closest('.input-group');
+            $container.removeClass('select-active select-disabled select-all');
 
+            if (select_estado_adquisicion == "1") {
+                $container.addClass('select-active');
+            } else if (select_estado_adquisicion == "3") {
+                $container.addClass('select-disabled');
+            } else {
+                $container.addClass('select-all');
+            }
 
-            select_estado_adquisicion = $("#Filtro").val();
             fillAdquisicion();
         });
 
@@ -614,25 +1007,28 @@ GESTION DE ADQUISICIONES
 
                         var total_adquisicion = 0;
                         response.data.forEach(function (detalle) {
+                            var badgeClass = (detalle.estado == 'ACTIVO' || detalle.estado == 1) ? 'bg-success' : 'bg-danger';
+                            var estadoTexto = (detalle.estado == 'ACTIVO' || detalle.estado == 1) ? 'ACTIVO' : 'DESHABILITADO';
+
                             var fila = `
-                        <tr>
-                            <td>${detalle.id_adquisicion}</td>
-                            <td>${detalle.id_detalle_requisicion}</td>
-                            <td style="display: none">${detalle.id_suministros}</td>
-                            <td>${detalle.nombre_suministro}</td>
-                            <td>${Math.abs(detalle.cantidad)}</td>
-                            <td>L\u00A0${Math.abs(detalle.precio_unitario)}</td>
-                            <td>L\u00A0${Math.abs(detalle.precio_total)}</td>
-                            <td class="estado">
-                                    <span class="badge badge-pill bg-success">ACTIVO</span>
-                            </td>
-                            <td>
-                                <button type="button" class="btn btn-secondary btn-sm DevolucionDetalleAdquisicion" title="Devolución">
-                                    <i class="fas fa-undo"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    `;
+                                <tr>
+                                    <td class="text-center">${detalle.id_adquisicion}</td>
+                                    <td class="text-center">${detalle.id_detalle_requisicion}</td>
+                                    <td style="display: none">${detalle.id_suministros}</td>
+                                    <td>${detalle.nombre_suministro}</td>
+                                    <td class="text-center">${Math.abs(detalle.cantidad)}</td>
+                                    <td class="text-end">L\u00A0${dollarUSLocale.format(Math.abs(detalle.precio_unitario))}</td>
+                                    <td class="text-end">L\u00A0${dollarUSLocale.format(Math.abs(detalle.precio_total))}</td>
+                                    <td class="text-center">
+                                        <span class="badge badge-pill ${badgeClass}">${estadoTexto}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-secondary btn-sm DevolucionDetalleAdquisicion rounded-pill" title="Devolución">
+                                            <i class="fas fa-undo"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            `;
                             $('#tabla-detalles').append(fila);
 
                             total_adquisicion += parseFloat(detalle.precio_total);
@@ -640,7 +1036,7 @@ GESTION DE ADQUISICIONES
 
                         $('#total-detalle').text('L\u00A0' + dollarUSLocale.format(Math.abs(total_adquisicion))).css('white-space', 'nowrap');
 
-                        $('#modalDetallesLabel').html('<strong>Detalles de la Adquisicion #' + id_Dadquisicion + '</strong>');
+                        $('#modalDetallesLabel').html('Detalles de la Adquisición #' + id_Dadquisicion);
                         $('#modalDetalles').modal('show');
                     } else {
                         alert(response.message);
@@ -677,6 +1073,7 @@ GESTION DE ADQUISICIONES
             // Mostrar el modal
             setTimeout(function () {
                 $('#modalDevolucion').modal('show'); 
+                $('#cantidad_devuelta').trigger('input');
             }, 500); 
 
             // Limpieza del modal al cerrarlo

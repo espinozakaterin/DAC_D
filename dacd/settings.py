@@ -149,6 +149,7 @@ DATABASES = {
         'PASSWORD': os.getenv("DATABASE_PASSWORD"),
         'HOST': os.getenv("DATABASE_HOST"),
         'PORT': os.getenv("DATABASE_PORT"),
+        'CONN_MAX_AGE': 60,
     }, 
 
    'global_nube': {
@@ -199,6 +200,7 @@ DATABASES = {
         'PASSWORD': os.getenv("DB_PASSWORD_CTRL_SUM"),
         'HOST': os.getenv("DB_HOST_CTRL_SUM"),
         'PORT': os.getenv("DB_PORT_CTRL_SUM"),
+        'CONN_MAX_AGE': 60,
     },
     'super': {
         'ENGINE': "django.db.backends.mysql",

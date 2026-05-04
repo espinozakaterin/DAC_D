@@ -7,14 +7,26 @@ PANTALLA PRINCIPAL
 
 {% block body %}
 <style>
-    .interactive-card {
-        cursor: pointer;
-        transition: all 0.2s ease-in-out;
+    .dash-card, .card {
+        border-radius: 18px !important;
+        border: 1px solid rgba(0,0,0,0.04) !important;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.08) !important;
+        transition: all 0.25s ease !important;
+        background: #ffffff !important;
+        overflow: hidden;
     }
-    .interactive-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 15px rgba(0,0,0,0.1);
-        border-color: rgba(59, 130, 246, 0.3) !important;
+    .dash-card:hover, .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 25px rgba(0,0,0,0.1) !important;
+        border-color: rgba(59, 130, 246, 0.1) !important;
+    }
+    .banner-card {
+        border-radius: 20px !important;
+        background: linear-gradient(135deg, #071937 0%, #1d3f8f 100%) !important;
+        position: relative;
+        overflow: hidden;
+        padding: 2.5rem !important;
+        box-shadow: 0 12px 30px rgba(0,20,60,0.2) !important;
     }
     .cal-day:not(.other-month) {
         cursor: pointer;

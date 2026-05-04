@@ -1,61 +1,209 @@
+<style>
+    /* Premium Modal Styling */
+    #modalAlmacen .modal-content {
+        border-radius: 20px;
+        border: none;
+        overflow: hidden;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        transform: scale(0.97);
+        transition: all 0.25s ease;
+    }
+    #modalAlmacen.show .modal-content {
+        transform: scale(1);
+    }
+    
+    .modal-header-premium {
+        background: linear-gradient(135deg, #0b2f52 0%, #1d3f8f 100%);
+        padding: 1.5rem 2rem;
+        border-bottom: none;
+    }
+    
+    .header-icon-container {
+        width: 50px;
+        height: 50px;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .header-icon-container i {
+        color: white;
+        font-size: 1.5rem;
+    }
+    
+    .modal-title-premium {
+        color: white;
+        font-weight: 700;
+        font-size: 1.4rem;
+        line-height: 1.2;
+    }
+    
+    .modal-subtitle-premium {
+        color: rgba(255,255,255,0.7);
+        font-size: 0.85rem;
+        font-weight: 400;
+    }
+
+    /* Form Controls */
+    .modal-body-premium {
+        padding: 2rem !important;
+        background-color: #ffffff;
+    }
+    
+    .form-label-premium {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+        display: block;
+    }
+    
+    .form-control-premium {
+        height: 52px;
+        border-radius: 12px !important;
+        border: 1.5px solid #e2e8f0 !important;
+        padding: 0 16px !important;
+        font-size: 0.95rem !important;
+        color: #1e293b !important;
+        transition: all 0.2s ease !important;
+        background-color: #f8fafc !important;
+    }
+    
+    .form-control-premium:focus {
+        border-color: #3b82f6 !important;
+        background-color: #ffffff !important;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1) !important;
+        outline: none;
+    }
+    
+    textarea.form-control-premium {
+        height: auto !important;
+        padding-top: 12px !important;
+    }
+
+    /* Buttons */
+    .modal-footer-premium {
+        padding: 1.5rem 2rem !important;
+        border-top: 1px solid #f1f5f9 !important;
+        display: flex;
+        justify-content: center !important;
+        gap: 15px;
+    }
+    
+    .btn-pill {
+        border-radius: 30px !important;
+        padding: 12px 32px !important;
+        font-weight: 600 !important;
+        font-size: 0.95rem !important;
+        transition: all 0.3s ease !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+    
+    .btn-save-premium {
+        background-color: #10b981 !important;
+        color: white !important;
+        border: none !important;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25) !important;
+    }
+    
+    .btn-save-premium:hover {
+        background-color: #059669 !important;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3) !important;
+    }
+    
+    .btn-cancel-premium {
+        background-color: transparent !important;
+        color: #ef4444 !important;
+        border: 2px solid #ef4444 !important;
+    }
+    
+    .btn-cancel-premium:hover {
+        background-color: #fee2e2 !important;
+        transform: translateY(-2px);
+    }
+
+    .custom-close-btn {
+        background: rgba(255,255,255,0.1) !important;
+        border-radius: 50% !important;
+        padding: 0.5rem !important;
+        transition: all 0.2s ease !important;
+    }
+    .custom-close-btn:hover {
+        background: rgba(255,255,255,0.2) !important;
+        transform: rotate(90deg);
+    }
+</style>
+
 <div class="modal fade" id="modalAlmacen" tabindex="-1" aria-labelledby="modalAlmacenLabel" aria-hidden="true"
     data-bs-keyboard="false" data-bs-backdrop="static">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header" style="background-color: #697a8a; color: white;">
-                <h5 class="modal-title modalAlmacenLabel" id="modalAlmacenLabel">
-                    <i class="material-icons me-2 text-gray">AGREGAR ALMACEN</i>
-                </h5>
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0">
+            <!-- Header Premium -->
+            <div class="modal-header modal-header-premium align-items-center">
+                <div class="d-flex align-items-center">
+                    <div class="header-icon-container">
+                        <i class="fas fa-warehouse"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title modal-title-premium mb-0" id="modalAlmacenLabel">Crear Nuevo Almacén</h5>
+                        <p class="modal-subtitle-premium mb-0">Registro y administración de bodegas y ubicaciones</p>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white custom-close-btn" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
             <form id="formAlmacenes">
-                <div class="modal-body">
-            
-                    <!-- NOMBRE DEL ALMACÉN Y UBICACIÓN EN LA MISMA FILA -->
-                    <div class="row mb-3">
+                <div class="modal-body modal-body-premium">
+                    <div class="row">
                         <!-- Nombre del Almacén -->
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="nombre_almacen"><strong>Nombre del Almacén:</strong></label>
-                                <input type="text" class="form-control form-control-sm" id="nombre_almacen" name="nombre_almacen" placeholder="Escriba el nombre del almacén">
-                            </div>
+                        <div class="col-md-6 mb-4">
+                            <label for="nombre_almacen" class="form-label-premium">Nombre del Almacén</label>
+                            <input type="text" class="form-control form-control-premium" id="nombre_almacen" name="nombre_almacen" placeholder="Ej: Bodega Central S-01">
                         </div>
             
                         <!-- Ubicación del Almacén -->
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="ubicacion"><strong>Ubicación del Almacén:</strong></label>
-                                <textarea class="form-control form-control-sm" id="ubicacion" name="ubicacion" placeholder="Escriba la ubicación"></textarea>
-                            </div>
+                        <div class="col-md-6 mb-4">
+                            <label for="ubicacion" class="form-label-premium">Ubicación Física</label>
+                            <textarea class="form-control form-control-premium" id="ubicacion" name="ubicacion" placeholder="Dirección o ubicación específica" rows="1"></textarea>
                         </div>
                     </div>
             
-                    <div class="row mb-3">
+                    <div class="row">
                         <!-- Area -->
-                        <div class="col-md-6">
-                            <label for="area"><strong>Área:</strong></label>
-                            <select id="area" class="form-select form-select-sm" name="area">
+                        <div class="col-md-6 mb-4">
+                            <label for="area" class="form-label-premium">Área / Grupo Responsable</label>
+                            <select id="area" class="form-select form-control-premium" name="area">
                                 <option value="#">Cargando áreas...</option>
                             </select>
                         </div>
                     
                         <!-- Fecha de Creación -->
-                        <div class="col-md-6">
-                            <label for="fecha"><strong>Fecha de Creación:</strong></label>
-                            <input type="date" class="form-control form-control-sm" id="fecha" name="fecha">
+                        <div class="col-md-6 mb-4">
+                            <label for="fecha" class="form-label-premium">Fecha de Registro</label>
+                            <input type="date" class="form-control form-control-premium" id="fecha" name="fecha">
                         </div>
                     </div>
-                    
-            
                 </div>
             
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-outline-success w-20"><strong>Agregar</strong></button>
-                    <button type="button" class="btn btn-outline-danger w-20" data-bs-dismiss="modal"><strong>Cancelar</strong></button>
+                <div class="modal-footer modal-footer-premium">
+                    <button type="button" class="btn btn-pill btn-cancel-premium" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-pill btn-save-premium">
+                        <i class="fas fa-save"></i> Guardar Almacén
+                    </button>
                 </div>
             </form>            
-
         </div>
     </div>
-
 </div>

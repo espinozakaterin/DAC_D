@@ -2,8 +2,9 @@ from django.shortcuts import render
 from django.db import connections
 from django.http import JsonResponse
 import json
-from django.db import transaction
+from django.db import transaction, OperationalError
 from django.http import HttpResponse, HttpResponseRedirect
+import time
 from django.urls import reverse
 from datetime import datetime
 
@@ -1105,40 +1106,104 @@ def insertar_actualizar_requisicion_data(request):
 # ---------------------------------------------------------------------------------------------- #
 
 def insertar_actualizar_detalle_requisicion_data(request):
-    try:
-        id_requisicion = request.POST.get('id_requisicion')
-        detalles = json.loads(request.POST.get('detalles'))
+    max_retries = 2
+    retry_delay = 0.5  # segundos
 
-        if not detalles:
-            raise ValueError("No se han agregado detalles para la requisición.")
+    for attempt in range(max_retries):
+        try:
+            id_requisicion = request.POST.get('id_requisicion')
+            detalles_json = request.POST.get('detalles')
+            
+            if not detalles_json:
+                raise ValueError("No se han proporcionado detalles.")
+            
+            detalles = json.loads(detalles_json)
 
-        with transaction.atomic():
-            udcConn = connections['ctrlSum']
-            with udcConn.cursor() as cursor:
-                for detalle in detalles:
-                    # Validar cada detalle
-                    if not detalle.get('id_suministros') or not detalle.get('cantidad') or not detalle.get('precio_unitario') or not detalle.get('justificacion'):
-                        raise ValueError("Faltan datos en los detalles de la requisición.")
-                    if detalle['cantidad'] <= 0 or detalle['precio_unitario'] <= 0:
-                        raise ValueError("La cantidad y el precio unitario deben ser mayores a cero.")
-                    if not detalle['justificacion'].strip():
-                        raise ValueError("La justificación no puede estar vacía.")
+            if not detalles:
+                raise ValueError("No se han agregado detalles para la requisición.")
 
-                    cursor.callproc('SUM_INSERT_UPDATE_DETALLE_REQUISICION', [
-                        detalle.get('id_detalle_requisicion', 0), 
-                        id_requisicion,
-                        detalle['id_suministros'],
-                        detalle['cantidad'],
-                        detalle['precio_unitario'],
-                        detalle['justificacion']
-                    ])
+            with transaction.atomic():
+                udcConn = connections['ctrlSum']
+                with udcConn.cursor() as cursor:
+                    # 1) Obtener detalles actuales (activos Estado=1) para sincronizar
+                    # Esto permite identificar qué actualizar, qué insertar y qué "eliminar" lógicamente
+                    cursor.execute("""
+                        SELECT id_detalle_requisicion, id_suministros 
+                        FROM universal_data_core.detalle_requisicion 
+                        WHERE id_requisicion = %s AND estado = 1
+                    """, [id_requisicion])
+                    db_details = cursor.fetchall()
+                    
+                    # Organizar detalles de la DB por id_suministros para emparejamiento
+                    detail_map = {}
+                    for row in db_details:
+                        s_id = str(row[1])
+                        if s_id not in detail_map:
+                            detail_map[s_id] = []
+                        detail_map[s_id].append(row[0])
 
-        datos = {'save': 1, 'message': 'Detalles de requisición guardados correctamente.'}
+                    total_acumulado = 0
+                    
+                    # 2) Procesar los artículos que vienen del frontend
+                    for detalle in detalles:
+                        if not detalle.get('id_suministros') or detalle.get('cantidad') is None or detalle.get('precio_unitario') is None:
+                            raise ValueError("Faltan datos obligatorios en uno de los artículos.")
+                        
+                        cantidad = float(detalle['cantidad'])
+                        precio = float(detalle['precio_unitario'])
+                        justificacion = detalle.get('justificacion', '').strip()
+                        
+                        if cantidad <= 0 or precio < 0:
+                            raise ValueError("La cantidad debe ser mayor a cero y el precio no puede ser negativo.")
+                        if not justificacion:
+                            raise ValueError("Cada artículo debe tener una justificación.")
 
-    except Exception as e:
-        datos = {'save': 0, 'error': f'⚠️ Error: {str(e)}'}
+                        s_id = str(detalle['id_suministros'])
+                        id_dr = 0 # Por defecto es nuevo (INSERT)
+                        
+                        # Intentar emparejar con un registro existente del mismo suministro (FIFO)
+                        if s_id in detail_map and detail_map[s_id]:
+                            id_dr = detail_map[s_id].pop(0) # Tomar el primero disponible y quitarlo del mapa
 
-    return JsonResponse(datos)
+                        total_acumulado += (cantidad * precio)
+
+                        # Llamar al SP: si id_dr > 0 actualiza, si id_dr = 0 inserta
+                        cursor.callproc('SUM_INSERT_UPDATE_DETALLE_REQUISICION', [
+                            id_dr, 
+                            id_requisicion,
+                            detalle['id_suministros'],
+                            cantidad,
+                            precio,
+                            justificacion
+                        ])
+
+                    # 3) Los IDs que quedaron en detail_map son los que ya no están en la lista del frontend
+                    # En lugar de DELETE físico (que falla por FK), hacemos UPDATE Estado = 0
+                    for s_id, ids in detail_map.items():
+                        for id_to_annul in ids:
+                            cursor.execute("""
+                                UPDATE universal_data_core.detalle_requisicion 
+                                SET estado = 0 
+                                WHERE id_detalle_requisicion = %s
+                            """, [id_to_annul])
+
+                    # 4) Actualizar total final de la requisición (solo con lo que quedó activo Estado=1)
+                    cursor.execute("""
+                        UPDATE universal_data_core.requisicion 
+                        SET costo_total = %s 
+                        WHERE id_requisicion = %s
+                    """, [total_acumulado, id_requisicion])
+
+            return JsonResponse({'save': 1, 'message': '✅ Requisición guardada con éxito (artículos sincronizados).'})
+
+        except OperationalError as e:
+            # Si ocurre Deadlock (1213), reintentar una vez
+            if e.args[0] == 1213 and attempt < max_retries - 1:
+                time.sleep(retry_delay)
+                continue
+            return JsonResponse({'save': 0, 'error': f'⚠️ Error de Base de Datos (Deadlock): {str(e)}'})
+        except Exception as e:
+            return JsonResponse({'save': 0, 'error': f'⚠️ Error: {str(e)}'})
 
 
 # -------------------------------------------------------------------------------------------------------------------------------------- #

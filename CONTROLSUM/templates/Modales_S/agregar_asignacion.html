@@ -1,20 +1,104 @@
+<style>
+    #modalAsignacion .form-control, 
+    #modalAsignacion .form-select {
+        height: 42px;
+        border-radius: 12px !important;
+        border: 1px solid #e2e8f0;
+        background-color: #ffffff !important;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+    }
+    #modalAsignacion .form-control:focus, 
+    #modalAsignacion .form-select:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        outline: none;
+    }
+    #modalAsignacion .form-label {
+        color: #0b2f52;
+        font-weight: 600;
+        font-size: 0.75rem;
+        margin-bottom: 4px;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+    }
+    .modal-btn-cancel {
+        border-radius: 50px !important;
+        padding: 10px 25px !important;
+        font-weight: 700 !important;
+        border: 2px solid #ef4444 !important;
+        color: #ef4444 !important;
+        background: transparent !important;
+        transition: all 0.3s ease !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 46px;
+        min-width: 140px;
+    }
+    .modal-btn-cancel:hover {
+        background: #fee2e2 !important;
+        color: #b91c1c !important;
+        transform: translateY(-1px);
+    }
+    .modal-btn-save {
+        border-radius: 50px !important;
+        padding: 10px 25px !important;
+        font-weight: 700 !important;
+        border: none !important;
+        color: #ffffff !important;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.25) !important;
+        transition: all 0.3s ease !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 46px;
+        min-width: 200px;
+    }
+    .modal-btn-save:hover {
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35) !important;
+        background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+    }
+    .custom-modal-close {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+        border-radius: 50% !important;
+        padding: 0.8rem !important;
+        transition: all 0.3s ease !important;
+        opacity: 0.9 !important;
+    }
+    .custom-modal-close:hover {
+        background-color: rgba(255, 255, 255, 0.2) !important;
+        opacity: 1 !important;
+        transform: rotate(90deg);
+    }
+</style>
+
 <div class="modal fade" id="modalAsignacion" tabindex="-1" aria-labelledby="modalAsignacionLabel" aria-hidden="true"
     data-bs-keyboard="false" data-bs-backdrop="static">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header" style="background-color: #697a8a; color: white;">
-                <h5 class="modal-title modalAsignacionLabel" id="modalAsignacionLabel">
-                    <i class="material-icons me-2 text-gray">AGREGAR ASIGNACION</i>
-                </h5>
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+            <!-- Premium Header -->
+            <div class="modal-header border-0 p-3 px-4" style="background: linear-gradient(135deg, #0b2f52 0%, #1d3f8f 100%);">
+                <div class="d-flex align-items-center">
+                    <div style="width: 45px; height: 45px; background: rgba(255, 255, 255, 0.15); border-radius: 14px; display: flex; align-items: center; justify-content: center; margin-right: 15px; border: 1px solid rgba(255, 255, 255, 0.2);">
+                        <i class="fas fa-clipboard-list text-white fs-5"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title text-white fw-bold mb-0" id="modalAsignacionLabel" style="letter-spacing: 0.5px; font-size: 1.1rem; line-height: 1.2;">Crear Nueva Asignación</h5>
+                        <p class="text-white mb-0 small" style="font-size: 0.75rem; opacity: 0.85; font-weight: 400;">Registro y trazabilidad administrativa</p>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white custom-modal-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
             <form id="formAsignacion">
-                <div class="modal-body">
+                <div class="modal-body p-4">
                     <!-- Nombre Completo del Usuario -->
-                    <div class="row">
-                        <div class="form-group">
-                            <label for="nombre_completo"><strong>Nombre Completo:</strong></label>
-                            <select id="nombre_completo" class="form-select form-select-sm" name="nombre_completo">
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <label for="nombre_completo" class="form-label">Nombre Completo del Usuario</label>
+                            <select id="nombre_completo" class="form-select" name="nombre_completo">
                                 <option value="#">Seleccione el nombre completo del usuario:</option>
                                 {% for us in usuarios %}
                                 <option value="{{ us.PKUsuario }}">{{ us.Nombre }}</option>
@@ -23,81 +107,71 @@
                         </div>
                     </div>
 
-                    <div class="row">
+                    <div class="row g-3 mb-3">
                         <!-- Usuario -->
-                        <div class="col-sm-4">
-                            <div class="form-group">
-                                <label for="usuario"><strong>Usuario:</strong></label>
-                                <input type="text" id="usuario" class="form-control " name="usuario"
-                                    readonly disabled>
-                            </div>
+                        <div class="col-md-4">
+                            <label for="usuario" class="form-label">Usuario</label>
+                            <input type="text" id="usuario" class="form-control" name="usuario" readonly disabled>
                         </div>
 
                         <!-- Grupo a los que pertenece -->
-                        <div class="col-sm-4">
-                            <div class="form-group">
-                                <label for="grupos"><strong>Área/Grupo:</strong></label>
-                                <select id="grupos" class="form-select" name="grupos">
-                                    <option value="#">Seleccione el grupo:</option>
-                                </select>
-                            </div>
+                        <div class="col-md-4">
+                            <label for="grupos" class="form-label">Área/Grupo</label>
+                            <select id="grupos" class="form-select" name="grupos">
+                                <option value="#">Seleccione el grupo:</option>
+                            </select>
                         </div>
 
                         <!-- Categoria del Suministro -->
-                        <div class="col-sm-4">
-                            <div class="form-group">
-                                <label for="categoria"><strong>Categoría del Suministro:</strong></label>
-                                <select id="categoria" class="form-select" name="categoria">
-                                    <option value="" selected>Seleccione Categoría:</option>
-                                    {% for cat in categorias %}
-                                    <option value="{{ cat.id_categoria }}">{{ cat.nombre_categoria }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
+                        <div class="col-md-4">
+                            <label for="categoria" class="form-label">Categoría del Suministro</label>
+                            <select id="categoria" class="form-select" name="categoria">
+                                <option value="" selected>Seleccione Categoría:</option>
+                                {% for cat in categorias %}
+                                <option value="{{ cat.id_categoria }}">{{ cat.nombre_categoria }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
                     </div>
 
-                    <div class="row">
+                    <div class="row g-3 mb-3">
                         <!-- Selección del Suministro -->
                         <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="suministro"><strong>Suministro:</strong></label>
-                                <select id="suministro" class="form-select" name="suministro">
-                                    <option value="#">Seleccione el suministro:</option>
-                                </select>
-                            </div>
+                            <label for="suministro" class="form-label">Suministro</label>
+                            <select id="suministro" class="form-select" name="suministro">
+                                <option value="#">Seleccione el suministro:</option>
+                            </select>
                         </div>
                     
                         <!-- Cantidad para asignar Suministro -->
                         <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="cantidad"><strong>Cantidad a asignar:</strong></label>
-                                <input type="number" class="form-control" id="cantidad" name="cantidad">
-                            </div>
+                            <label for="cantidad" class="form-label">Cantidad a asignar</label>
+                            <input type="number" class="form-control" id="cantidad" name="cantidad" placeholder="0">
                         </div>
                     
                         <!-- Fecha de asignación -->
                         <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="fecha_asignacion"><strong>Fecha:</strong></label>
-                                <input type="date" class="form-control" id="fecha_asignacion" name="fecha_asignacion">
-                            </div>
+                            <label for="fecha_asignacion" class="form-label">Fecha de Asignación</label>
+                            <input type="date" class="form-control" id="fecha_asignacion" name="fecha_asignacion">
                         </div>
                     </div>                    
 
                     <!-- Agrega un comentario de la asignacion -->
-                    <div class="row mb-3">
-                        <div class="form-group">
-                            <label for="comentario"><strong>Comentario:</strong></label>
-                            <textarea class="form-control" id="comentario" name="comentario"
-                                rows="3"></textarea>
+                    <div class="row">
+                        <div class="col-12">
+                            <label for="comentario" class="form-label">Comentario u Observaciones</label>
+                            <textarea class="form-control" id="comentario" name="comentario" rows="3" placeholder="Añada notas relevantes aquí..."></textarea>
                         </div>
                     </div>
                 </div>
 
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-outline-success w-20">Agregar</button>
-                    <button type="button" class="btn btn-outline-danger w-20" data-bs-dismiss="modal">Cancelar</button>
+                <div class="modal-footer border-0 p-3 px-4 justify-content-center gap-3" style="background-color: #f8fafc;">
+                    <button type="button" class="modal-btn-cancel" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Cancelar
+                    </button>
+                    <button type="submit" class="modal-btn-save">
+                        <i class="fas fa-save me-2"></i>Guardar Asignación
+                    </button>
                 </div>
             </form>
 

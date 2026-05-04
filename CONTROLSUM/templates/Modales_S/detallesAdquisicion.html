@@ -1,36 +1,126 @@
-<div class="modal fade" id="modalDetalles" tabindex="-1" aria-labelledby="modalDetallesLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-            <div class="modal-header" style="background-color: #697a8a; color: white;">
-                <h5 class="modal-title" id="modalDetallesLabel">
-                    <i class="material-icons me-2"></i><strong></strong>
-                </h5>
+<div class="modal fade" id="modalDetalles" tabindex="-1" aria-labelledby="modalDetallesLabel" aria-hidden="true" 
+    data-bs-keyboard="false" data-bs-backdrop="static">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 15px 50px rgba(0,0,0,0.15);">
+            <div class="modal-header" style="background-color: #0d325a; border-top-left-radius: 20px; border-top-right-radius: 20px; padding: 1.5rem 2rem;">
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                    <span style="font-size: 0.65rem; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,0.7); font-weight: 600;">
+                        Sistemas ERP | Consulta de Datos
+                    </span>
+                    <h4 class="modal-title mb-0" id="modalDetallesLabel" style="color: #ffffff !important; font-weight: 800; font-size: 1.6rem; letter-spacing: 0.5px;">
+                        Detalles de la Adquisición
+                    </h4>
+                    <span style="font-size: 0.85rem; color: rgba(255,255,255,0.85); font-weight: 400;">
+                        Detalle de suministros adquiridos y costos asociados
+                    </span>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body" id="detallesAdquisicion">
-                <div class="col-md-12">
-                    <table class="table table-bordered table-hover">
-                        <thead class="table-dark">
-                            <tr class="table-success">
-                                <th>ID</th>
-                                <th>Requisición No.</th>
-                                <th>Suministro</th>
-                                <th>Cantidad</th>
-                                <th>Precio Unitario</th>
-                                <th>Precio Total</th>
-                                <th>Estado</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabla-detalles"></tbody>
-                    </table>
-                    <div class="d-flex justify-content-end mb-3">
-                        <h5><strong>Total de la Adquisición: </strong><span id="total-detalle"><strong>0.00</strong></span></h5>
+            
+            <style>
+                #modalDetalles .modal-body {
+                    background-color: #f8fafc;
+                    padding: 2rem;
+                }
+                .detail-card {
+                    background: #ffffff;
+                    border-radius: 16px;
+                    padding: 1.5rem;
+                    border: 1px solid #e2e8f0;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+                }
+                .table-premium-detail { 
+                    border-radius: 12px; 
+                    overflow: hidden; 
+                    border: 1px solid #e2e8f0; 
+                    background: white;
+                }
+                .table-premium-detail thead { background: #f8fafc; border-bottom: 2px solid #e2e8f0; }
+                .table-premium-detail thead th { 
+                    font-size: 0.72rem; 
+                    font-weight: 700; 
+                    text-transform: uppercase; 
+                    color: #2c4770 !important; 
+                    padding: 1rem !important;
+                    border: none !important;
+                    letter-spacing: 0.5px;
+                    text-align: center;
+                }
+                .table-premium-detail tbody td { 
+                    padding: 1rem !important; 
+                    vertical-align: middle; 
+                    font-size: 0.88rem;
+                    color: #334155;
+                    border-bottom: 1px solid #f1f5f9 !important;
+                    text-align: center;
+                }
+                .table-premium-detail tbody tr:hover { background-color: #f8fafc !important; }
+                
+                .total-capsule-detail {
+                    background: #ffffff;
+                    border: 1px solid #e2e8f0;
+                    padding: 0.7rem 1.5rem;
+                    border-radius: 12px;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 12px;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+                }
+                .total-label-detail { font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+                .total-amount-detail { font-size: 1.4rem; font-weight: 800; color: #0d325a; }
+
+                .btn-close-premium-detail {
+                    background: #ffffff !important;
+                    border: 2px solid #64748b !important;
+                    color: #64748b !important;
+                    border-radius: 50px !important;
+                    padding: 0.6rem 2rem !important;
+                    font-weight: 700 !important;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                    transition: all 0.2s ease !important;
+                }
+                .btn-close-premium-detail:hover { 
+                    background: #f1f5f9 !important; 
+                    border-color: #475569 !important; 
+                    color: #1e293b !important;
+                    transform: translateY(-2px);
+                }
+            </style>
+
+            <div class="modal-body">
+                <div class="detail-card">
+                    <div class="table-responsive table-premium-detail mb-4">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Requisición No.</th>
+                                    <th>Suministro</th>
+                                    <th class="text-center">Cantidad</th>
+                                    <th class="text-end">Precio Unitario</th>
+                                    <th class="text-end">Precio Total</th>
+                                    <th class="text-center">Estado</th>
+                                    <th class="text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-detalles">
+                                <!-- Dynamic rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end">
+                        <div class="total-capsule-detail">
+                            <span class="total-label-detail">Total de la Adquisición</span>
+                            <span class="total-amount-detail" id="total-detalle">L 0.00</span>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-danger"
-                    data-bs-dismiss="modal"><strong>Cerrar</strong></button>
+            
+            <div class="modal-footer" style="background: #f8fafc; border-top: 1px solid #f1f5f9; padding: 1.2rem 2rem; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;">
+                <button type="button" class="btn btn-close-premium-detail" data-bs-dismiss="modal">Cerrar</button>
             </div>
         </div>
     </div>

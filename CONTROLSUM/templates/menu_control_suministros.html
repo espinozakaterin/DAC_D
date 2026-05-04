@@ -71,6 +71,153 @@
             if (compactTables) document.documentElement.classList.add('compact-tables');
         })();
     </script>
+    <style>
+        /* Sidebar GLOBAL Corporate Style */
+        .sidebar {
+            background: linear-gradient(180deg, #0b2f52 0%, #103f6e 100%) !important;
+            border-right: none !important;
+            box-shadow: inset -1px 0 0 rgba(255,255,255,0.05), 4px 0 15px rgba(0,0,0,0.1) !important;
+        }
+        .sidebar-header {
+            border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+            display: flex !important;
+            align-items: center !important;
+            padding: 12px 20px !important;
+            min-height: 72px !important;
+            margin: 0 !important;
+        }
+        .brand-box {
+            display: flex !important;
+            align-items: center !important;
+            gap: 14px !important; /* Increased air for premium feel */
+            width: 100% !important;
+        }
+        .brand-icon {
+            font-size: 2.1rem !important; /* More balanced scale */
+            color: #ffffff !important;
+            margin: 0 !important;
+        }
+        .brand-text {
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            line-height: 1.1 !important;
+        }
+        .brand-main {
+            color: #ffffff !important;
+            font-weight: 800 !important;
+            font-size: 1.15rem !important;
+            letter-spacing: 0.6px;
+            margin-bottom: 2px; /* Separation between lines */
+        }
+        .brand-sub {
+            color: rgba(255, 255, 255, 0.7) !important;
+            font-weight: 600 !important;
+            font-size: 0.75rem !important;
+            letter-spacing: 1.6px;
+        }
+        .sidebar-menu .nav-link {
+            color: rgba(255, 255, 255, 0.8) !important;
+            font-weight: 500 !important;
+            margin: 10px 16px !important; 
+            border-radius: 12px !important;
+            transition: all 0.25s ease !important; /* Professional smooth transition */
+            display: flex !important;
+            align-items: center !important;
+            padding: 12px 18px !important;
+        }
+        .sidebar-menu .nav-link i {
+            color: rgba(255, 255, 255, 0.5) !important;
+            margin-right: 14px !important;
+            font-size: 1.3rem !important;
+        }
+        .sidebar-menu .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.08) !important;
+            color: #ffffff !important;
+        }
+        .sidebar-menu .nav-link:hover i {
+            color: #ffffff !important;
+        }
+        .sidebar-menu .nav-link.active {
+            background-color: #0369a1 !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 10px rgba(3, 105, 161, 0.15) !important; /* Extremely subtle glow */
+        }
+        .sidebar-menu .nav-link.active i {
+            color: #ffffff !important;
+        }
+        .sidebar-user-card {
+            border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+            background: rgba(0, 0, 0, 0.15) !important;
+            padding: 1.25rem !important;
+        }
+        .sidebar-user-card .text-dark {
+            color: #ffffff !important;
+        }
+        .sidebar-user-card .text-muted {
+            color: rgba(255, 255, 255, 0.5) !important;
+        }
+        .logout-btn {
+            background-color: rgba(255,255,255,0.08) !important; /* Glassmorphism integration */
+            color: #ffffff !important;
+            border-radius: 12px !important;
+            padding: 11px !important;
+            margin-top: 12px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 10px !important;
+            text-decoration: none !important;
+            font-weight: 700 !important;
+            transition: all 0.25s ease !important;
+            border: 1px solid rgba(255,255,255,0.12) !important;
+            box-shadow: none !important;
+        }
+        .logout-btn:hover {
+            background-color: rgba(255,255,255,0.12) !important;
+            transform: translateY(-1px) !important;
+        }
+        
+        /* Top Navbar integration */
+        .top-navbar {
+            background-color: #ffffff !important;
+            border-bottom: 1px solid #e2e8f0 !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
+        }
+        /* Sidebar User Dropdown Refinement */
+        .sidebar .dropdown-menu {
+            background-color: #0b2f52 !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-radius: 12px !important;
+            padding: 8px !important;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3) !important;
+        }
+        .sidebar .dropdown-menu .border-bottom {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+        }
+        .sidebar .dropdown-menu .text-dark {
+            color: #ffffff !important;
+        }
+        .sidebar .dropdown-menu .text-muted {
+            color: rgba(255, 255, 255, 0.5) !important;
+        }
+        .sidebar .dropdown-item {
+            color: rgba(255, 255, 255, 0.8) !important;
+            border-radius: 8px !important;
+            padding: 10px 15px !important;
+            transition: all 0.2s ease !important;
+        }
+        .sidebar .dropdown-item i {
+            color: rgba(255, 255, 255, 0.6) !important;
+        }
+        .sidebar .dropdown-item:hover {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+            color: #ffffff !important;
+        }
+        .sidebar .dropdown-item:hover i {
+            color: #ffffff !important;
+        }
+    </style>
 </head>
 
 <body>

@@ -9,69 +9,242 @@ GESTION DE SUMINISTROS
 {% block body %}
 
 <style>
-    .text-navy { color: #1e293b !important; }
-    .font-size-10 { font-size: 0.62rem !important; }
-    .fw-500 { font-weight: 500 !important; }
+    /* === GESTIÓN DE INVENTARIO — Premium UI parity Requisiciones === */
+    :root {
+        --corp-blue-dark: #0b2f52;
+        --corp-gradient: linear-gradient(135deg, #0b2f52 0%, #1d3f8f 100%);
+    }
+    .page-header-premium {
+        background: var(--corp-gradient);
+        border-radius: 15px !important;
+        box-shadow: 0 8px 20px rgba(11,47,82,0.15) !important;
+        padding: 1.5rem 2rem !important;
+        margin-bottom: 2rem; border: none;
+    }
+    .header-icon-box-outer {
+        width: 52px; height: 52px;
+        background: rgba(255,255,255,0.12); border-radius: 14px;
+        display: flex; align-items: center; justify-content: center;
+        border: 1px solid rgba(255,255,255,0.15);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+    .header-icon-circle-inner {
+        width: 28px; height: 28px; background: #ffffff; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .header-icon-circle-inner i { color: #0b2f52; font-size: 0.85rem; }
+
+    /* Table header */
+    #Tabla_Suministros thead th,
+    .dataTables_scrollHead table.dataTable thead th {
+        background-color: #0d325a !important; color: #ffffff !important;
+        font-weight: 600 !important; text-transform: uppercase !important;
+        font-size: 0.68rem !important; letter-spacing: 0.7px !important;
+        padding: 0.8rem 0.5rem !important; border: none !important;
+        text-align: center !important; vertical-align: middle !important;
+    }
+    .dataTables_scrollBody thead { visibility: collapse !important; height: 0 !important; }
+    .dataTables_scrollBody thead th, .dataTables_scrollBody thead tr {
+        height: 0 !important; padding: 0 !important; border: none !important; background: transparent !important;
+    }
+    #Tabla_Suministros, .dataTables_scrollHead table, .dataTables_scrollBody table {
+        border: none !important; border-collapse: separate !important;
+        border-spacing: 0 !important; margin: 0 !important; width: 100% !important;
+    }
+    #Tabla_Suministros tbody tr td {
+        border: none !important; border-bottom: 1px solid #f8fafc !important;
+        padding: 10px 5px !important; font-size: 0.78rem !important;
+        color: #1f2937 !important; vertical-align: middle !important;
+        text-align: center !important; background-color: #ffffff !important;
+    }
+    #Tabla_Suministros tbody tr:nth-child(even) td { background-color: #fafbfd !important; }
+    #Tabla_Suministros tbody tr:hover td { background-color: rgba(13,50,90,0.04) !important; }
+
+    /* Per-row stock state coloring — cols 1-12 only */
+    #Tabla_Suministros tbody tr.row-inv-normal td:not(:nth-child(13)):not(:nth-child(14)):not(:nth-child(15)) {
+        background-color: rgba(220,252,231,0.45) !important;
+    }
+    #Tabla_Suministros tbody tr.row-inv-sobregirado td:not(:nth-child(13)):not(:nth-child(14)):not(:nth-child(15)) {
+        background-color: rgba(254,249,195,0.6) !important;
+    }
+    #Tabla_Suministros tbody tr.row-inv-bajo td:not(:nth-child(13)):not(:nth-child(14)):not(:nth-child(15)) {
+        background-color: rgba(254,226,226,0.55) !important;
+    }
+    #Tabla_Suministros tbody tr.row-inv-normal td:nth-child(13),
+    #Tabla_Suministros tbody tr.row-inv-normal td:nth-child(14),
+    #Tabla_Suministros tbody tr.row-inv-normal td:nth-child(15),
+    #Tabla_Suministros tbody tr.row-inv-sobregirado td:nth-child(13),
+    #Tabla_Suministros tbody tr.row-inv-sobregirado td:nth-child(14),
+    #Tabla_Suministros tbody tr.row-inv-sobregirado td:nth-child(15),
+    #Tabla_Suministros tbody tr.row-inv-bajo td:nth-child(13),
+    #Tabla_Suministros tbody tr.row-inv-bajo td:nth-child(14),
+    #Tabla_Suministros tbody tr.row-inv-bajo td:nth-child(15),
+    #Tabla_Suministros tbody tr.row-activo td:nth-child(13),
+    #Tabla_Suministros tbody tr.row-activo td:nth-child(14),
+    #Tabla_Suministros tbody tr.row-activo td:nth-child(15),
+    #Tabla_Suministros tbody tr.row-deshabilitado td:nth-child(13),
+    #Tabla_Suministros tbody tr.row-deshabilitado td:nth-child(14),
+    #Tabla_Suministros tbody tr.row-deshabilitado td:nth-child(15) {
+        background-color: #ffffff !important;
+    }
+
+    /* Activo/Deshabilitado styles matching Devoluciones */
+    #Tabla_Suministros tbody tr.row-activo td:not(:nth-child(13)):not(:nth-child(14)):not(:nth-child(15)) {
+        background-color: rgba(220,252,231,0.45) !important;
+    }
+    #Tabla_Suministros tbody tr.row-deshabilitado td:not(:nth-child(13)):not(:nth-child(14)):not(:nth-child(15)) {
+        background-color: rgba(254,226,226,0.55) !important;
+    }
+
+    /* Export buttons */
+    .dt-buttons .btn {
+        background: transparent !important; border-radius: 8px !important;
+        font-weight: 600 !important; font-size: 0.85rem !important;
+        padding: 6px 15px !important; margin-right: 8px !important;
+        transition: all 0.2s ease !important; box-shadow: none !important;
+    }
+    .dt-buttons .btn-success { border: 1px solid #10b981 !important; color: #10b981 !important; }
+    .dt-buttons .btn-success:hover { background: #10b981 !important; color: #fff !important; }
+    .dt-buttons .btn-danger { border: 1px solid #ef4444 !important; color: #ef4444 !important; }
+    .dt-buttons .btn-danger:hover { background: #ef4444 !important; color: #fff !important; }
+    .dt-buttons .btn-secondary { border: 1px solid #3b82f6 !important; color: #3b82f6 !important; }
+    .dt-buttons .btn-secondary:hover { background: #3b82f6 !important; color: #fff !important; }
+
+    /* Search Bar Customization — Requisiciones Parity */
+    .dataTables_filter input {
+        border-radius: 50px !important;
+        border: 1px solid #cbd5e1 !important;
+        padding: 0.6rem 1.2rem 0.6rem 2.8rem !important;
+        background: #ffffff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3E%3C/svg%3E") no-repeat 15px center !important;
+        width: 250px !important;
+        height: 42px !important;
+        outline: none !important;
+        font-size: 0.9rem !important;
+        color: #334155 !important;
+        transition: all 0.2s ease !important;
+    }
+    .dataTables_filter input:focus {
+        border-color: #3b82f6 !important;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+    }
+    .dataTables_filter label { font-size: 0 !important; color: transparent !important; }
+
+    /* Pagination */
+    .dataTables_wrapper .dataTables_paginate .paginate_button {
+        min-width: 34px !important; height: 34px !important;
+        display: inline-flex !important; align-items: center !important; justify-content: center !important;
+        border-radius: 8px !important; border: 1px solid #e2e8f0 !important;
+        margin: 0 3px !important; background: #ffffff !important;
+        color: #475569 !important; font-weight: 600 !important; font-size: 0.85rem !important;
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+        background: #0d325a !important; color: #ffffff !important;
+        border-color: #0d325a !important; box-shadow: 0 4px 12px rgba(13,50,90,0.3) !important;
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button:hover:not(.current):not(.disabled) {
+        background: #f8fafc !important; border-color: #cbd5e1 !important; color: #1e293b !important;
+    }
+    .dataTables_wrapper .dataTables_info {
+        float: left !important;
+        padding-top: 1.5rem !important;
+        font-size: 0.85rem !important;
+        color: #64748b !important;
+        font-weight: 500 !important;
+        clear: none !important;
+    }
+    .dataTables_wrapper .dt-buttons { float: left !important; margin-bottom: 1.2rem !important; }
+    .dataTables_wrapper .dataTables_filter { float: right !important; margin-bottom: 1.5rem !important; }
+    .dataTables_scrollBody::-webkit-scrollbar { width: 4px; height: 4px; }
+    .dataTables_scrollBody::-webkit-scrollbar-thumb { background: rgba(13,50,90,0.15); border-radius: 10px; }
 </style>
 
-<div class="row align-items-center mb-4">
-    <div class="col d-flex align-items-center">
-        <div>
-            <h5 class="m-0 fw-500 text-navy d-flex align-items-center gap-2">
-                <svg viewBox="0 0 24 24" width="18" height="18" stroke="#0284c7" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
-                LISTADO DE PRODUCTOS
-            </h5>
-            <p class="text-muted m-0 font-size-10 mt-1">Administra y visualiza el inventario completo de productos registrados</p>
+<!-- Header Premium -->
+<div class="card page-header-premium border-0 shadow-lg mb-4">
+    <div class="card-body p-4 d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center">
+            <div class="header-icon-box-outer me-4">
+                <div class="header-icon-circle-inner">
+                    <i class="fas fa-boxes"></i>
+                </div>
+            </div>
+            <div>
+                <h3 class="text-white fw-bold mb-0" style="letter-spacing: 0.5px; font-size: 1.8rem;">GESTIÓN DE INVENTARIO</h3>
+                <p class="mb-0 small" style="color: #cbd5e1; font-weight: 500;">
+                    <i class="fas fa-info-circle me-1" style="font-size: 0.8rem;"></i> Control administrativo y seguimiento de productos
+                </p>
+            </div>
         </div>
-    </div>
-
-    <div class="col-auto text-end float-end ms-auto download-grp">
-        <button class="btn-modern btn-primary-modern px-3 py-2" id="btnNuevo"
-            title="Crear Nuevo" style="font-size: 0.85rem;">
-            <i class="fas fa-plus me-2" style="width: 14px;"></i>
-            Nuevo Producto
+        <button class="btn shadow-sm px-4" id="btnNuevo"
+            style="border-radius: 50px; background: #ffffff; color: #0b2f52 !important; font-weight: 700; height: 46px; border: none; display: flex; align-items: center;">
+            <i class="fas fa-plus-circle me-2" style="font-size: 1.1rem;"></i> Nuevo Producto
         </button>
     </div>
 </div>
 
-<div class="row mb-3">
-    <div class="col-auto">
-        <label for="Filtro" class="form-label"><strong>Filtrar por Estado</strong></label>
-        <select id="Filtro" class="form-select" aria-label="Filtrar por Estado">
-            <option value="0">Todo el listado</option>
-            <option value="1">Listado de Suministros Activos</option>
-            <option value="3">Listado de Suministros Deshabilitados</option>
-        </select>
-    </div>
-</div>
+<!-- Main Content Card -->
+<div class="card border-0 shadow-sm mb-4" style="border-radius: 18px; background: #ffffff !important; overflow: hidden;">
+    <div class="card-body p-4">
 
-<div class="row">
-    <div class="bg-white shadow rounded-4 p-3">
-        <table id="Tabla_Suministros"
-            class="table table-hover table-bordered table-striped table-sm align-middle mb-0 rounded-4">
-            <thead class="text-white text-center rounded-4" style="background-color: #697a8a; text-align: justify;">
-                <tr>
-                    <th style="border-radius: 10px 0 0 0;">No.</th>
-                    <th class="text-center">Nombre</th>
-                    <th class="text-center">Descripción</th>
-                    <th class="text-center">Categoría</th>
-                    <th class="text-center">Cant. Inicial</th>
-                    <th class="text-center">Cant. Stock</th>
-                    <th class="text-center">Cant. Min</th>
-                    <th class="text-center">Precio Unitario</th>
-                    <th class="text-center">Fecha</th>
-                    <th class="text-center">Acreedor</th>
-                    <th class="text-center">Almacén</th>
-                    <th class="text-center">Grupo</th>
-                    <th class="text-center">Estado Stock</th>
-                    <th class="text-center">Estado</th>
-                    <th style="border-radius: 10px 0 0 0;">Acciones</th>
-                </tr>
-            </thead>
+        <!-- Filters -->
+        <div class="row align-items-end mb-4 g-3">
+            <!-- Estado Stock -->
+            <div class="col-md-4">
+                <label class="form-label text-muted small fw-bold text-uppercase mb-2 d-flex align-items-center">
+                    <i class="fas fa-layer-group me-2 text-primary"></i> FILTRAR POR ESTADO STOCK
+                </label>
+                <div id="groupFiltroStock" class="input-group shadow-sm rounded-3 overflow-hidden" style="border: 1px solid #e2e8f0; transition: all 0.2s ease;">
+                    <span class="input-group-text bg-white border-0 px-3"><i class="fas fa-bars text-muted small"></i></span>
+                    <select id="FiltroStock" class="form-select border-0 ps-2" style="height: 42px; font-size: 0.9rem; background: transparent; cursor: pointer;">
+                        <option value="0">Todos</option>
+                        <option value="NORMAL">Normal</option>
+                        <option value="SOBREGIRADO">Sobregirado</option>
+                        <option value="STOCK BAJO">Stock Bajo</option>
+                    </select>
+                </div>
+            </div>
+            <!-- Estado Registro -->
+            <div class="col-md-4">
+                <label class="form-label text-muted small fw-bold text-uppercase mb-2 d-flex align-items-center">
+                    <i class="fas fa-filter me-2 text-primary"></i> FILTRAR POR ESTADO
+                </label>
+                <div id="groupFiltro" class="input-group shadow-sm rounded-3 overflow-hidden" style="border: 1px solid #e2e8f0; transition: all 0.2s ease;">
+                    <span class="input-group-text bg-white border-0 px-3"><i class="fas fa-bars text-muted small"></i></span>
+                    <select id="Filtro" class="form-select border-0 ps-2" style="height: 42px; font-size: 0.9rem; background: transparent; cursor: pointer;">
+                        <option value="0">Todo el listado</option>
+                        <option value="1">Productos Activos</option>
+                        <option value="3">Productos Deshabilitados</option>
+                    </select>
+                </div>
+            </div>
+        </div>
 
-            <tbody>
-            </tbody>
-        </table>
+        <!-- Table -->
+        <div class="table-responsive">
+            <table id="Tabla_Suministros" class="table table-hover align-middle mb-0 w-100">
+                <thead>
+                    <tr>
+                        <th class="text-center">No.</th>
+                        <th class="text-center">Nombre</th>
+                        <th class="text-center">Descripción</th>
+                        <th class="text-center">Categoría</th>
+                        <th class="text-center">Cant. Inicial</th>
+                        <th class="text-center">Cant. Stock</th>
+                        <th class="text-center">Cant. Min</th>
+                        <th class="text-center">Precio Unitario</th>
+                        <th class="text-center">Fecha</th>
+                        <th class="text-center">Acreedor</th>
+                        <th class="text-center">Almacén</th>
+                        <th class="text-center">Grupo</th>
+                        <th class="text-center">Estado Stock</th>
+                        <th class="text-center">Estado</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
     </div>
 </div>
 
@@ -80,8 +253,10 @@ GESTION DE SUMINISTROS
 
 {% include 'Modales_S/movimientos_suministros.html' %}
 {% include 'Modales_S/agregar_suministro.html' %}
+{% include 'Modales_S/ver_imagen_suministro.html' %}
 
 {% endblock %}
+
 
 
 {% block scripts %}
@@ -154,6 +329,8 @@ GESTION DE SUMINISTROS
 
     language: {
         url: "{% static 'app/th/json/es-ES.json' %}",
+        search: "",
+        searchPlaceholder: "Buscar..."
     },
 
     ajax: {
@@ -162,7 +339,7 @@ GESTION DE SUMINISTROS
         dataSrc: 'data',
         data: function (d) {
             const urlParams = new URLSearchParams(window.location.search);
-            d.varEstado = $("#Filtro").val() || 0;
+            d.varEstado = select_estado_suministro;
             d.stock_bajo = urlParams.get('stock_bajo') || 0;
             d.csrfmiddlewaretoken = csrfToken;
         },
@@ -197,81 +374,100 @@ GESTION DE SUMINISTROS
                 }
             },
             customize: function (doc) {
+                var now = new Date();
+                var dateStr = now.toLocaleDateString();
+                var timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                var userStr = "{{ request.user.username|default:'Sistema' }}";
 
-                doc.content[0].text = "REPORTE DE SUMINISTROS";
-                doc.content[0].alignment = 'center';
-                doc.content[0].fontSize = 16;
-                doc.content[0].bold = false;
-                doc.content[0].margin = [0, 0, 0, 10];
+                // 1. Encabezado Corporativo
+                doc.content[0] = {
+                    stack: [
+                        { text: 'REPORTE DE SUMINISTROS – CONTROL DE SUMINISTROS', fontSize: 14, bold: true, alignment: 'center', margin: [0, 0, 0, 5], color: '#0d325a' },
+                        { text: `Generado por: ${userStr} | Fecha: ${dateStr} | Hora: ${timeStr}`, fontSize: 8, alignment: 'center', color: '#64748b', margin: [0, 0, 0, 10] }
+                    ]
+                };
 
-                // mismo margen a izquierda y derecha
-                doc.pageMargins = [15, 20, 15, 20];
+                doc.pageMargins = [20, 30, 20, 30];
 
-                doc.styles.tableHeader.fillColor = '#2c4770';
-                doc.styles.tableHeader.color = 'white';
-                doc.styles.tableHeader.alignment = 'center';
-                doc.styles.tableHeader.fontSize = 5;
-                doc.styles.tableHeader.bold = true;
+                // 2. Estilos de Tabla
+                doc.styles.tableHeader = {
+                    fillColor: '#0d325a',
+                    color: 'white',
+                    alignment: 'center',
+                    bold: true,
+                    fontSize: 8,
+                    margin: [0, 4, 0, 4]
+                };
 
-                doc.defaultStyle.alignment = 'center';
-                doc.defaultStyle.fontSize = 4.5;
+                doc.defaultStyle = {
+                    fontSize: 7,
+                    alignment: 'center'
+                };
 
-                var body = doc.content[1].table.body;
+                var tableBody = doc.content[1].table.body;
 
-                body[0][0].text  = 'No.';
-                body[0][1].text  = 'Nombre';
-                body[0][2].text  = 'Descripción';
-                body[0][3].text  = 'Categoría';
-                body[0][4].text  = 'Cant.\nInicial';
-                body[0][5].text  = 'Cant.\nStock';
-                body[0][6].text  = 'Cant.\nMin';
-                body[0][7].text  = 'Precio\nUnitario';
-                body[0][8].text  = 'Fecha';
-                body[0][9].text  = 'Acreedor';
-                body[0][10].text = 'Almacén';
-                body[0][11].text = 'Grupo';
-                body[0][12].text = 'Estado\nStock';
-                body[0][13].text = 'Estado';
-
-                doc.content[1].table.widths = [
-                    '4%',  // No.
-                    '10%', // Nombre
-                    '11%', // Descripción
-                    '10%', // Categoría
-                    '5%',  // Cant. Inicial
-                    '5%',  // Cant. Stock
-                    '5%',  // Cant. Min
-                    '7%',  // Precio Unitario
-                    '8%',  // Fecha
-                    '10%', // Acreedor
-                    '8%',  // Almacén
-                    '5%',  // Grupo
-                    '7%',  // Estado Stock
-                    '5%'   // Estado
+                // Nombres de Columnas
+                tableBody[0] = [
+                    { text: 'No.', style: 'tableHeader' },
+                    { text: 'Nombre', style: 'tableHeader' },
+                    { text: 'Descripción', style: 'tableHeader' },
+                    { text: 'Categoría', style: 'tableHeader' },
+                    { text: 'C. Inicial', style: 'tableHeader' },
+                    { text: 'C. Stock', style: 'tableHeader' },
+                    { text: 'C. Min', style: 'tableHeader' },
+                    { text: 'Precio U.', style: 'tableHeader' },
+                    { text: 'Fecha', style: 'tableHeader' },
+                    { text: 'Acreedor', style: 'tableHeader' },
+                    { text: 'Almacén', style: 'tableHeader' },
+                    { text: 'Grupo', style: 'tableHeader' },
+                    { text: 'Est. Stock', style: 'tableHeader' },
+                    { text: 'Estado', style: 'tableHeader' }
                 ];
 
-                for (var i = 0; i < body.length; i++) {
-                    for (var j = 0; j < body[i].length; j++) {
-                        body[i][j].margin = [1, 3, 1, 3];
-                        body[i][j].noWrap = false;
-                        body[i][j].alignment = 'center';
+                doc.content[1].table.widths = ['3%', '10%', '11%', '9%', '5%', '5%', '5%', '6%', '7%', '9%', '7%', '6%', '10%', '7%'];
+
+                for (var i = 1; i < tableBody.length; i++) {
+                    // Zebra
+                    if (i % 2 === 0) {
+                        for (var j = 0; j < tableBody[i].length; j++) {
+                            tableBody[i][j].fillColor = '#f8fafc';
+                        }
+                    }
+
+                    // Colores Condicionales
+                    var stockStatus = tableBody[i][12].text; 
+                    var recordStatus = tableBody[i][13].text; 
+
+                    tableBody[i][12].bold = true;
+                    tableBody[i][13].bold = true;
+
+                    // Estado Stock
+                    if (stockStatus.includes('NORMAL')) tableBody[i][12].color = '#15803d';
+                    if (stockStatus.includes('SOBREGIRADO')) tableBody[i][12].color = '#854d0e';
+                    if (stockStatus.includes('STOCK BAJO')) tableBody[i][12].color = '#b91c1c';
+
+                    // Estado
+                    if (recordStatus === 'ACTIVO') tableBody[i][13].color = '#15803d';
+                    if (recordStatus === 'DESHABILITADO') tableBody[i][13].color = '#b91c1c';
+
+                    for (var j = 0; j < tableBody[i].length; j++) {
+                        tableBody[i][j].alignment = 'center';
+                        tableBody[i][j].margin = [0, 3, 0, 3];
                     }
                 }
 
-                for (var r = 1; r < body.length; r++) {
-                    for (var c = 0; c < body[r].length; c++) {
-                        body[r][c].fillColor = (r % 2 === 0) ? '#f2f2f2' : '#ffffff';
-                    }
-                }
+                doc.content[1].layout = 'lightHorizontalLines';
 
-                doc.content[1].layout = {
-                    hLineWidth: function () { return 0; },
-                    vLineWidth: function () { return 0; },
-                    paddingLeft: function () { return 1; },
-                    paddingRight: function () { return 1; },
-                    paddingTop: function () { return 2; },
-                    paddingBottom: function () { return 2; }
-                };
+                // 3. Footer
+                doc['footer'] = (function(page, pages) {
+                    return {
+                        columns: [
+                            { text: 'Control de Suministros ©', alignment: 'left', fontSize: 7, margin: [20, 0], color: '#64748b' },
+                            { text: 'Página ' + page.toString() + ' de ' + pages.toString(), alignment: 'right', fontSize: 7, margin: [0, 0, 20], color: '#64748b' }
+                        ],
+                        margin: [0, 10]
+                    }
+                });
             }
         },
    
@@ -305,80 +501,101 @@ GESTION DE SUMINISTROS
         }
     },
     customize: function (doc) {
+        var now = new Date();
+        var dateStr = now.toLocaleDateString();
+        var timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        var userStr = "{{ request.user.username|default:'Sistema' }}";
 
-        doc.content[0].text = "REPORTE DE SUMINISTROS";
-        doc.content[0].alignment = 'center';
-        doc.content[0].fontSize = 16;
-        doc.content[0].bold = false;
-        doc.content[0].margin = [0, 0, 0, 10];
+        // 1. Encabezado Corporativo
+        doc.content[0] = {
+            stack: [
+                { text: 'REPORTE DE SUMINISTROS – CONTROL DE SUMINISTROS', fontSize: 14, bold: true, alignment: 'center', margin: [0, 0, 0, 5], color: '#0d325a' },
+                { text: `Generado por: ${userStr} | Fecha: ${dateStr} | Hora: ${timeStr}`, fontSize: 8, alignment: 'center', color: '#64748b', margin: [0, 0, 0, 10] }
+            ]
+        };
 
-        doc.pageMargins = [15, 20, 15, 20];
+        doc.pageMargins = [20, 30, 20, 30];
 
-        doc.styles.tableHeader.fillColor = '#2c4770';
-        doc.styles.tableHeader.color = 'white';
-        doc.styles.tableHeader.alignment = 'center';
-        doc.styles.tableHeader.fontSize = 5;
-        doc.styles.tableHeader.bold = true;
+        // 2. Estilos de Tabla
+        doc.styles.tableHeader = {
+            fillColor: '#0d325a',
+            color: 'white',
+            alignment: 'center',
+            bold: true,
+            fontSize: 8,
+            margin: [0, 4, 0, 4]
+        };
 
-        doc.defaultStyle.alignment = 'center';
-        doc.defaultStyle.fontSize = 4.5;
+        doc.defaultStyle = {
+            fontSize: 7,
+            alignment: 'center'
+        };
 
-        var body = doc.content[1].table.body;
+        var tableBody = doc.content[1].table.body;
 
-        body[0][0].text  = 'No.';
-        body[0][1].text  = 'Nombre';
-        body[0][2].text  = 'Descripción';
-        body[0][3].text  = 'Categoría';
-        body[0][4].text  = 'Cant.\nInicial';
-        body[0][5].text  = 'Cant.\nStock';
-        body[0][6].text  = 'Cant.\nMin';
-        body[0][7].text  = 'Precio\nUnitario';
-        body[0][8].text  = 'Fecha';
-        body[0][9].text  = 'Acreedor';
-        body[0][10].text = 'Almacén';
-        body[0][11].text = 'Grupo';
-        body[0][12].text = 'Estado\nStock';
-        body[0][13].text = 'Estado';
-
-        doc.content[1].table.widths = [
-            '4%',
-            '10%',
-            '11%',
-            '10%',
-            '5%',
-            '5%',
-            '5%',
-            '7%',
-            '8%',
-            '10%',
-            '8%',
-            '5%',
-            '7%',
-            '5%'
+        // Nombres de Columnas
+        tableBody[0] = [
+            { text: 'No.', style: 'tableHeader' },
+            { text: 'Nombre', style: 'tableHeader' },
+            { text: 'Descripción', style: 'tableHeader' },
+            { text: 'Categoría', style: 'tableHeader' },
+            { text: 'C. Inicial', style: 'tableHeader' },
+            { text: 'C. Stock', style: 'tableHeader' },
+            { text: 'C. Min', style: 'tableHeader' },
+            { text: 'Precio U.', style: 'tableHeader' },
+            { text: 'Fecha', style: 'tableHeader' },
+            { text: 'Acreedor', style: 'tableHeader' },
+            { text: 'Almacén', style: 'tableHeader' },
+            { text: 'Grupo', style: 'tableHeader' },
+            { text: 'Est. Stock', style: 'tableHeader' },
+            { text: 'Estado', style: 'tableHeader' }
         ];
 
-        for (var i = 0; i < body.length; i++) {
-            for (var j = 0; j < body[i].length; j++) {
-                body[i][j].margin = [1, 3, 1, 3];
-                body[i][j].noWrap = false;
-                body[i][j].alignment = 'center';
+        doc.content[1].table.widths = ['3%', '10%', '11%', '9%', '5%', '5%', '5%', '6%', '7%', '9%', '7%', '6%', '10%', '7%'];
+
+        for (var i = 1; i < tableBody.length; i++) {
+            // Zebra
+            if (i % 2 === 0) {
+                for (var j = 0; j < tableBody[i].length; j++) {
+                    tableBody[i][j].fillColor = '#f8fafc';
+                }
+            }
+
+            // Colores Condicionales
+            var stockStatus = tableBody[i][12].text; 
+            var recordStatus = tableBody[i][13].text; 
+
+            tableBody[i][12].bold = true;
+            tableBody[i][13].bold = true;
+
+            // Estado Stock
+            if (stockStatus.includes('NORMAL')) tableBody[i][12].color = '#15803d';
+            if (stockStatus.includes('SOBREGIRADO')) tableBody[i][12].color = '#854d0e';
+            if (stockStatus.includes('STOCK BAJO')) tableBody[i][12].color = '#b91c1c';
+
+            // Estado
+            if (recordStatus === 'ACTIVO') tableBody[i][13].color = '#15803d';
+            if (recordStatus === 'DESHABILITADO') tableBody[i][13].color = '#b91c1c';
+
+            for (var j = 0; j < tableBody[i].length; j++) {
+                tableBody[i][j].alignment = 'center';
+                tableBody[i][j].margin = [0, 3, 0, 3];
+                tableBody[i][j].fontSize = 7;
             }
         }
 
-        for (var r = 1; r < body.length; r++) {
-            for (var c = 0; c < body[r].length; c++) {
-                body[r][c].fillColor = (r % 2 === 0) ? '#f2f2f2' : '#ffffff';
-            }
-        }
+        doc.content[1].layout = 'lightHorizontalLines';
 
-        doc.content[1].layout = {
-            hLineWidth: function () { return 0; },
-            vLineWidth: function () { return 0; },
-            paddingLeft: function () { return 1; },
-            paddingRight: function () { return 1; },
-            paddingTop: function () { return 2; },
-            paddingBottom: function () { return 2; }
-        };
+        // 3. Footer
+        doc['footer'] = (function(page, pages) {
+            return {
+                columns: [
+                    { text: 'Control de Suministros ©', alignment: 'left', fontSize: 7, margin: [20, 0], color: '#64748b' },
+                    { text: 'Página ' + page.toString() + ' de ' + pages.toString(), alignment: 'right', fontSize: 7, margin: [0, 0, 20], color: '#64748b' }
+                ],
+                margin: [0, 10]
+            }
+        });
     }
 }
 ],
@@ -410,13 +627,19 @@ GESTION DE SUMINISTROS
                 let cantidadMaxima = parseInt(row.cantidad_inicial || 0);
                 let stock = parseInt(data || 0);
 
-                if (stock <= cantidadMinima) {
+                var estadoText;
+                if (stock <= cantidadMinima)  estadoText = 'STOCK BAJO';
+                else if (stock > cantidadMaxima) estadoText = 'SOBREGIRADO';
+                else estadoText = 'NORMAL';
+
+                // Para búsqueda/filtrado retornar texto plano
+                if (type === 'filter' || type === 'sort') return estadoText;
+
+                if (estadoText === 'STOCK BAJO')
                     return '<span class="badge badge-pill custom-red">STOCK BAJO</span>';
-                } else if (stock > cantidadMaxima) {
+                if (estadoText === 'SOBREGIRADO')
                     return '<span class="badge badge-pill bg-warning text-dark">SOBREGIRADO</span>';
-                } else {
-                    return '<span class="badge badge-pill bg-success">NORMAL</span>';
-                }
+                return '<span class="badge badge-pill bg-success">NORMAL</span>';
             }
         },
 
@@ -440,8 +663,8 @@ GESTION DE SUMINISTROS
                     return `
                     <div class="text-center">
                         <div class="btn-group">
-                            <button class="btn btn-danger btn-sm anularSuministro rounded-pill shadow-sm"
-                                title="Cambiar estado Suministro"
+                            <button class="btn btn-success btn-sm anularSuministro rounded-pill shadow-sm"
+                                title="Habilitar Suministro"
                                 data-id="${row.id_suministros}" data-name="${row.nombre}" data-estado="${row.estado}">
                                 <i class="fas fa-sync-alt"></i>
                             </button>
@@ -477,7 +700,7 @@ GESTION DE SUMINISTROS
                     </button>
 
                     <button class="btn btn-danger btn-sm anularSuministro rounded-pill shadow-sm"
-                            title="Cambiar estado Suministro"
+                            title="Deshabilitar Suministro"
                             data-id="${row.id_suministros}" data-name="${row.nombre}" data-estado="${row.estado}">
                         <i class="fas fa-sync-alt"></i>
                     </button>
@@ -487,18 +710,33 @@ GESTION DE SUMINISTROS
         }
     ],
 
-    createdRow: function (row, data) {
-        var stock  = parseInt(data.cantidad_stock   || 0);
-        var minimo = parseInt(data.cantidad_minima  || 0);
-        var maximo = parseInt(data.cantidad_inicial || 0);
+    drawCallback: function () {
+        var api = this.api();
+        api.columns.adjust();
+        api.rows().every(function () {
+            var d = this.data();
+            var $row = $(this.node());
+            var stock  = parseInt(d.cantidad_stock   || 0);
+            var minimo = parseInt(d.cantidad_minima  || 0);
+            var maximo = parseInt(d.cantidad_inicial || 0);
 
-        if (stock <= minimo) {
-            // STOCK BAJO → rojo claro (inline para sobrescribir table-striped)
-            $('td', row).css('background-color', '#ffd6d6');
-        } else if (stock > maximo) {
-            // SOBREGIRADO → amarillo claro
-            $('td', row).css('background-color', '#fff8cc');
-        }
+            $row.removeClass('row-inv-normal row-inv-sobregirado row-inv-bajo row-activo row-deshabilitado');
+
+            if (select_estado_suministro == '1') {
+                $row.addClass('row-activo');
+            } else if (select_estado_suministro == '3') {
+                $row.addClass('row-deshabilitado');
+            } else {
+                // Colores normales basados en stock
+                if (stock <= minimo) {
+                    $row.addClass('row-inv-bajo');
+                } else if (stock > maximo) {
+                    $row.addClass('row-inv-sobregirado');
+                } else {
+                    $row.addClass('row-inv-normal');
+                }
+            }
+        });
     },
 
     initComplete: function () {
@@ -534,10 +772,13 @@ GESTION DE SUMINISTROS
                             editBtn.closest('tr').css('background-color', '');
                         }, 3000);
                     }, 500);
-                } else {
-                    console.warn("Could not find product for deep link");
                 }
             }, 1200); 
+        }
+        // Aplicar filtro de stock actual si existe una selección (Persistencia al cambiar Estado Registro)
+        var stockVal = $('#FiltroStock').val();
+        if (stockVal && stockVal !== '0') {
+            this.api().column(12).search('^' + stockVal + '$', true, false).draw();
         }
     }
 }); 
@@ -549,24 +790,22 @@ $('#Tabla_Suministros tbody').on('click', '.verImagenSuministro', function () {
     var urlImagen = $(this).data('imagen'); 
     var nombre = $(this).data('nombre');
 
+    // Actualizar nombre en el badge
+    $('#nombreProductoModal').text(nombre);
+
     if (urlImagen && urlImagen !== 'None' && urlImagen !== '') {
-        Swal.fire({
-            title: 'Imagen de: ' + nombre,
-            imageUrl: urlImagen,
-            imageWidth: 250,  
-            imageHeight: 250,
-            imageAlt: 'Foto del suministro',
-            confirmButtonColor: '#007bff',
-            confirmButtonText: 'Cerrar'
-        });
+        // Mostrar imagen y ocultar mensaje de error
+        $('#imagenSuministroVista').attr('src', urlImagen);
+        $('#contenedorImagen').show();
+        $('#sinImagenMsg').hide();
     } else {
-        Swal.fire({
-            icon: 'info',
-            title: 'Sin imagen',
-            text: 'Este suministro no tiene una imagen cargada.',
-            confirmButtonColor: '#007bff'
-        });
+        // Ocultar imagen y mostrar mensaje de error
+        $('#contenedorImagen').hide();
+        $('#sinImagenMsg').show();
     }
+
+    // Abrir el modal
+    $('#modalVerImagen').modal('show');
 });
 
 // ==========================================
@@ -792,11 +1031,66 @@ $('#Tabla_Suministros tbody').on('click', '.verImagenSuministro', function () {
 
         $('#Filtro').change(function (e) {
             e.preventDefault();
+            var val = $(this).val();
+            select_estado_suministro = val;
 
+            // Visual Update — Pattern from Devoluciones
+            var $group = $(this).closest('.input-group');
+            var $icon = $group.find('.input-group-text');
+            var $select = $(this);
 
-            select_estado_suministro = $("#Filtro").val();
+            // Reset to Neutral
+            $group.css('background-color', '#ffffff');
+            $icon.css('background-color', '#ffffff');
+            $select.css({'color': '#64748b', 'background-color': 'transparent'});
+
+            if (val == '1') {
+                // Productos Activos -> Verde
+                $group.css('background-color', '#dcfce7');
+                $icon.css('background-color', '#dcfce7');
+                $select.css({'color': '#166534', 'background-color': '#dcfce7'});
+            } else if (val == '3') {
+                // Productos Deshabilitados -> Rojo
+                $group.css('background-color', '#fee2e2');
+                $icon.css('background-color', '#fee2e2');
+                $select.css({'color': '#991b1b', 'background-color': '#fee2e2'});
+            }
+
             fillSuministro();
         });
+
+        $('#FiltroStock').change(function (e) {
+            e.preventDefault();
+            var val = $(this).val();
+
+            // Visual Update — Pattern from Devoluciones
+            var $group = $(this).closest('.input-group');
+            $group.css('background-color', '#ffffff');
+            $(this).css('color', '#64748b');
+            $group.find('.input-group-text').css('background-color', '#ffffff');
+
+            if (val === 'NORMAL') {
+                $group.css('background-color', '#dcfce7');
+                $(this).css('color', '#166534');
+                $group.find('.input-group-text').css('background-color', '#dcfce7');
+            } else if (val === 'SOBREGIRADO') {
+                $group.css('background-color', '#fef9c3'); // Better Yellow
+                $(this).css('color', '#854d0e');
+                $group.find('.input-group-text').css('background-color', '#fef9c3');
+            } else if (val === 'STOCK BAJO') {
+                $group.css('background-color', '#fee2e2');
+                $(this).css('color', '#991b1b');
+                $group.find('.input-group-text').css('background-color', '#fee2e2');
+            }
+
+            // Búsqueda exacta por columna 12 (Estado Stock) con RegEx
+            if (val !== '0') {
+                Tabla_Suministros.column(12).search('^' + val + '$', true, false).draw();
+            } else {
+                Tabla_Suministros.column(12).search('', true, false).draw();
+            }
+        });
+
 
         // ---------------------------------------------------------------------------------------------------- //
 
@@ -872,23 +1166,30 @@ $('#Tabla_Suministros tbody').on('click', '.verImagenSuministro', function () {
                             // Determinar el Tipo de Movimiento con un distintivo visual
                             var tipoBadge = '';
                             if (parseFloat(movimiento.entrada || 0) > 0) {
-                                tipoBadge = '<span class="badge bg-success">ENTRADA</span>';
+                                tipoBadge = '<span class="badge rounded-pill bg-success shadow-sm px-4 py-2" style="font-size: 0.75rem;">ENTRADA</span>';
                             } else if (parseFloat(movimiento.salida || 0) > 0) {
-                                tipoBadge = '<span class="badge bg-danger">SALIDA</span>';
+                                tipoBadge = '<span class="badge rounded-pill bg-danger shadow-sm px-4 py-2" style="font-size: 0.75rem;">SALIDA</span>';
                             } else {
-                                tipoBadge = '<span class="badge bg-secondary">OTRO</span>';
+                                tipoBadge = '<span class="badge rounded-pill bg-secondary shadow-sm px-4 py-2" style="font-size: 0.75rem; background-color: #64748b !important;">OTRO</span>';
                             }
 
                             var fila = `
                                 <tr>
-                                    <td>${movimiento.fecha_movimiento || ''}</td>
+                                    <td class="ps-4 fw-medium">${movimiento.fecha_movimiento || ''}</td>
                                     <td class="text-center">${tipoBadge}</td>
-                                    <td>${movimiento.entrada || 0}</td>
-                                    <td>${movimiento.salida || 0}</td>
-                                    <td>L\u00A0${movimiento.precio_unitario || 0}</td>
-                                    <td>L\u00A0${Math.abs(total).toFixed(2)}</td>
-                                    <td>${movimiento.detalle_movimiento || ''}</td>
-                                    <td>${movimiento.creado_por || ''}</td>
+                                    <td class="text-center fw-bold text-success" style="font-size: 0.95rem;">${movimiento.entrada || 0}</td>
+                                    <td class="text-center fw-bold text-danger" style="font-size: 0.95rem;">${movimiento.salida || 0}</td>
+                                    <td class="text-center">L ${movimiento.precio_unitario || 0}</td>
+                                    <td class="text-center fw-bold text-primary" style="font-size: 0.95rem;">L ${Math.abs(total).toFixed(2)}</td>
+                                    <td class="text-muted" style="max-width: 250px;">${movimiento.detalle_movimiento || ''}</td>
+                                    <td class="pe-4">
+                                        <div class="d-flex align-items-center justify-content-end">
+                                            <div class="bg-light rounded-circle p-2 me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                                <i class="fas fa-user text-primary" style="font-size: 0.8rem;"></i>
+                                            </div>
+                                            <span class="fw-bold text-dark small">${movimiento.creado_por || 'Sistema'}</span>
+                                        </div>
+                                    </td>
                                 </tr>
                             `;
 
@@ -896,7 +1197,7 @@ $('#Tabla_Suministros tbody').on('click', '.verImagenSuministro', function () {
                         });
                     }
 
-                    $('#modalHistorialLabel').html('<strong>Historial de Suministro #' + suministro_id + '</strong>');
+                    $('#modalHistorialLabel').html('Historial de Suministro <span class="text-warning">#' + suministro_id + '</span>');
                     $('#modalHistorial').modal('show');
                 } else {
                     Swal.fire('Info', response.message, 'info');

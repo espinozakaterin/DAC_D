@@ -9,225 +9,388 @@ GESTIONAR OTROS
 {% block body %}
 
 <style>
-    /* Quitar el cursor de texto y puntero en los campos de fecha (Override Global) */
-    #fecha_desde, #fecha_hasta,
-    #fecha_desde::-webkit-calendar-picker-indicator,
-    #fecha_hasta::-webkit-calendar-picker-indicator,
-    #fecha_desde::-webkit-datetime-edit,
-    #fecha_hasta::-webkit-datetime-edit,
-    #fecha_desde::-webkit-datetime-edit-fields-wrapper,
-    #fecha_hasta::-webkit-datetime-edit-fields-wrapper,
-    #fecha_desde::-webkit-datetime-edit-text,
-    #fecha_hasta::-webkit-datetime-edit-text,
-    #fecha_desde::-webkit-datetime-edit-month-field,
-    #fecha_hasta::-webkit-datetime-edit-month-field,
-    #fecha_desde::-webkit-datetime-edit-day-field,
-    #fecha_hasta::-webkit-datetime-edit-day-field,
-    #fecha_desde::-webkit-datetime-edit-year-field,
-    #fecha_hasta::-webkit-datetime-edit-year-field {
-        cursor: default !important;
-        caret-color: transparent !important;
-        user-select: none !important;
-        -webkit-user-select: none;
+    /* === KARDEX DE SUMINISTROS — Premium UI Parity === */
+    :root {
+        --corp-blue-dark: #0b2f52;
+        --corp-gradient: linear-gradient(135deg, #0b2f52 0%, #1d3f8f 100%);
     }
 
-    /* Estilos profesionales para el Kardex (Plano y Cuadrado) */
-    .filter-card {
-        border: 1px solid #e2e8f0;
-        transition: none;
-        border-radius: 0 !important;
+    /* Page Header */
+    .page-header-premium {
+        background: var(--corp-gradient);
+        border-radius: 15px !important;
+        box-shadow: 0 8px 20px rgba(11,47,82,0.15) !important;
+        padding: 1.5rem 2rem !important;
+        margin-bottom: 2rem; border: none;
     }
-
-    .filter-card:hover {
-        box-shadow: none !important;
+    .header-icon-box-outer {
+        width: 52px; height: 52px;
+        background: rgba(255,255,255,0.12); border-radius: 14px;
+        display: flex; align-items: center; justify-content: center;
+        border: 1px solid rgba(255,255,255,0.15);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
     }
-
-    .table-container {
-        border: 1px solid #e2e8f0;
-        overflow: hidden;
-        border-radius: 0 !important;
-        background-color: #ffffff;
+    .header-icon-circle-inner {
+        width: 28px; height: 28px; background: #ffffff; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
+    .header-icon-circle-inner i { color: #0b2f52; font-size: 0.85rem; }
 
-    #Tabla_Kardex thead th {
-        background-color: #ffffff !important; /* Blanco limpio */
-        color: #1e293b !important;
-        font-weight: 700;
-        text-transform: uppercase;
-        font-size: 0.72rem;
-        padding: 15px 10px;
+    /* Cards */
+    .premium-card {
+        border-radius: 18px !important;
         border: none !important;
-        border-bottom: 1px solid #e2e8f0 !important; /* Línea única y delgada */
-        border-radius: 0 !important;
-        white-space: nowrap;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05) !important;
+        background: #ffffff !important;
+        overflow: hidden;
+    }
+    .filter-section-title {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #1e293b;
+        letter-spacing: 0.3px;
     }
 
+    /* Table Header */
+    #Tabla_Kardex thead th {
+        background-color: #0d325a !important; color: #ffffff !important;
+        font-weight: 600 !important; text-transform: uppercase !important;
+        font-size: 0.68rem !important; letter-spacing: 0.7px !important;
+        padding: 1.2rem 0.5rem !important; border: none !important;
+        text-align: center !important; vertical-align: middle !important;
+    }
     #Tabla_Kardex tbody td {
-        padding: 12px 10px;
-        vertical-align: middle;
-        border-bottom: 1px solid #f1f5f9 !important; /* Separación sutil entre filas */
-        font-size: 0.85rem;
-        border-radius: 0 !important;
-        color: #475569;
+        padding: 14px 10px !important;
+        font-size: 0.78rem !important;
+        color: #334155 !important;
+        border-bottom: 1px solid #f1f5f9 !important;
+        text-align: center !important;
     }
+    #Tabla_Kardex tbody tr:nth-child(even) td { background-color: #f8fafc !important; }
+    #Tabla_Kardex tbody tr:hover td { background-color: rgba(13,50,90,0.04) !important; }
 
-    #Tabla_Kardex tbody tr:hover {
-        background-color: #f8fafc !important; /* Hover sutil empresarial */
-        transition: background-color 0.15s ease-in-out;
-    }
-
-    /* Estilo para los botones de acción del filtro */
-    .btn-filtro-principal {
-        background-color: #1e293b !important;
-        border-color: #1e293b !important;
-        color: #ffffff !important;
-        font-weight: 600;
-        padding: 8px 20px;
-        border-radius: 8px;
-        height: 41px;
-        min-width: 130px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        transition: all 0.2s ease-in-out;
-        font-size: 0.9rem;
-    }
-
-    .btn-filtro-principal i, .btn-filtro-secundario i {
-        font-size: 0.75rem; /* Iconos ligeramente más pequeños que el texto */
-    }
-
-    .btn-filtro-secundario {
-        background-color: #64748b !important;
-        border-color: #64748b !important;
-        color: #ffffff !important;
-        font-weight: 600;
-        padding: 8px 20px;
-        border-radius: 8px;
-        height: 41px;
-        min-width: 130px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        transition: all 0.2s ease-in-out;
-        font-size: 0.9rem;
-    }
-
-    .btn-filtro-principal:hover, .btn-filtro-secundario:hover {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        filter: brightness(90%);
-    }
-
-    .btn-filtro-principal:active, .btn-filtro-secundario:active {
-        opacity: 0.8;
-    }
-
-    .badge-entrada {
-        background-color: #dcfce7;
-        color: #166534;
+    /* Form Controls */
+    .form-label-premium {
+        font-size: 0.75rem;
         font-weight: 700;
-        border-radius: 0 !important;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
     }
-
-    .badge-salida {
-        background-color: #fee2e2;
-        color: #991b1b;
-        font-weight: 700;
-        border-radius: 0 !important;
+    .form-control-premium {
+        height: 44px !important;
+        border-radius: 10px !important;
+        border: 1.5px solid #e2e8f0 !important;
+        font-size: 0.88rem !important;
+        padding: 0 15px !important;
+        background-color: #f8fafc !important;
+        transition: all 0.2s ease !important;
+        caret-color: transparent !important;
     }
-
-    /* Estilo para el Saldo Inicial Integrado */
-    #panel_saldo_inicial .card {
+    .form-control-premium:not(:focus),
+    input[type="date"]:not(:focus) {
+        caret-color: transparent !important;
+    }
+    .form-control-premium:focus,
+    input[type="date"]:focus {
+        border-color: #3b82f6 !important;
         background-color: #ffffff !important;
-        border: 1px solid #e2e8f0 !important;
-        padding-left: 1.5rem !important; /* px-4 equivalent */
-        padding-right: 1.5rem !important; /* px-4 equivalent */
-        border-bottom: none !important; /* Para que se junte con la tabla */
-        border-radius: 0 !important;
-        box-shadow: none !important;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.08) !important;
+        caret-color: auto !important;
     }
 
-    #panel_saldo_inicial {
-        margin-bottom: 0 !important;
+    /* Buttons */
+    .btn-premium-load {
+        background-color: #0b2f52 !important;
+        color: #ffffff !important;
+        border: none !important;
+        border-radius: 10px !important;
+        font-weight: 700 !important;
+        font-size: 0.88rem !important;
+        height: 44px !important;
+        padding: 0 25px !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 12px rgba(11,47,82,0.2) !important;
+    }
+    .btn-premium-load:hover {
+        background-color: #1d3f8f !important;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(11,47,82,0.3) !important;
+    }
+    .btn-premium-clear {
+        background-color: #ffffff !important;
+        color: #0b2f52 !important;
+        border: 2px solid #0b2f52 !important;
+        border-radius: 10px !important;
+        font-weight: 700 !important;
+        font-size: 0.85rem !important;
+        height: 44px !important;
+        padding: 0 20px !important;
+        transition: all 0.3s ease !important;
+        white-space: nowrap !important;
+    }
+    .btn-premium-clear:hover {
+        background-color: #f8fafc !important;
+        color: #1d3f8f !important;
+        border-color: #1d3f8f !important;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(11,47,82,0.1) !important;
+    }
+
+    /* Select2 Premium Override */
+    .select2-container--default .select2-selection--single {
+        height: 44px !important;
+        border-radius: 12px !important;
+        border: 1px solid #e2e8f0 !important;
+        background-color: #ffffff !important;
+        box-shadow: none !important;
+        transition: all 0.2s ease !important;
+    }
+    .select2-container--default.select2-container--focus .select2-selection--single {
+        border-color: #3b82f6 !important;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.05) !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 42px !important;
+        padding-left: 15px !important;
+        font-size: 0.85rem !important;
+        color: #1e293b !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 42px !important;
+        right: 10px !important;
+    }
+    /* Eliminar barra azul rara */
+    .select2-container--default .select2-selection--single .select2-selection__placeholder {
+        color: #94a3b8 !important;
+    }
+
+    /* Buttons Export Premium */
+    .btn-export-premium {
+        border-radius: 8px !important;
+        font-weight: 700 !important;
+        font-size: 0.72rem !important;
+        padding: 8px 15px !important;
+        margin-right: 5px !important;
+        border: none !important;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important;
+        transition: all 0.2s ease !important;
+        color: #ffffff !important;
+    }
+    .btn-export-premium:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 12px rgba(0,0,0,0.15) !important;
+        filter: brightness(110%) !important;
+    }
+    .btn-success.btn-export-premium { background-color: #198754 !important; }
+    .btn-danger.btn-export-premium { background-color: #dc3545 !important; }
+    .btn-primary.btn-export-premium { background-color: #0d6efd !important; }
+
+    /* --- ESTILOS REFERENCIA PREMIUM --- */
+    .header-number {
+        width: 32px;
+        height: 32px;
+        background: #0b2f52;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 0.9rem;
+        box-shadow: 0 3px 6px rgba(11, 47, 82, 0.2);
+    }
+
+    .badge-total {
+        background: #f0f7ff;
+        color: #2563eb;
+        border: 1px solid #dbeafe;
+        padding: 5px 14px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.72rem;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 2px 4px rgba(37, 99, 235, 0.03);
+    }
+
+    .badge-estado {
+        padding: 5px 12px;
+        border-radius: 6px;
+        font-weight: 700;
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        display: inline-block;
+        min-width: 90px;
+    }
+    .badge-estado.bg-success { background-color: #ecfdf5 !important; color: #059669 !important; border: 1px solid #d1fae5 !important; }
+    .badge-estado.bg-danger { background-color: #fef2f2 !important; color: #dc2626 !important; border: 1px solid #fee2e2 !important; }
+
+    .premium-card {
+        background: #ffffff;
+        border-radius: 16px !important;
+        border: 1px solid #f1f5f9 !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03) !important;
+        margin-bottom: 24px !important;
+    }
+
+    .table-premium thead th {
+        background-color: #f8fafc !important;
+        color: #64748b !important;
+        font-weight: 700 !important;
+        font-size: 0.72rem !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.05em !important;
+        padding: 14px 16px !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+    }
+    .table-premium tbody td {
+        padding: 14px 16px !important;
+        font-size: 0.8rem !important;
+        color: #334155 !important;
+        border-bottom: 1px solid #f1f5f9 !important;
+    }
+    .table-premium tbody tr:last-child td { border-bottom: none !important; }
+
+    .btn-dark-premium {
+        background-color: #0f172a !important;
+        color: #ffffff !important;
+        border: none !important;
+        border-radius: 8px !important;
+        padding: 10px 20px !important;
+        font-size: 0.75rem !important;
+        font-weight: 600 !important;
+        transition: all 0.2s ease !important;
+    }
+    .btn-dark-premium:hover {
+        background-color: #1e293b !important;
+        transform: translateY(-1px);
     }
 </style>
 
-<div class="row align-items-center mb-4">
-    <div class="col d-flex align-items-center">
-        <h3 class="page-title mb-0">
-            <i class="fas fa-history text-primary me-2"></i> <strong>KARDEX DE SUMINISTROS</strong>
-        </h3>
+<!-- Header Premium -->
+<div class="card page-header-premium border-0 shadow-lg mb-4">
+    <div class="card-body p-4 d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center">
+            <div class="header-icon-box-outer me-4">
+                <div class="header-icon-circle-inner">
+                    <i class="fas fa-history"></i>
+                </div>
+            </div>
+            <div>
+                <h3 class="text-white fw-bold mb-0" style="letter-spacing: 0.5px; font-size: 1.8rem;">KARDEX DE SUMINISTROS</h3>
+                <p class="mb-0 small" style="color: #cbd5e1; font-weight: 500;">
+                    <i class="fas fa-info-circle me-1" style="font-size: 0.8rem;"></i> Control histórico de movimientos de inventario
+                </p>
+            </div>
+        </div>
     </div>
 </div>
 
-<!-- PANEL DE FILTROS EN LA PARTE SUPERIOR -->
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="bg-white px-4 py-3 filter-card">
-            <div class="d-flex align-items-center mb-3">
-                <i class="fas fa-filter text-muted me-2"></i>
-                <h6 class="mb-0 fw-bold text-dark">Filtros de Búsqueda</h6>
+<!-- Panel de Filtros Premium -->
+<div class="card premium-card mb-4 shadow-sm" style="border-radius: 15px;">
+    <div class="card-body p-4">
+        <div class="d-flex align-items-center mb-4 pb-3 border-bottom border-light">
+            <i class="fas fa-filter text-primary me-2" style="font-size: 1.1rem;"></i>
+            <h5 class="mb-0 fw-bold text-dark" style="letter-spacing: 0.5px; font-size: 1rem;">FILTROS DE BÚSQUEDA</h5>
+        </div>
+        
+        <div class="row g-4 align-items-end">
+            <div class="col-md-2">
+                <label for="categoria" class="form-label-premium" style="font-size: 0.7rem;">CATEGORÍA DE PRODUCTO</label>
+                <select id="categoria" class="form-select" name="categoria">
+                    <option value=""></option>
+                    {% for cat in categorias %}
+                    <option value="{{ cat.id_categoria }}">{{ cat.nombre_categoria }}</option>
+                    {% endfor %}
+                </select>
             </div>
-            <div class="row g-3 align-items-end">
-                <div class="col-md-2">
-                    <label for="categoria" class="form-label small fw-bold text-muted text-uppercase">Categoría</label>
-                    <select id="categoria" class="form-select" name="categoria">
-                        <option value=""></option>
-                        {% for cat in categorias %}
-                        <option value="{{ cat.id_categoria }}">{{ cat.nombre_categoria }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
 
-                <div class="col-md-3">
-                    <label for="suministro" class="form-label small fw-bold text-muted text-uppercase">Suministro</label>
-                    <select id="suministro" class="form-select" aria-label="Seleccionar Suministro">
-                        <option value=""></option>
-                    </select>
-                </div>
-
-                <div class="col-md-2">
-                    <label for="fecha_desde" class="form-label small fw-bold text-muted text-uppercase">Desde</label>
-                    <input type="date" id="fecha_desde" name="fecha_desde" class="form-control">
-                </div>
-
-                <div class="col-md-2">
-                    <label for="fecha_hasta" class="form-label small fw-bold text-muted text-uppercase">Hasta</label>
-                    <input type="date" id="fecha_hasta" name="fecha_hasta" class="form-control">
-                </div>
-
-                <div class="col-md-3 d-flex gap-2 align-items-end justify-content-end">
-                    <button id="cargarDatos" class="btn btn-filtro-principal d-flex align-items-center justify-content-center">
-                        <i class="fas fa-sync me-2"></i> Cargar
-                    </button>
-                    <button id="limpiarFiltros" class="btn btn-filtro-secundario d-flex align-items-center justify-content-center" title="Limpiar Filtros">
-                        <i class="fas fa-eraser me-2"></i> Limpiar
-                    </button>
-                </div>
+            <div class="col-md-3">
+                <label for="suministro" class="form-label-premium" style="font-size: 0.7rem;">SUMINISTRO / ARTÍCULO</label>
+                <select id="suministro" class="form-select" aria-label="Seleccionar Suministro">
+                    <option value=""></option>
+                </select>
             </div>
-  </div>
-</div>
 
-<!-- PANEL DE CONTENIDO: SALDO INICIAL Y TABLA -->
-<div class="row">
-    <div class="col-12">
-        <!-- Panel de Referencia: Saldo Inicial -->
-        <div id="panel_saldo_inicial" class="mb-0 d-none">
-            <div class="card border-0 p-3" style="background-color: #ffffff; border: 1px solid #e2e8f0 !important; border-bottom: none !important; border-radius: 0 !important;">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="fw-bold text-dark" style="font-size: 0.95rem; letter-spacing: 0.5px; text-transform: uppercase;">Saldo Inicial al Período</div>
-                        <div class="text-muted small">Stock previo al rango seleccionado</div>
-                    </div>
-                    <div class="text-end">
-                        <span id="valor_saldo_inicial" class="fw-bold fs-4 text-primary">0</span>
-                    </div>
-                </div>
+            <div class="col-md-2">
+                <label for="fecha_desde" class="form-label-premium" style="font-size: 0.7rem;">FECHA DESDE</label>
+                <input type="date" id="fecha_desde" name="fecha_desde" class="form-control form-control-premium">
+            </div>
+
+            <div class="col-md-2">
+                <label for="fecha_hasta" class="form-label-premium" style="font-size: 0.7rem;">FECHA HASTA</label>
+                <input type="date" id="fecha_hasta" name="fecha_hasta" class="form-control form-control-premium">
+            </div>
+
+            <div class="col-md-3 d-flex gap-2">
+                <button id="cargarDatos" class="btn btn-premium-load flex-grow-1 d-flex align-items-center justify-content-center">
+                    <i class="fas fa-sync-alt me-2"></i> CARGAR
+                </button>
+                <button id="limpiarFiltros" class="btn btn-premium-clear d-flex align-items-center justify-content-center">
+                    <i class="fas fa-eraser me-2"></i> LIMPIAR
+                </button>
             </div>
         </div>
+    </div>
+</div>
 
-        <div class="bg-white px-4 py-3 table-container mb-4">
-            <table id="Tabla_Kardex" class="table table-hover align-middle mb-0" style="width: 100%;">
+<!-- SECCIÓN 1: RESUMEN POR CATEGORÍA -->
+<div id="section_resumen" class="premium-card mb-4 shadow-sm d-none">
+    <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center py-3 px-4 mt-2">
+        <div class="d-flex align-items-center">
+            <div class="header-number me-3">1</div>
+            <div>
+                <h5 class="mb-0 fw-bold text-dark" style="font-size: 1rem; letter-spacing: 0.2px;">RESUMEN DE SUMINISTROS POR CATEGORÍA</h5>
+                <p class="mb-0 text-muted small" style="font-weight: 400;">(Todos los suministros registrados en la categoría seleccionada)</p>
+            </div>
+        </div>
+        <div id="badge_total_resumen" class="badge-total d-none">
+            <i class="fas fa-list-ul me-2 opacity-50"></i> Total suministros: <span id="total_count" class="ms-1">0</span>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table id="Tabla_Resumen" class="table table-hover table-premium w-100 mb-0">
                 <thead>
                     <tr>
-                        <th style="width: 12%;">Fecha</th>
-                        <th style="width: 25%;">Descripción</th>
+                        <th class="ps-4">#</th>
+                        <th>Suministro</th>
+                        <th>Categoría</th>
+                        <th class="text-center">Stock Actual</th>
+                        <th class="text-center">Stock Mínimo</th>
+                        <th class="text-end">Precio Unitario</th>
+                        <th class="text-center">Último Movimiento</th>
+                        <th class="text-center">Estado</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- SECCIÓN 2: MOVIMIENTOS DEL SUMINISTRO -->
+<div id="section_movimientos" class="premium-card mb-4 shadow-sm d-none">
+    <div class="card-header bg-white border-0 py-3 px-4 mt-2">
+        <div class="d-flex align-items-center">
+            <div class="header-number me-3">2</div>
+            <div>
+                <h5 class="mb-0 fw-bold text-dark" style="font-size: 1rem; letter-spacing: 0.2px;">MOVIMIENTOS DEL SUMINISTRO SELECCIONADO <span id="supply_name_header" class="text-primary opacity-75"></span></h5>
+                <small id="subtitle_movimientos" class="text-muted">(Seleccione un suministro para ver su historial detallado)</small>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table id="Tabla_Movimientos" class="table table-hover table-premium w-100 mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-4">Fecha Mov.</th>
+                        <th>Descripción</th>
                         <th class="text-center">Entrada</th>
                         <th class="text-center">Salida</th>
                         <th class="text-center">Stock Anterior</th>
@@ -236,393 +399,375 @@ GESTIONAR OTROS
                         <th class="text-end">Total</th>
                     </tr>
                 </thead>
-                <tbody>
-                </tbody>
+                <tbody></tbody>
             </table>
+        </div>
+        <div class="d-flex justify-content-between align-items-center p-3 px-4 border-top bg-light bg-opacity-50">
+            <small id="footer_range" class="text-muted" style="font-size: 0.75rem;"></small>
+            <button id="btnImprimirMov" class="btn btn-dark-premium">
+                <i class="fas fa-print me-2"></i> IMPRIMIR MOVIMIENTOS
+            </button>
         </div>
     </div>
 </div>
-
 {% endblock %}
 
 {% block scripts %}
-
 <script>
     $(document).ready(function () {
         var csrfToken = "{{ csrf_token }}";
-        var Tabla_Kardex;
+        var Tabla_Resumen, Tabla_Movimientos;
 
         // Carga previa de suministros enviada desde el servidor
         const suministrosTodos = {{ suministros_todos_json|safe }};
 
-        const today = new Date();
-        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-
-        const formatDate = (date) => {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        };
-
-        // Activar buscador en los filtros con X para limpiar
+        // Inicializar Select2 Premium
         $('#categoria').select2({
-            placeholder: "Seleccione la Categoría",
+            placeholder: "SELECCIONE LA CATEGORÍA",
             allowClear: true,
             width: '100%'
         });
 
         $('#suministro').select2({
-            placeholder: "Seleccione el Suministro",
+            placeholder: "SELECCIONE UN SUMINISTRO (OPCIONAL)",
             allowClear: true,
             width: '100%'
         });
 
-        $('#cargarDatos').click(function () {
-            var id_categoria = $('#categoria').val();
-            var id_suministro = $('#suministro').val();
-            var fecha_desde = $('#fecha_desde').val();
-            var fecha_hasta = $('#fecha_hasta').val();
-
-            // Determinar qué campos obligatorios faltan
-            var faltantes = [];
-            if (!id_categoria) faltantes.push("categoría");
-            if (!id_suministro) faltantes.push("suministro");
-            if (!fecha_desde) faltantes.push("fecha_desde");
-            if (!fecha_hasta) faltantes.push("fecha_hasta");
-
-            // Si faltan Varios campos (2 o más), mostrar mensaje general
-            if (faltantes.length > 1) {
-                Swal.fire("Atención", "Debe completar todos los campos obligatorios.", "warning");
-                return;
+        // Delegación de eventos para "Ver detalle" y clics en filas
+        $(document).on('click', '.btn-ver-detalle, #Tabla_Resumen tbody tr', function (e) {
+            // Si el clic fue en un elemento interactivo que no sea el link, dejar que pase
+            if (!$.fn.DataTable.isDataTable('#Tabla_Resumen')) return;
+            
+            let table = $('#Tabla_Resumen').DataTable();
+            let row = $(this).closest('tr');
+            let data = table.row(row).data();
+            
+            if (data) {
+                // 1. Sincronizar el combo de suministros
+                $('#suministro').val(data.id).trigger('change.select2');
+                
+                // 2. Cargar movimientos (suave)
+                fillKardex($('#categoria').val(), data.id, $('#fecha_desde').val(), $('#fecha_hasta').val(), false);
+                
+                // 3. Scroll suave hacia la tabla de movimientos
+                $('html, body').animate({
+                    scrollTop: $("#section_movimientos").offset().top - 100
+                }, 500);
             }
-
-            // Si falta solo UNO, mostrar el mensaje específico solicitado
-            if (faltantes.length === 1) {
-                var campo = faltantes[0];
-                if (campo === "categoría") {
-                    Swal.fire("Atención", "Debe seleccionar una categoría.", "warning");
-                } else if (campo === "suministro") {
-                    Swal.fire("Atención", "Debe seleccionar un suministro.", "warning");
-                } else if (campo === "fecha_desde") {
-                    Swal.fire("Atención", "Debe agregar la fecha desde.", "warning");
-                } else if (campo === "fecha_hasta") {
-                    Swal.fire("Atención", "Debe agregar la fecha hasta.", "warning");
-                }
-                return;
-            }
-
-            if (fecha_desde > fecha_hasta) {
-                Swal.fire("Atención", "La fecha desde no puede ser mayor que la fecha hasta.", "warning");
-                return;
-            }
-
-            fillKardex(id_categoria, id_suministro, fecha_desde, fecha_hasta);
         });
 
-        function fillKardex(id_categoria = null, id_suministro = null, fecha_desde = null, fecha_hasta = null) {
-            fecha_desde = fecha_desde || document.getElementById('fecha_desde')?.value || null;
-            fecha_hasta = fecha_hasta || document.getElementById('fecha_hasta')?.value || null;
-
-            Swal.fire({
-                title: 'Cargando datos...',
-                text: 'Por favor espera',
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
-
-            if ($.fn.dataTable.isDataTable('#Tabla_Kardex')) {
-                $('#Tabla_Kardex').DataTable().clear().destroy();
+        function fillKardex(id_categoria = null, id_suministro = null, fecha_desde = null, fecha_hasta = null, updateSummary = true) {
+            if (updateSummary) {
+                Swal.fire({
+                    title: 'Cargando Kardex...',
+                    text: 'Procesando información de inventario',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
             }
 
-            Tabla_Kardex = $("#Tabla_Kardex").DataTable({
-                autoWidth: false,
-                scrollX: true,
-                scrollY: '350px',
-                scrollCollapse: true,
-                pageLength: 10,
-                dom: 'Brftip',
-                language: {                    url: "{% static 'app/th/json/es-ES.json' %}",
-                    emptyTable: "No existen movimientos para este suministro en el rango de fechas seleccionado."
+            $.ajax({
+                url: `{% url 'historial_suministros_data' %}`,
+                type: "POST",
+                data: {
+                    csrfmiddlewaretoken: csrfToken,
+                    id_categoria: id_categoria,
+                    id_suministro: id_suministro,
+                    fecha_desde: fecha_desde,
+                    fecha_hasta: fecha_hasta
                 },
-                ajax: {
-                    url: `{% url 'historial_suministros_data' %}`,
-                    type: "POST",
-                    dataSrc: function (json) {
-                        if (!json.data) return [];
-                        const data = json.data;
-                        const initialRow = data.find(row => row.es_saldo_inicial === 1);
+                success: function (response) {
+                    if (response.success) {
+                        // 1. POBLAR TABLA RESUMEN Solo si se solicita
+                        if (updateSummary) {
+                            if ($.fn.dataTable.isDataTable('#Tabla_Resumen')) { $('#Tabla_Resumen').DataTable().destroy(); }
+                            
+                            $('#total_count').text(response.total_resumen);
+                            $('#badge_total_resumen').removeClass('d-none');
+                            
+                            Tabla_Resumen = $("#Tabla_Resumen").DataTable({
+                                data: response.resumen,
+                                autoWidth: false,
+                                pageLength: 5,
+                                dom: 'rtp',
+                                language: { url: "{% static 'app/th/json/es-ES.json' %}" },
+                                columns: [
+                                    { data: null, render: (data, type, row, meta) => meta.row + 1, className: 'ps-4 small text-muted' },
+                                    { 
+                                        data: 'suministro', 
+                                        className: 'fw-bold text-dark cursor-pointer',
+                                        render: (data) => data
+                                    },
+                                    { data: 'categoria', className: 'text-muted small' },
+                                    { 
+                                        data: 'stock_actual', 
+                                        className: 'text-center fw-bold',
+                                        render: (data) => `<span class="text-success">${data}</span>`
+                                    },
+                                    { 
+                                        data: 'stock_minimo', 
+                                        className: 'text-center',
+                                        render: (data) => `<span class="text-danger opacity-75">${data}</span>`
+                                    },
+                                    { 
+                                        data: 'precio_unitario', 
+                                        className: 'text-end fw-medium',
+                                        render: (data) => 'L ' + parseFloat(data).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                                    },
+                                    { 
+                                        data: 'ultimo_movimiento', 
+                                        className: 'text-center small',
+                                        render: (data) => `<a href="javascript:void(0)" class="btn-ver-detalle text-primary fw-medium"><u>${data}</u></a>`
+                                    },
+                                    { 
+                                        data: 'estado', 
+                                        className: 'text-center',
+                                        render: (data) => {
+                                            let color = data === 'Activo' ? 'success' : 'danger';
+                                            return `<span class="badge-estado bg-${color}">${data}</span>`;
+                                        }
+                                    }
+                                ]
+                            });
+                            $('#section_resumen').removeClass('d-none');
+                        }
+
+                        if ($.fn.dataTable.isDataTable('#Tabla_Movimientos')) { $('#Tabla_Movimientos').DataTable().destroy(); }
                         
-                        if (initialRow) {
-                            let stock = initialRow.stock_actual || 0;
-                            let num = parseFloat(stock);
-                            let formattedStock = num % 1 === 0 ? num.toString() : num.toFixed(2);
+                        if (id_suministro) {
+                            let supplyName = '';
+                            let rowData = response.resumen.find(r => r.id == id_suministro);
+                            supplyName = rowData ? rowData.suministro : ($('#suministro option:selected').text() || 'Seleccionado');
                             
-                            $('#valor_saldo_inicial').text(formattedStock);
-                            $('#panel_saldo_inicial').removeClass('d-none');
-                            
-                            // Retornar solo los movimientos reales (excluyendo el saldo inicial de la tabla)
-                            return data.filter(row => row.es_saldo_inicial !== 1);
+                            $('#supply_name_header').text(`(${supplyName})`);
+                            $('#subtitle_movimientos').addClass('d-none');
+                            $('#section_movimientos').removeClass('d-none');
                         } else {
-                            $('#panel_saldo_inicial').addClass('d-none');
-                            return data;
+                            $('#supply_name_header').text('');
+                            $('#subtitle_movimientos').removeClass('d-none');
+                            $('#section_movimientos').removeClass('d-none');
                         }
-                    },
-                    data: {
-                        csrfmiddlewaretoken: csrfToken,
-                        id_categoria: id_categoria,  
-                        id_suministro: id_suministro,
-                        fecha_desde: fecha_desde,  
-                        fecha_hasta: fecha_hasta  
-                    },
-                    complete: function () {
-                        Swal.close();
-                    },
-                    error: function (xhr, status, error) {
-                        console.error("Error al cargar los datos:", error);
-                        Swal.fire("", "Ocurrió un error al obtener los datos.", "error");
+
+                        Tabla_Movimientos = $("#Tabla_Movimientos").DataTable({
+                            data: response.movimientos,
+                            autoWidth: false,
+                            language: { 
+                                url: "{% static 'app/th/json/es-ES.json' %}",
+                                emptyTable: "Seleccione un suministro para ver su historial detallado"
+                            },
+                            dom: 'Brtp',
+                            buttons: [
+                                {
+                                    extend: 'pdfHtml5',
+                                    orientation: 'portrait',
+                                    pageSize: 'A4',
+                                    title: 'KARDEX DE MOVIMIENTOS – CONTROL SUMINISTROS',
+                                    className: 'd-none',
+                                    exportOptions: {
+                                        columns: [0, 1, 2, 3, 4, 5, 6, 7],
+                                        orthogonal: 'export'
+                                    },
+                                    customize: function (doc) {
+                                        let cat = $('#categoria option:selected').text() || 'N/A';
+                                        let sum = $('#suministro option:selected').text() || 'N/A';
+                                        
+                                        const formatD = (d) => {
+                                            if (!d || d.length < 10) return d;
+                                            let p = d.split('-');
+                                            let day = p[2].padStart(2, '0');
+                                            let month = p[1].padStart(2, '0');
+                                            return `${day}/${month}/${p[0]}`;
+                                        };
+
+                                        let f_desde = formatD($('#fecha_desde').val()) || 'Inicio';
+                                        let f_hasta = formatD($('#fecha_hasta').val()) || 'Hoy';
+                                        let f_reporte = new Date().toLocaleDateString('es-HN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+                                        // --- ESTILOS PROFESIONALES ---
+                                        doc.styles.title = { fontSize: 15, bold: true, alignment: 'center', margin: [0, 0, 0, 10], color: '#0b2f52' };
+                                        doc.styles.tableHeader = { fillColor: '#0b2f52', color: 'white', alignment: 'center', bold: true, fontSize: 9, padding: 4 };
+                                        doc.styles.tableBodyEven = { alignment: 'center', fontSize: 8.5 };
+                                        doc.styles.tableBodyOdd = { alignment: 'center', fontSize: 8.5 };
+
+                                        // Márgenes A4 [left, top, right, bottom]
+                                        doc.pageMargins = [40, 40, 40, 40];
+
+                                        // Cabecera de metadatos centrada y compacta
+                                        doc.content.splice(1, 0, {
+                                            margin: [0, 0, 0, 15],
+                                            fontSize: 9,
+                                            table: {
+                                                widths: ['*', '*'],
+                                                body: [
+                                                    [
+                                                        { text: [{ text: 'Categoría: ', bold: true }, cat, '\n', { text: 'Suministro: ', bold: true }, sum], border: [false, false, false, false], alignment: 'left' },
+                                                        { text: [{ text: 'Período: ', bold: true }, f_desde + ' - ' + f_hasta, '\n', { text: 'Generado: ', bold: true }, f_reporte], border: [false, false, false, false], alignment: 'right' }
+                                                    ]
+                                                ]
+                                            },
+                                            layout: 'noBorders'
+                                        });
+
+                                        // --- DISTRIBUCIÓN DE COLUMNAS EXACTA ---
+                                        // 12% + 28% + 8% + 8% + 12% + 12% + 10% + 10% = 100%
+                                        doc.content[2].table.widths = ['12%', '28%', '8%', '8%', '12%', '12%', '10%', '10%'];
+                                        
+                                        // Layout limpio
+                                        doc.content[2].layout = {
+                                            hLineWidth: function (i, node) { return (i === 0 || i === node.table.body.length) ? 1 : 0.1; },
+                                            vLineWidth: function (i, node) { return 0; },
+                                            hLineColor: function (i, node) { return '#cbd5e1'; },
+                                            paddingLeft: function (i) { return 4; },
+                                            paddingRight: function (i) { return 4; },
+                                            paddingTop: function (i) { return 5; },
+                                            paddingBottom: function (i) { return 5; }
+                                        };
+                                        
+                                        // Forzar que la tabla use el ancho disponible
+                                        doc.content[2].table.headerRows = 1;
+                                    }
+                                }
+                            ],
+                            columns: [
+                                { 
+                                    data: 'fecha', 
+                                    className: 'ps-4 small',
+                                    render: (data) => {
+                                        if (!data) return '';
+                                        let datePart = data.split(' ')[0];
+                                        let parts = datePart.split('-');
+                                        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+                                    }
+                                },
+                                { 
+                                    data: 'descripcion', 
+                                    className: 'small',
+                                    render: (data, type, row) => {
+                                        if (data && data.toUpperCase().includes('SALDO INICIAL') && row.entrada == 0 && row.salida == 0) {
+                                            return '<span class="text-muted italic">SALDO INICIAL DEL PERÍODO (SIN MOVIMIENTOS)</span>';
+                                        }
+                                        return data;
+                                    }
+                                },
+                                { 
+                                    data: 'entrada', 
+                                    className: 'text-center fw-bold text-success',
+                                    render: (data) => data > 0 ? data : '<span class="text-muted opacity-25">0</span>'
+                                },
+                                { 
+                                    data: 'salida', 
+                                    className: 'text-center fw-bold text-danger',
+                                    render: (data) => data > 0 ? data : '<span class="text-muted opacity-25">0</span>'
+                                },
+                                { data: 'stock_ant', className: 'text-center text-muted small' },
+                                { data: 'stock_act', className: 'text-center fw-bold' },
+                                { 
+                                    data: 'precio', 
+                                    className: 'text-end',
+                                    render: (data) => 'L ' + parseFloat(data).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                                },
+                                { 
+                                    data: 'total', 
+                                    className: 'text-end fw-bold',
+                                    render: (data) => 'L ' + parseFloat(data).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                                }
+                            ]
+                        });
+
+                        if (id_suministro && response.movimientos.length > 0) {
+                            var f_desde = $('#fecha_desde').val() || 'inicio';
+                            var f_hasta = $('#fecha_hasta').val() || 'hoy';
+                            $('#footer_range').text(`Mostrando movimientos del ${f_desde} al ${f_hasta}`);
+                        } else {
+                            $('#footer_range').text('');
+                        }
+
+                        if (updateSummary) {
+                            Swal.close();
+                        }
+                    } else {
+                        Swal.fire("Atención", response.message || "No se encontraron datos", "info");
                     }
                 },
-                colReorder: {
-                    realtime: false,
-                },
-                buttons: [
-    {
-        extend: 'excelHtml5',
-        text: '<i class="fas fa-file-excel"></i> Excel',
-        titleAttr: 'Exportar a Excel',
-        className: 'btn btn-success btn-sm',
-        exportOptions: {
-            columns: [0, 1, 2, 3, 4, 5, 6, 7]
-        }
-    },
-    {
-        extend: 'pdfHtml5',
-        text: '<i class="fas fa-file-pdf"></i> PDF',
-        titleAttr: 'Exportar a PDF',
-        className: 'btn btn-danger btn-sm',
-        pageSize: 'A4',
-        orientation: 'portrait',
-        exportOptions: {
-            columns: [0, 1, 2, 3, 4, 5, 6, 7]
-        },
-        customize: function (doc) {
-        doc.content[1].table.widths = Array(doc.content[1].table.body[0].length).fill('*');
-        doc.styles.tableHeader.fillColor = '#697a8a';
-        doc.styles.tableHeader.color = 'white';
-        doc.styles.tableHeader.alignment = 'center';
-        doc.styles.tableHeader.fontSize = 9;
-        doc.defaultStyle.alignment = 'center';
-        doc.defaultStyle.fontSize = 7;
-        doc.pageMargins = [15, 20, 15, 20];
-        doc.content[0].text = "REPORTE DE MOVIMIENTOS (KARDEX)";
-        doc.content[0].alignment = 'center';
-        doc.content[0].margin = [0, 0, 0, 10];
-        }
-    },
-    {
-                        extend: 'pdfHtml5', 
-                        text: '<i class="fas fa-print"></i> Imprimir',
-                        titleAttr: 'Imprimir',
-                        className: 'btn btn-secondary btn-sm',
-                        pageSize: 'A4',
-                        orientation: 'portrait',
-                        exportOptions: {
-                            columns: [0, 1, 2, 3, 4, 5, 6, 7]
-                        },
-                        action: function ( e, dt, button, config ) {
-                            var oldPdfMake = window.pdfMake.createPdf;
-                            try {
-                                window.pdfMake.createPdf = function(doc) {
-                                    var pdf = oldPdfMake(doc);
-                                    return {
-                                        download: function() { pdf.print(); },
-                                        open: function() { pdf.print(); },
-                                        print: function() { pdf.print(); }
-                                    };
-                                };
-                                $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
-                            } finally {
-                                window.pdfMake.createPdf = oldPdfMake;
-                            }
-                        },
-                        customize: function (doc) {
-                            // Mismas reglas exactas del PDF
-                            doc.content[1].table.widths = Array(doc.content[1].table.body[0].length).fill('*');
-                            doc.styles.tableHeader.fillColor = '#2c4770';
-                            doc.styles.tableHeader.color = 'white';
-                            doc.styles.tableHeader.alignment = 'center';
-                            doc.styles.tableHeader.fontSize = 9;
-                            doc.defaultStyle.alignment = 'center';
-                            doc.defaultStyle.fontSize = 7;
-                            doc.pageMargins = [15, 20, 15, 20];
-                            doc.content[0].text = "REPORTE DE MOVIMIENTOS (KARDEX)";
-                            doc.content[0].alignment = 'center';
-                            doc.content[0].margin = [0, 0, 0, 10];
-                        }
-                    }
-                ],
-                createdRow: function (row, data, dataIndex) {
-                    // Limpio
-                },
-                columns: [
-                    {
-                        data: 'fecha_movimiento'
-                    },
-                    {
-                        data: 'detalle_movimiento'
-                    },
-                    {
-                        data: 'entrada',
-                        className: 'text-center',
-                        render: function(data, type, row) {
-                            if (data == null) return "0";
-                            var num = parseFloat(data);
-                            return num % 1 === 0 ? num.toString() : num.toFixed(2);
-                        }
-                    },
-                    {
-                        data: 'salida',
-                        className: 'text-center',
-                        render: function(data, type, row) {
-                            if (data == null) return "0";
-                            var num = parseFloat(data);
-                            return num % 1 === 0 ? num.toString() : num.toFixed(2);
-                        }
-                    },
-                    {
-                        data: 'stock_anterior',
-                        className: 'formattAverages',
-                        render: function(data, type, row) {
-                            if (data == null) return "0";
-                            var num = parseFloat(data);
-                            return num % 1 === 0 ? num.toString() : num.toFixed(2);
-                        }
-                    },
-                    {
-                        data: 'stock_actual',
-                        className: 'formattAverages',
-                        render: function(data, type, row) {
-                            if (data == null) return "0";
-                            var num = parseFloat(data);
-                            return num % 1 === 0 ? num.toString() : num.toFixed(2);
-                        }
-                    },
-                    {
-                        data: 'precio_unitario',
-                        className: 'formattMoney',
-                        render: function(data, type, row) {
-                            if (data == null) return "L 0.00";
-                            var num = parseFloat(data);
-                            return 'L ' + num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                        }
-                    },
-                    {
-                        data: 'costo_total',
-                        className: 'formattMoney text-end',
-                        render: function(data, type, row) {
-                            let valorAbsoluto = Math.abs(parseFloat(data) || 0);
-                            return 'L ' + valorAbsoluto.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                        }
-                    },
-                ],
+                error: function (xhr, status, error) {
+                    Swal.fire("Error", "No se pudo conectar con el servidor", "error");
+                }
             });
         }
 
-        // Filtrado local instantáneo al seleccionar una categoría (SIN AJAX)
-        $('#categoria').change(function () {
-            var categoria_id = $(this).val();
-            var $suministro = $('#suministro');
+        $('#cargarDatos').click(function () {
+            var id_cat = $('#categoria').val();
+            var id_sum = $('#suministro').val();
+            var f_desde = $('#fecha_desde').val();
+            var f_hasta = $('#fecha_hasta').val();
 
-            if (categoria_id) {
-                // Filtrar la lista precargada por el ID de la categoría seleccionada
-                var suministrosFiltrados = suministrosTodos.filter(function(s) {
-                    return s.id_categoria == categoria_id;
-                });
+            if (!id_cat) {
+                Swal.fire("Atención", "Debe seleccionar una categoría", "warning");
+                return;
+            }
+            if (!f_desde || !f_hasta) {
+                Swal.fire("Atención", "Las fechas (Desde/Hasta) son obligatorias para cargar el historial", "warning");
+                return;
+            }
+            
+            fillKardex(id_cat, id_sum, f_desde, f_hasta);
+        });
 
-                // Reinicialización limpia: Destruir para recrear desde cero igual que Categoría
-                if ($suministro.data('select2')) { $suministro.select2('destroy'); }
-                $suministro.empty();
 
-                // Preparar datos para carga atómica
-                var data = [{ id: '', text: 'Seleccione el Suministro' }];
-                suministrosFiltrados.forEach(function (s) {
-                    data.push({ id: s.id_suministros, text: s.nombre });
-                });
-
-                if (suministrosFiltrados.length === 0) {
-                    data = [{ id: '', text: 'No hay suministros disponibles' }];
-                }
-
-                // Inicialización instantánea (SIN ESPERAS)
-                $suministro.select2({
-                    data: data,
-                    placeholder: "Seleccione el Suministro",
-                    allowClear: true,
-                    width: '100%'
-                }).trigger('change');
+        $('#btnImprimirMov').click(function() {
+            if (Tabla_Movimientos && Tabla_Movimientos.rows().count() > 0) {
+                Tabla_Movimientos.button('.buttons-pdf').trigger();
             } else {
-                // Volver al estado inicial si no hay categoría seleccionada
-                if ($suministro.data('select2')) { $suministro.select2('destroy'); }
-                $suministro.empty().select2({
-                    data: [{ id: '', text: 'Seleccione el Suministro' }],
-                    placeholder: "Seleccione el Suministro",
-                    allowClear: true,
-                    width: '100%'
-                }).trigger('change');
+                Swal.fire("Atención", "Primero cargue movimientos para imprimir.", "warning");
             }
         });
-        
 
         $('#limpiarFiltros').click(function () {
             $('#categoria').val('').trigger('change');
-            $('#suministro').empty().append('<option value="">Seleccione el Suministro</option>');
-
-            const today = new Date();
-            const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-
-            const formatDate = (date) => {
-                const year = date.getFullYear();
-                const month = String(date.getMonth() + 1).padStart(2, '0');
-                const day = String(date.getDate()).padStart(2, '0');
-                return `${year}-${month}-${day}`;
-            };
-
-            $('#fecha_desde').val(formatDate(firstDay));
-            $('#fecha_hasta').val(formatDate(today));
-
-           
-            if ($.fn.dataTable.isDataTable('#Tabla_Kardex')) {
-                $('#Tabla_Kardex').DataTable().clear().destroy();
+            $('#suministro').val('').trigger('change');
+            $('#fecha_desde, #fecha_hasta').val('');
+            
+            if ($.fn.DataTable.isDataTable('#Tabla_Resumen')) {
+                $('#Tabla_Resumen').DataTable().clear().draw();
             }
-            $('#panel_saldo_inicial').addClass('d-none');
+            if ($.fn.DataTable.isDataTable('#Tabla_Movimientos')) {
+                $('#Tabla_Movimientos').DataTable().clear().draw();
+            }
+            
+            $('#section_resumen, #section_movimientos').addClass('d-none');
+            $('#badge_total_resumen').addClass('d-none');
+            
+            // Quitar foco visual
+            $('#fecha_desde, #fecha_hasta').blur();
+            if (document.activeElement) document.activeElement.blur();
         });
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const urlMes = urlParams.get('mes');
-        const urlFecha = urlParams.get('fecha');
-
-        if (urlFecha) {
-            setTimeout(() => {
-                $('#fecha_desde').val(urlFecha);
-                $('#fecha_hasta').val(urlFecha);
-                fillKardex(null, null, urlFecha, urlFecha);
-            }, 500);
-        } else if (urlMes) {
-            setTimeout(() => {
-                const currentYear = new Date().getFullYear();
-                const startStr = `${currentYear}-${String(urlMes).padStart(2, '0')}-01`;
-                const lastDay = new Date(currentYear, urlMes, 0).getDate();
-                const endStr = `${currentYear}-${String(urlMes).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
-                $('#fecha_desde').val(startStr);
-                $('#fecha_hasta').val(endStr);
-                fillKardex(null, null, startStr, endStr);
-            }, 500);
-        }
-
+        // Filtrado de suministros por categoría
+        $('#categoria').on('change', function () {
+            var catId = $(this).val();
+            var $sum = $('#suministro');
+            $sum.empty().append('<option value="">Seleccione un suministro (Opcional)</option>');
+            
+            if (catId) {
+                var filtered = suministrosTodos.filter(s => s.id_categoria == catId);
+                filtered.forEach(s => {
+                    $sum.append(new Option(s.nombre, s.id_suministros));
+                });
+                // Auto-cargar resumen al cambiar categoría
+                fillKardex(catId, '', $('#fecha_desde').val(), $('#fecha_hasta').val());
+            } else {
+                $('#section_resumen, #section_movimientos').addClass('d-none');
+            }
+        });
+        // Se elimina la llamada inicial ya que usamos delegación global con $(document).on
+        
+        // Quitar foco inicial de forma estricta (con ligero retraso para ganar a otros scripts)
+        setTimeout(function() {
+            $('#fecha_desde, #fecha_hasta').blur();
+            if (document.activeElement) document.activeElement.blur();
+            window.scrollTo(0, 0);
+        }, 150);
     });
 </script>
 

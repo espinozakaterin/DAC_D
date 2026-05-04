@@ -1,11 +1,16 @@
 <div class="modal fade" id="modalRequisicion" tabindex="-1" aria-labelledby="modalRequisicionLabel" aria-hidden="true"
     data-bs-keyboard="false" data-bs-backdrop="static">
-    <div class="modal-dialog modal-fullscreen">
-        <div class="modal-content">
-            <div class="modal-header" style="background-color: #697a8a; color: white;">
-                <h5 class="modal-title" id="modalRequisicionLabel">
-                    <i class="material-icons me-2">add_shopping_cart</i> AGREGAR REQUISICIÓN
-                </h5>
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 15px 50px rgba(0,0,0,0.15);">
+            <div class="modal-header" style="background-color: #0d325a; border-top-left-radius: 20px; border-top-right-radius: 20px; padding: 1.6rem 2rem;">
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                    <span style="font-size: 0.68rem; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,0.80); font-weight: 500;">
+                        Control de Suministros
+                    </span>
+                    <h4 class="modal-title mb-0" id="modalRequisicionLabel" style="color: #ffffff !important; font-weight: 800; font-size: 1.7rem; letter-spacing: 0.3px; line-height: 1.2;">
+                        <i class="material-icons align-middle me-2" style="font-size: 1.8rem; color: #ffffff; vertical-align: middle;">add_shopping_cart</i>Crear Nueva Requisición
+                    </h4>
+                </div>
             </div>
             
             <form id="formRequisicion">
@@ -13,112 +18,375 @@
                 <input type="hidden" id="costo_total_hidden" name="costo_total" value="0.00">
                 <input type="hidden" id="detalle_articulos" name="detalle_articulos" value="[]">
 
-                <div class="modal-body p-3">
+                <style>
+                    #modalRequisicion .form-label { font-size: 0.78rem; font-weight: 700; color: #64748b; margin-bottom: 0.5rem; letter-spacing: 0.5px; text-transform: uppercase; }
+                    #modalRequisicion .form-control,
+                    #modalRequisicion .form-select {
+                        height: 48px;
+                        border-radius: 14px !important;
+                        border: 1.5px solid #e2e8f0 !important;
+                        padding: 0.65rem 1.1rem !important;
+                        font-size: 0.9rem !important;
+                        font-weight: 500;
+                        color: #1e293b !important;
+                        background-color: #ffffff !important;
+                        box-shadow: 0 2px 6px rgba(0,0,0,0.04) !important;
+                        transition: all 0.25s ease !important;
+                    }
+                    #modalRequisicion .form-control:focus,
+                    #modalRequisicion .form-select:focus {
+                        border-color: #0d325a !important;
+                        box-shadow: 0 0 0 4px rgba(13, 50, 90, 0.08), 0 2px 8px rgba(13,50,90,0.12) !important;
+                        outline: none !important;
+                    }
+                    #modalRequisicion .form-control:hover,
+                    #modalRequisicion .form-select:hover {
+                        border-color: #94a3b8 !important;
+                    }
+                    #modalRequisicion textarea.form-control {
+                        height: auto !important;
+                        min-height: 80px;
+                    }
+                    #modalRequisicion .form-control.bg-light {
+                        background-color: #f8fafc !important;
+                        color: #94a3b8 !important;
+                    }
+                    #modalRequisicion .input-group .input-group-text {
+                        border-radius: 14px 0 0 14px !important;
+                        border: 1.5px solid #e2e8f0 !important;
+                        border-right: none !important;
+                        font-weight: 600;
+                        color: #64748b;
+                        height: 48px;
+                        box-shadow: 0 2px 6px rgba(0,0,0,0.04) !important;
+                    }
+                    #modalRequisicion .input-group .form-control {
+                        border-radius: 0 14px 14px 0 !important;
+                        border-left: none !important;
+                    }
+
+                    /* ── Select2 Premium Styling (closed state only) ── */
+                    #modalRequisicion .select2-container .select2-selection--single {
+                        height: 48px !important;
+                        border-radius: 14px !important;
+                        border: 1.5px solid #e2e8f0 !important;
+                        background-color: #ffffff !important;
+                        box-shadow: 0 2px 6px rgba(0,0,0,0.04) !important;
+                        transition: all 0.25s ease !important;
+                        display: flex !important;
+                        align-items: center !important;
+                    }
+                    #modalRequisicion .select2-container .select2-selection--single .select2-selection__rendered {
+                        line-height: 48px !important;
+                        padding-left: 1.1rem !important;
+                        padding-right: 2.2rem !important;
+                        font-size: 0.9rem !important;
+                        font-weight: 500 !important;
+                        color: #1e293b !important;
+                    }
+                    #modalRequisicion .select2-container .select2-selection--single .select2-selection__placeholder {
+                        color: #94a3b8 !important;
+                        font-weight: 400 !important;
+                    }
+                    #modalRequisicion .select2-container .select2-selection--single .select2-selection__arrow {
+                        height: 48px !important;
+                        right: 10px !important;
+                    }
+                    #modalRequisicion .select2-container .select2-selection--single .select2-selection__arrow b {
+                        border-color: #64748b transparent transparent transparent !important;
+                        border-width: 6px 5px 0 5px !important;
+                    }
+                    #modalRequisicion .select2-container--open .select2-selection--single {
+                        border-color: #0d325a !important;
+                        box-shadow: 0 0 0 4px rgba(13, 50, 90, 0.08), 0 2px 8px rgba(13,50,90,0.12) !important;
+                        border-bottom-left-radius: 0 !important;
+                        border-bottom-right-radius: 0 !important;
+                    }
+                    #modalRequisicion .select2-container--default:hover .select2-selection--single {
+                        border-color: #94a3b8 !important;
+                    }
+
+                    /* ── Select2 Dropdown Panel (open state) ── */
+                    #modalRequisicion .select2-dropdown {
+                        border: 1.5px solid #e2e8f0 !important;
+                        border-top: none !important;
+                        border-radius: 0 0 14px 14px !important;
+                        background-color: #ffffff !important;
+                        box-shadow: 0 12px 35px rgba(13, 50, 90, 0.12) !important;
+                        overflow: hidden;
+                    }
+                    /* Search box inside dropdown */
+                    #modalRequisicion .select2-search--dropdown {
+                        padding: 10px 12px !important;
+                        border-bottom: 1px solid #f1f5f9 !important;
+                    }
+                    #modalRequisicion .select2-search--dropdown .select2-search__field {
+                        border: 1.5px solid #e2e8f0 !important;
+                        border-radius: 8px !important;
+                        padding: 7px 12px !important;
+                        font-size: 0.88rem !important;
+                        color: #1e293b !important;
+                        outline: none !important;
+                        transition: border-color 0.2s ease !important;
+                    }
+                    #modalRequisicion .select2-search--dropdown .select2-search__field:focus {
+                        border-color: #0d325a !important;
+                        box-shadow: 0 0 0 3px rgba(13, 50, 90, 0.07) !important;
+                    }
+                    /* Options list */
+                    #modalRequisicion .select2-results__options {
+                        padding: 6px 0 !important;
+                        max-height: 220px !important;
+                        overflow-y: auto !important;
+                        /* Thin scrollbar */
+                        scrollbar-width: thin;
+                        scrollbar-color: rgba(13, 50, 90, 0.15) transparent;
+                    }
+                    #modalRequisicion .select2-results__options::-webkit-scrollbar { width: 4px; }
+                    #modalRequisicion .select2-results__options::-webkit-scrollbar-track { background: transparent; }
+                    #modalRequisicion .select2-results__options::-webkit-scrollbar-thumb {
+                        background: rgba(13, 50, 90, 0.15);
+                        border-radius: 10px;
+                    }
+                    /* Each option */
+                    #modalRequisicion .select2-results__option {
+                        padding: 10px 18px !important;
+                        font-size: 0.88rem !important;
+                        font-weight: 500 !important;
+                        color: #334155 !important;
+                        border-bottom: 1px solid #f8fafc !important;
+                        transition: background-color 0.15s ease !important;
+                    }
+                    #modalRequisicion .select2-results__option:last-child {
+                        border-bottom: none !important;
+                    }
+                    /* Hover */
+                    #modalRequisicion .select2-results__option--highlighted {
+                        background-color: rgba(13, 50, 90, 0.05) !important;
+                        color: #0d325a !important;
+                    }
+                    /* Selected */
+                    #modalRequisicion .select2-results__option[aria-selected="true"] {
+                        background-color: rgba(13, 50, 90, 0.08) !important;
+                        color: #0d325a !important;
+                        font-weight: 700 !important;
+                    }
+                    /* No results */
+                    #modalRequisicion .select2-results__option--disabled,
+                    #modalRequisicion .select2-results__message {
+                        color: #94a3b8 !important;
+                        font-style: italic !important;
+                        padding: 12px 18px !important;
+                    }
+
+                    #modalRequisicion .section-card { background: #ffffff; border-radius: 15px; border: 1px solid #f1f5f9; box-shadow: 0 4px 12px rgba(0,0,0,0.03); padding: 1.5rem; }
+                    #modalRequisicion .section-title { font-size: 0.95rem; font-weight: 700; color: #0d325a; margin-bottom: 1.2rem; display: flex; align-items: center; border-bottom: 2px solid #f1f5f9; padding-bottom: 0.5rem; }
+                    #modalRequisicion .table thead th { background: #f8fafc; color: #64748b; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; padding: 1rem; border: none; }
+                    #modalRequisicion .table tbody td { padding: 0.8rem; vertical-align: middle; border-bottom: 1px solid #f1f5f9; font-size: 0.88rem; color: #334155; }
+                    #modalRequisicion .badge-total { background: #0d325a !important; padding: 0.8rem 1.5rem; border-radius: 50px; font-weight: 700; box-shadow: 0 4px 10px rgba(13, 50, 90, 0.2); }
+                    #modalRequisicion .btn-save { 
+                        background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important; 
+                        border: none !important; 
+                        border-radius: 50px !important; 
+                        padding: 0.8rem 2.2rem !important; 
+                        font-weight: 700 !important; 
+                        color: white !important;
+                        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.25) !important; 
+                        transition: all 0.3s ease !important;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                        height: 48px;
+                    }
+                    #modalRequisicion .btn-save:hover {
+                        transform: translateY(-2px);
+                        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35) !important;
+                    }
+                    #modalRequisicion .btn-close-modal { 
+                        background: transparent !important;
+                        border: 1.5px solid #ef4444 !important; 
+                        color: #ef4444 !important; 
+                        border-radius: 50px !important; 
+                        padding: 0.8rem 2.2rem !important; 
+                        font-weight: 700 !important; 
+                        transition: all 0.3s ease !important;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                        height: 48px;
+                    }
+                    #modalRequisicion .btn-close-modal:hover { 
+                        background: rgba(239, 68, 68, 0.05) !important; 
+                    }
+                    #modalRequisicion .btn-add { 
+                        background-color: #0d325a !important; 
+                        border: none !important; 
+                        border-radius: 50px !important; 
+                        padding: 0.6rem 1.5rem !important; 
+                        box-shadow: 0 4px 10px rgba(13, 50, 90, 0.2) !important; 
+                        font-size: 0.85rem !important; 
+                        transition: all 0.2s ease !important;
+                    }
+                    #modalRequisicion .btn-add:hover {
+                        transform: translateY(-1px);
+                        box-shadow: 0 6px 15px rgba(13, 50, 90, 0.3) !important;
+                    }
+                    
+                    /* FORCED AUTO-HEIGHT RULES (STRICT) */
+                    #modalRequisicion .modal-content,
+                    #modalRequisicion .modal-body,
+                    .formulario-requisicion {
+                        height: auto !important;
+                        min-height: auto !important;
+                        max-height: none !important;
+                    }
+                    #modalRequisicion .modal-body,
+                    .formulario-requisicion {
+                        display: flex !important;
+                        flex-direction: column !important;
+                        justify-content: flex-start !important;
+                        overflow-y: visible !important; /* Allow natural flow */
+                        padding-bottom: 15px !important; /* Minimized bottom space */
+                        min-height: auto !important;
+                    }
+                    .contenedor-botones-requisicion {
+                        margin-top: 15px !important;
+                        padding-top: 0 !important;
+                        transform: translateY(-25px);
+                    }
+                </style>
+
+                <div class="modal-body p-4 bg-light formulario-requisicion">
                     <div class="container-fluid">
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-3">
-                                <label for="nombre_completo" class="form-label">Nombre del Solicitante:</label>
-                                <select id="nombre_completo" class="form-select" name="nombre_completo">
-                                    <option value="">Seleccione su nombre</option>
-                                    {% for us in usuarios %}
-                                    <option value="{{ us.PKUsuario }}">{{ us.Nombre }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label for="grupos" class="form-label">Grupo:</label>
-                                <select id="grupos" class="form-select" name="grupos">
-                                    <option value="">Seleccione el grupo</option>
-                                </select>
-                            </div>
-                            <div class="col-md-2">
-                                <label for="acreedor" class="form-label">Acreedor:</label>
-                                <select id="acreedor" class="form-select" name="acreedor">
-                                    <option value="">Seleccione el acreedor</option>
-                                </select>
-                            </div>
-                            <div class="col-md-2">
-                                <label for="fecha_pedido" class="form-label">Fecha del Pedido:</label>
-                                <input type="date" class="form-control" id="fecha_pedido" name="fecha_pedido">
-                            </div>
-                            <div class="col-md-2">
-                                <label for="fecha_pago" class="form-label">Fecha de Pago:</label>
-                                <input type="date" class="form-control" id="fecha_pago" name="fecha_pago">
+                        <!-- Top Information Row -->
+                        <div class="section-card mb-3">
+                            <div class="section-title"><i class="material-icons me-2" style="font-size: 1.2rem;">person</i> INFORMACIÓN GENERAL</div>
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label for="nombre_completo" class="form-label">Solicitante</label>
+                                    <select id="nombre_completo" class="form-select" name="nombre_completo">
+                                        <option value="">Seleccione su nombre</option>
+                                        {% for us in usuarios %}
+                                        <option value="{{ us.PKUsuario }}">{{ us.Nombre }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="grupos" class="form-label">Grupo / Área</label>
+                                    <select id="grupos" class="form-select" name="grupos">
+                                        <option value="">Seleccione el grupo</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="acreedor" class="form-label">Acreedor</label>
+                                    <select id="acreedor" class="form-select" name="acreedor">
+                                        <option value="">Seleccione el acreedor</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="fecha_pedido" class="form-label">Fecha del Pedido</label>
+                                    <input type="date" class="form-control" id="fecha_pedido" name="fecha_pedido">
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="fecha_pago" class="form-label">Fecha de Pago</label>
+                                    <input type="date" class="form-control" id="fecha_pago" name="fecha_pago">
+                                </div>
                             </div>
                         </div>
 
-                        <hr class="my-3">
-
-                        <div class="row g-4">
-                            <div class="col-md-5 border-end">
-                                <h6 class="text-center mb-3"><strong>Detalles del Suministro</strong></h6>
-                                <div class="row g-2 mb-2">
-                                    <div class="col-md-6">
-                                        <label for="categoria" class="form-label">Categoría:</label>
-                                        <select id="categoria" class="form-select" name="categoria">
-                                            <option value="">Seleccione:</option>
-                                            {% for cat in categorias %}
-                                            <option value="{{ cat.id_categoria }}">{{ cat.nombre_categoria }}</option>
-                                            {% endfor %}
-                                        </select>
+                        <div class="row g-4 align-items-start">
+                            <!-- Left Section: Item Selection -->
+                            <div class="col-md-5">
+                                <div class="section-card">
+                                    <div class="section-title"><i class="material-icons me-2" style="font-size: 1.2rem;">inventory_2</i> DETALLES DEL SUMINISTRO</div>
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-md-6">
+                                            <label for="categoria" class="form-label">Categoría</label>
+                                            <select id="categoria" class="form-select" name="categoria">
+                                                <option value="">Seleccione:</option>
+                                                {% for cat in categorias %}
+                                                <option value="{{ cat.id_categoria }}">{{ cat.nombre_categoria }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="suministro" class="form-label">Suministro</label>
+                                            <select id="suministro" class="form-select" name="suministro">
+                                                <option value="">Seleccione:</option>
+                                            </select>
+                                        </div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <label for="suministro" class="form-label">Suministro:</label>
-                                        <select id="suministro" class="form-select" name="suministro">
-                                            <option value="">Seleccione:</option>
-                                        </select>
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-md-6">
+                                            <label for="precio_unitario" class="form-label">Precio Unitario</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-white text-muted">L</span>
+                                                <input type="number" class="form-control bg-light" id="precio_unitario" name="precio_unitario" placeholder="0.00" readonly>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="cantidad" class="form-label">Cantidad</label>
+                                            <input type="number" class="form-control" id="cantidad" name="cantidad" placeholder="0" min="1" oninput="validarCantidad()">
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="row g-2 mb-2">
-                                    <div class="col-md-6">
-                                        <label for="precio_unitario" class="form-label">Precio Unitario:</label>
-                                        <input type="number" class="form-control bg-light" id="precio_unitario" name="precio_unitario" placeholder="0.00" readonly>
+                                    <div class="mb-4">
+                                        <label for="justificacion" class="form-label">Justificación</label>
+                                        <textarea class="form-control" id="justificacion" name="justificacion" rows="3" placeholder="Indique la necesidad de este artículo..."></textarea>
                                     </div>
-                                    <div class="col-md-6">
-                                        <label for="cantidad" class="form-label">Cantidad:</label>
-                                        <input type="number" class="form-control" id="cantidad" name="cantidad" placeholder="0" min="1" oninput="validarCantidad()">
+                                    <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                                        <div class="d-flex flex-column">
+                                            <span class="text-muted small text-uppercase fw-bold" style="font-size: 0.65rem; letter-spacing: 1px;">Subtotal estimado</span>
+                                            <span class="fs-5 fw-bold text-dark">L. <span id="subtotal-dinamico">0.00</span></span>
+                                        </div>
+                                        <button type="button" class="btn btn-add text-white fw-bold" id="agregar-articulo">
+                                            <i class="material-icons align-middle me-1" style="font-size: 1.1rem;">add_circle</i> AGREGAR A LA LISTA
+                                        </button>
                                     </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="justificacion" class="form-label">Justificación:</label>
-                                    <textarea class="form-control" id="justificacion" name="justificacion" rows="2"></textarea>
-                                </div>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span class="text-muted small">Subtotal: <strong>L. <span id="subtotal-dinamico">0.00</span></strong></span>
-                                    <button type="button" class="btn btn-success px-4" id="agregar-articulo">
-                                        <strong>+ Agregar a la lista</strong>
-                                    </button>
                                 </div>
                             </div>
 
+                            <!-- Right Section: Added Items Table -->
                             <div class="col-md-7">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <h6 class="mb-0"><strong>Artículos en la Requisición</strong></h6>
-                                    <div class="badge bg-primary fs-6" style="white-space: nowrap;">Total: L&nbsp;<span id="costo-total">0.00</span></div>
-                                </div>
-                                <div class="table-responsive" style="max-height: 300px;">
-                                    <table class="table table-sm table-bordered table-hover text-center">
-                                        <thead class="table-dark">
-                                            <tr>
-                                                <th>Suministro</th>
-                                                <th>Cantidad</th>
-                                                <th>Precio</th>
-                                                <th>Total</th>
-                                                <th>Acción</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="tabla-articulos"></tbody>
-                                    </table>
+                                <div class="section-card">
+                                    <div class="d-flex justify-content-between align-items-center mb-4">
+                                        <div class="section-title mb-0 border-0"><i class="material-icons me-2" style="font-size: 1.2rem;">list_alt</i> ARTÍCULOS EN LA REQUISICIÓN</div>
+                                        <div class="badge badge-total fs-6" style="white-space: nowrap;">TOTAL: L&nbsp;<span id="costo-total">0.00</span></div>
+                                    </div>
+                                    <div class="table-responsive" style="max-height: 220px; border-radius: 12px; border: 1px solid #f1f5f9;">
+                                        <table class="table table-hover text-center mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th>Suministro</th>
+                                                    <th>Cantidad</th>
+                                                    <th>Precio</th>
+                                                    <th>Total</th>
+                                                    <th>Acción</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="tabla-articulos">
+                                                <!-- Row example if empty state was needed -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div id="empty-state" class="text-center py-5 text-muted d-none">
+                                        <i class="material-icons fs-1 mb-2">inventory</i>
+                                        <p>No hay artículos agregados aún.</p>
+                                    </div>
                                 </div>
                             </div>
+                        </div>
+                        
+                        <!-- Integrated Footer Buttons (Seamless) -->
+                        <div class="d-flex justify-content-end gap-3 contenedor-botones-requisicion" style="position: static !important; width: 100%;">
+                            <button type="button" class="btn btn-close-modal" data-bs-dismiss="modal">
+                                <i class="material-icons" style="font-size: 1.3rem;">close</i>CANCELAR
+                            </button>
+                            <button type="submit" class="btn btn-save text-white fw-bold">
+                                <i class="material-icons" style="font-size: 1.3rem;">save</i>GUARDAR REQUISICIÓN
+                            </button>
                         </div>
                     </div>
                 </div>
-
-                <div class="modal-footer bg-light">
-                <button type="submit" class="btn btn-success px-4"><strong>Guardar Requisición</strong></button>
-                <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal"><strong>Cerrar</strong></button>
-            </div>
             </form>
         </div>
     </div>
@@ -128,23 +396,87 @@
 <script>
 let xhrSuministros = null;
 
+const dollarUSLocale = Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+});
+
+const intergerLocale = Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+});
+
+//  Función total (Global)
+function actualizarCostoTotal() {
+    let total = 0;
+    const tablaArticulos = document.getElementById("tabla-articulos");
+    if(!tablaArticulos) return;
+
+    tablaArticulos.querySelectorAll("tr").forEach(row => {
+        const valor = row.cells[3]?.innerText?.replace(/[^\d.-]/g, '')?.trim();
+        total += parseFloat(valor) || 0;
+    });
+
+    document.getElementById("costo-total").innerText = total.toFixed(2);
+    document.getElementById("costo_total_hidden").value = total.toFixed(2);
+    
+    const detalles = obtenerDetalleArticulos();
+    document.getElementById("detalle_articulos").value = JSON.stringify(detalles);
+    
+    // Toggle empty state visibility
+    const emptyState = document.getElementById("empty-state");
+    if(emptyState) {
+        if(total === 0 && tablaArticulos.rows.length === 0) {
+            emptyState.classList.remove('d-none');
+        } else {
+            emptyState.classList.add('d-none');
+        }
+    }
+}
+
+//  Obtener detalle (Global)
+function obtenerDetalleArticulos() {
+    const detalles = [];
+    const tablaRows = document.querySelectorAll("#tabla-articulos tr");
+
+    tablaRows.forEach(row => {
+        const id = row.getAttribute("data-id-suministro");
+        const justificacion = row.getAttribute("data-justificacion") || "";
+
+        const cellCantidad = row.cells[1]?.innerText || "0";
+        const cellPrecio   = row.cells[2]?.innerText || "0";
+
+        const cantidad = parseFloat(cellCantidad.replace(/[^\d.-]/g, '')) || 0;
+        const precio   = parseFloat(cellPrecio.replace(/[^\d.-]/g, '')) || 0;
+
+        if (id && id !== "" && id !== "#") {
+            detalles.push({
+                id_suministros: id,
+                cantidad: cantidad,
+                precio_unitario: precio,
+                justificacion: justificacion
+            });
+        }
+    });
+
+    return detalles;
+}
+
+//  Validación solo números en cantidad (Global)
+function validarCantidad() {
+    const cantidadInput = document.getElementById("cantidad");
+    if(cantidadInput) {
+        cantidadInput.value = cantidadInput.value.replace(/[^0-9]/g, '');
+    }
+}
+
 /* =============================================
-   AGREGAR ARTÍCULOS + CALCULAR TOTAL (SIN SUBMIT)
+   AGREGAR ARTÍCULOS
    ============================================= */
 document.addEventListener("DOMContentLoaded", function () {
 
     const tabla = document.getElementById("tabla-articulos");
     const agregarArticuloBtn = document.getElementById("agregar-articulo");
-
-    const dollarUSLocale = Intl.NumberFormat("en-US", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    });
-
-    const intergerLocale = Intl.NumberFormat("en-US", {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-    });
 
     // Agregar artículo a la tabla
     agregarArticuloBtn.addEventListener("click", function () {
@@ -176,12 +508,26 @@ document.addEventListener("DOMContentLoaded", function () {
 
             // Acción eliminar
             const btnEliminar = document.createElement("button");
-            btnEliminar.className = "btn btn-danger btn-sm";
+            btnEliminar.type = "button"; // IMPORTANTE: Evitar submit accidental
+            btnEliminar.className = "btn btn-danger btn-sm eliminarFila";
             btnEliminar.innerHTML = '<i class="fas fa-trash"></i>';
 
             btnEliminar.addEventListener("click", function () {
-                row.remove();
-                actualizarCostoTotal();
+                Swal.fire({
+                    title: '¿Desea eliminar este artículo?',
+                    text: "Se quitará de la lista actual.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#64748b',
+                    confirmButtonText: 'Sí, eliminar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        row.remove();
+                        actualizarCostoTotal();
+                    }
+                });
             });
 
             const cellAccion = row.insertCell(4);
@@ -203,53 +549,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    //  Función total
-    function actualizarCostoTotal() {
-        let total = 0;
-
-        document.querySelectorAll("#tabla-articulos tr").forEach(row => {
-            const valor = row.cells[3]?.innerText?.replace(/[^\d.-]/g, '')?.trim();
-            total += parseFloat(valor) || 0;
-        });
-
-        document.getElementById("costo-total").innerText = total.toFixed(2);
-
-        // hidden inputs para el backend si los ocupas
-        document.getElementById("costo_total_hidden").value = total.toFixed(2);
-        document.getElementById("detalle_articulos").value = JSON.stringify(obtenerDetalleArticulos());
-    }
-
-    //  Obtener detalle
-    function obtenerDetalleArticulos() {
-        const detalles = [];
-
-        document.querySelectorAll("#tabla-articulos tr").forEach(row => {
-            const id = row.getAttribute("data-id-suministro");
-            const justificacion = row.getAttribute("data-justificacion") || "";
-
-            const cantidad = parseFloat(row.cells[1]?.innerText.replace(/,/g, '')) || 0;
-            const precio = parseFloat(row.cells[2]?.innerText.replace(/[^\d.-]/g, '')) || 0;
-
-            if (id && cantidad > 0) {
-                detalles.push({
-                    id_suministros: id,
-                    cantidad: cantidad,
-                    precio_unitario: precio,
-                    justificacion: justificacion
-                });
-            }
-        });
-
-        return detalles;
-    }
-
 });
-
-//  Validación solo números en cantidad
-function validarCantidad() {
-    const cantidadInput = document.getElementById("cantidad");
-    cantidadInput.value = cantidadInput.value.replace(/[^0-9]/g, '');
-}
 
 /* =============================================
    SELECT2 Y EVENTOS AJAX

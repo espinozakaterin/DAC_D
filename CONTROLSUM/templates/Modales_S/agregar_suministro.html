@@ -1,108 +1,174 @@
+<style>
+    #modalSuministro .form-control, 
+    #modalSuministro .form-select {
+        height: 42px;
+        border-radius: 12px !important;
+        border: 1px solid #e2e8f0;
+        background-color: #ffffff !important;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+    }
+    #modalSuministro .form-control:focus, 
+    #modalSuministro .form-select:focus {
+        border-color: #1d4ed8;
+        box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.1);
+        outline: none;
+    }
+    #modalSuministro .form-label {
+        color: #0b2f52;
+        font-weight: 600;
+        font-size: 0.75rem;
+        margin-bottom: 4px;
+        letter-spacing: 0.3px;
+    }
+    #modalSuministro .card-section {
+        background-color: #f8fbff;
+        border: 1px solid #eef2ff !important;
+        border-radius: 16px;
+        transition: transform 0.2s ease;
+    }
+    #modalSuministro .img-preview-box {
+        border: 2px dashed #cbd5e1;
+        background-color: #ffffff;
+        transition: all 0.2s ease;
+    }
+    #modalSuministro .img-preview-box:hover {
+        border-color: #94a3b8;
+    }
+</style>
+
 <div class="modal fade" id="modalSuministro" tabindex="-1" aria-labelledby="modalSuministroLabel" aria-hidden="true"
     data-bs-keyboard="false" data-bs-backdrop="static">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header" style="background-color: #697a8a; color: white;">
-                <h5 class="modal-title" id="modalSuministroLabel">
-                    <i class="material-icons me-2 text-gray">AGREGAR SUMINISTRO</i>
-                </h5>
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+            <!-- Premium Header -->
+            <div class="modal-header border-0 p-3 px-4" style="background: linear-gradient(135deg, #0b2f52 0%, #1d3f8f 100%);">
+                <div class="d-flex align-items-center">
+                    <div class="bg-white bg-opacity-10 rounded-3 p-2 me-3">
+                        <i class="fas fa-boxes text-white fs-5"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title text-white fw-bold mb-0" id="modalSuministroLabel" style="letter-spacing: 0.5px; font-size: 1.1rem;">Crear Nuevo Suministro</h5>
+                        <p class="text-white text-opacity-75 mb-0 small" style="font-size: 0.75rem;">Control de registro de productos</p>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
             <form id="formSuministro" enctype="multipart/form-data">
-                <div class="modal-body">
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="nombre_sum">Nombre del Suministro:</label>
-                            <input type="text" class="form-control form-control-sm" id="nombre_sum" name="nombre_sum">
+                <div class="modal-body p-3 px-4" style="background-color: #ffffff;">
+                    
+                    <!-- Section 1: Información General -->
+                    <div class="card card-section shadow-sm mb-3">
+                        <div class="card-header bg-transparent border-0 pt-3 pb-2 px-3">
+                            <h6 class="mb-0 fw-bold text-primary small text-uppercase" style="font-size: 0.7rem;"><i class="fas fa-info-circle me-2"></i>Información General</h6>
                         </div>
-                        <div class="col-md-6">
-                            <label for="descripcion">Descripción:</label>
-                            <textarea class="form-control form-control-sm" id="descripcion" name="descripcion"></textarea>
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="categoria">Categoría del Suministro:</label>
-                            <select id="categoria" class="form-select form-select-sm" name="categoria">
-                                <option value="#">Seleccione la categoría:</option>
-                                {% for cat in categorias %}
-                                <option value="{{ cat.id_categoria }}">{{ cat.nombre_categoria }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label for="almacen_suministro">Almacén:</label>
-                            <select id="almacen_suministro" class="form-select form-select-sm" name="almacen_suministro">
-                                <option value="#">Cargando almacén...</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="acreedor">Acreedor:</label>
-                            <select id="acreedor" class="form-select form-select-sm" name="acreedor">
-                                <option value="#">Seleccione el acreedor:</option>
-                            </select>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label for="area">Grupo:</label>
-                            <select id="area" class="form-select form-select-sm" name="area">
-                                <option value="#">Cargando grupos...</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="fecha_adquisicion">Fecha de Adquisición:</label>
-                            <input type="date" class="form-control form-control-sm" id="fecha_adquisicion" name="fecha_adquisicion">
+                        <div class="card-body pt-0 px-3 pb-3">
+                            <div class="row g-2">
+                                <div class="col-md-6">
+                                    <label class="form-label text-uppercase">Nombre del Suministro</label>
+                                    <input type="text" class="form-control" id="nombre_sum" name="nombre_sum" placeholder="Ej: Resmas de Papel Bond">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-uppercase">Descripción</label>
+                                    <textarea class="form-control" id="descripcion" name="descripcion" rows="1" placeholder="Detalles adicionales..."></textarea>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-uppercase">Categoría</label>
+                                    <select id="categoria" class="form-select" name="categoria">
+                                        <option value="#">Seleccione la categoría:</option>
+                                        {% for cat in categorias %}
+                                        <option value="{{ cat.id_categoria }}">{{ cat.nombre_categoria }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-uppercase">Almacén</label>
+                                    <select id="almacen_suministro" class="form-select" name="almacen_suministro">
+                                        <option value="#">Cargando almacén...</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-uppercase">Acreedor</label>
+                                    <select id="acreedor" class="form-select" name="acreedor">
+                                        <option value="#">Seleccione el acreedor:</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-uppercase">Grupo</label>
+                                    <select id="area" class="form-select" name="area">
+                                        <option value="#">Cargando grupos...</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-uppercase">Fecha de Adquisición</label>
+                                    <input type="date" class="form-control" id="fecha_adquisicion" name="fecha_adquisicion">
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="row mb-3">
-                        <div class="col-md-3">
-                            <label for="cantidad_inicial">Cantidad Inicial:</label>
-                            <input type="number" class="form-control form-control-sm" id="cantidad_inicial" name="cantidad_inicial" min="0" oninput="validateNumberInput(this)">
+                    <!-- Section 2: Stock y Precios -->
+                    <div class="card card-section shadow-sm mb-3">
+                        <div class="card-header bg-transparent border-0 pt-3 pb-2 px-3">
+                            <h6 class="mb-0 fw-bold text-primary small text-uppercase" style="font-size: 0.7rem;"><i class="fas fa-layer-group me-2"></i>Stock y Precios</h6>
                         </div>
-                        <div class="col-md-3">
-                            <label for="cantidad_stock">Cantidad en Stock:</label>
-                            <input type="number" class="form-control form-control-sm" id="cantidad_stock" name="cantidad_stock" min="0" oninput="validateNumberInput(this)">
-                        </div>
-                        <div class="col-md-3">
-                            <label for="cantidad_minima">Cantidad Mínima:</label>
-                            <input type="number" class="form-control form-control-sm" id="cantidad_minima" name="cantidad_minima" min="1" oninput="validateNumberInput(this)">
-                        </div>
-                        <div class="col-md-3">
-                            <label for="precio_unitario">Precio Unitario:</label>
-                            <input type="number" class="form-control form-control-sm" id="precio_unitario" name="precio_unitario" min="0" step="0.01" oninput="validateNumberInput(this)">
+                        <div class="card-body pt-0 px-3 pb-3">
+                            <div class="row g-2">
+                                <div class="col-md-3">
+                                    <label class="form-label text-uppercase">Cant. Inicial</label>
+                                    <input type="number" class="form-control" id="cantidad_inicial" name="cantidad_inicial" min="0" oninput="validateNumberInput(this)">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label text-uppercase">Cant. Stock</label>
+                                    <input type="number" class="form-control" id="cantidad_stock" name="cantidad_stock" min="0" oninput="validateNumberInput(this)">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label text-uppercase">Cant. Mínima</label>
+                                    <input type="number" class="form-control" id="cantidad_minima" name="cantidad_minima" min="1" oninput="validateNumberInput(this)">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label text-uppercase">Precio Unit.</label>
+                                    <input type="number" class="form-control" id="precio_unitario" name="precio_unitario" min="0" step="0.01" oninput="validateNumberInput(this)">
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <input type="hidden" name="imagen_actual" id="imagen_actual">
-                            <label for="imagen_suministro">Imagen del Suministro:</label>
-                            <input type="file" class="form-control form-control-sm" id="imagen_suministro" name="imagen_suministro" accept="image/*" onchange="previewImage(event)">
+                    <!-- Section 3: Imagen del Suministro -->
+                    <div class="card card-section shadow-sm mb-1">
+                        <div class="card-header bg-transparent border-0 pt-3 pb-2 px-3">
+                            <h6 class="mb-0 fw-bold text-primary small text-uppercase" style="font-size: 0.7rem;"><i class="fas fa-image me-2"></i>Imagen del Suministro</h6>
                         </div>
-
-                        <div class="col-md-6">
-                        <p class="mb-1"><strong>Vista previa de la Imagen:</strong></p>
-                        <div id="imagen_preview" class="img-preview-container">
-                            <img id="imagenActual" src="#" alt="Vista previa" class="img-fluid"
-                                style="display: none; max-height: 150px; width: auto; margin: 0 auto; border-radius: 8px;">
-                            <p id="no_imagen" style="display: block;">No se ha seleccionado una imagen.</p>
+                        <div class="card-body pt-0 px-3 pb-3">
+                            <div class="row align-items-center g-3">
+                                <div class="col-md-7">
+                                    <input type="hidden" name="imagen_actual" id="imagen_actual">
+                                    <label class="form-label text-uppercase">Seleccionar Archivo</label>
+                                    <input type="file" class="form-control pt-2" id="imagen_suministro" name="imagen_suministro" accept="image/*" onchange="previewImage(event)">
+                                </div>
+                                <div class="col-md-5">
+                                    <div id="imagen_preview" class="img-preview-box d-flex flex-column align-items-center justify-content-center p-2 rounded-3" style="min-height: 100px;">
+                                        <img id="imagenActual" src="#" alt="Vista previa" class="img-fluid shadow-sm"
+                                            style="display: none; max-height: 80px; width: auto; border-radius: 8px;">
+                                        <div id="no_imagen" class="text-center">
+                                            <i class="fas fa-image text-muted opacity-25 fs-2 mb-1"></i>
+                                            <p class="mb-0 text-muted" style="font-size: 0.65rem;">Sin imagen seleccionada</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
                     </div>
                 </div>
 
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-outline-success w-20"><strong>Agregar</strong></button>
-                    <button type="button" class="btn btn-outline-danger w-20" data-bs-dismiss="modal"><strong>Cancelar</strong></button>
+                <div class="modal-footer border-0 p-3 px-4 justify-content-center gap-3" style="background-color: #f8fafc;">
+                    <button type="button" class="btn btn-outline-danger px-4 fw-bold" data-bs-dismiss="modal" style="border-radius: 50px; height: 42px; min-width: 140px;">
+                        <i class="fas fa-times me-2"></i>Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-success px-4 fw-bold shadow-sm" style="border-radius: 50px; height: 42px; min-width: 180px; background: #10b981; border: none;">
+                        <i class="fas fa-save me-2"></i>Guardar Suministro
+                    </button>
                 </div>
             </form>
         </div>

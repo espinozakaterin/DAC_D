@@ -1,33 +1,68 @@
-<div class="modal fade" id="modalHistorial" tabindex="-1" aria-labelledby="modalHistorialLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-            <div class="modal-header" style="background-color: #697a8a; color: white;">
-                <h5 class="modal-title modalHistorialLabel" id="modalHistorialLabel">
-                    <i class="material-icons me-2 text-gray"></i><strong></strong>
-                </h5>
+<div class="modal fade" id="modalHistorial" tabindex="-1" aria-labelledby="modalHistorialLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+            <!-- Premium Header -->
+            <div class="modal-header border-0 p-3 px-4" style="background: linear-gradient(135deg, #0b2f52 0%, #1d3f8f 100%);">
+                <div class="d-flex align-items-center">
+                    <div class="bg-white rounded-3 p-2 me-3 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                        <i class="fas fa-clock-rotate-left fs-4" style="color: #1e40af;"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title text-white fw-bold mb-0" id="modalHistorialLabel" style="letter-spacing: 0.5px; font-size: 1.1rem;">Historial de Suministro</h5>
+                        <p class="text-white text-opacity-75 mb-0 small" style="font-size: 0.75rem;">Movimientos y trazabilidad del producto</p>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body" id="historialSuministro">
-                <div class="col-md-12">
-                    <table class="table table-bordered table-hover">
-                        <thead class="table-dark">
-                            <tr class="table-success">
-                                <th>Fecha Movimiento</th>
-                                <th>Tipo Movimiento</th>
-                                <th>Entrada</th>
-                                <th>Salida</th>
-                                <th>Precio Unitario</th>
-                                <th>Total</th>
-                                <th>Detalle</th>
-                                <th>Creado por</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabla-movimientos"></tbody>
-                    </table>
+
+            <div class="modal-body p-3 px-4" style="background-color: #ffffff;">
+                <div class="card border-0 shadow-sm" style="border-radius: 15px; overflow: hidden; border: 1px solid #f1f5f9 !important;">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 align-middle">
+                            <thead>
+                                <tr style="background-color: #f8fafc !important;">
+                                    <th class="border-0 py-3 ps-4 small text-uppercase" style="color: #334155 !important; font-weight: 700 !important; letter-spacing: 1px; opacity: 1 !important;">Fecha Movimiento</th>
+                                    <th class="border-0 py-3 text-center small text-uppercase" style="color: #334155 !important; font-weight: 700 !important; letter-spacing: 1px; opacity: 1 !important;">Tipo Movimiento</th>
+                                    <th class="border-0 py-3 text-center small text-uppercase" style="color: #334155 !important; font-weight: 700 !important; letter-spacing: 1px; opacity: 1 !important;">Entrada</th>
+                                    <th class="border-0 py-3 text-center small text-uppercase" style="color: #334155 !important; font-weight: 700 !important; letter-spacing: 1px; opacity: 1 !important;">Salida</th>
+                                    <th class="border-0 py-3 text-center small text-uppercase" style="color: #334155 !important; font-weight: 700 !important; letter-spacing: 1px; opacity: 1 !important;">Precio Unit.</th>
+                                    <th class="border-0 py-3 text-center small text-uppercase" style="color: #334155 !important; font-weight: 700 !important; letter-spacing: 1px; opacity: 1 !important;">Total</th>
+                                    <th class="border-0 py-3 small text-uppercase" style="color: #334155 !important; font-weight: 700 !important; letter-spacing: 1px; opacity: 1 !important;">Detalle</th>
+                                    <th class="border-0 py-3 pe-4 small text-uppercase text-end" style="color: #334155 !important; font-weight: 700 !important; letter-spacing: 1px; opacity: 1 !important;">Creado por</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-movimientos" class="bg-white">
+                                <!-- Filas cargadas dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal"><strong>Cerrar</strong></button>
+
+            <div class="modal-footer border-0 p-3 px-4 bg-light bg-opacity-25 justify-content-center">
+                <button type="button" class="btn btn-outline-danger px-5 fw-bold" data-bs-dismiss="modal" style="border-radius: 50px; height: 42px; min-width: 140px;">
+                    <i class="fas fa-times me-2"></i>Cerrar
+                </button>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    #tabla-movimientos tr {
+        transition: all 0.2s ease;
+    }
+    #tabla-movimientos tr:hover {
+        background-color: #f8fbff !important;
+    }
+    #tabla-movimientos td {
+        padding: 1.2rem 0.5rem !important;
+        font-size: 0.85rem;
+        color: #334155;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: middle !important;
+    }
+    #tabla-movimientos .text-center {
+        text-align: center !important;
+    }
+</style>

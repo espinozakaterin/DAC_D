@@ -1,138 +1,232 @@
 <div class="modal fade" id="modalDevolucion" tabindex="-1" aria-labelledby="modalDevolucionLabel" aria-hidden="true"
     data-bs-keyboard="false" data-bs-backdrop="static">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-            <div class="modal-header" style="background-color: #697a8a; color: white;">
-                <h5 class="modal-title" id="modalDevolucionLabel">
-                    <i class="material-icons me-2">add_shopping_cart</i><strong>Agregar Devolución</strong>
-                </h5>
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 15px 50px rgba(0,0,0,0.15);">
+            <!-- Header Premium -->
+            <div class="modal-header" style="background-color: #0d325a; border-top-left-radius: 20px; border-top-right-radius: 20px; padding: 1.5rem 2rem;">
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                    <span style="font-size: 0.65rem; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,0.7); font-weight: 600;">
+                        Gestión de Almacén | Control de Suministros
+                    </span>
+                    <h4 class="modal-title mb-0" id="modalDevolucionLabel" style="color: #ffffff !important; font-weight: 800; font-size: 1.6rem; letter-spacing: 0.5px;">
+                        <i class="material-icons align-middle me-2" style="font-size: 1.8rem;">undo</i>Agregar Devolución
+                    </h4>
+                    <span style="font-size: 0.85rem; color: rgba(255,255,255,0.85); font-weight: 400;">
+                        Registro de devolución de suministros al inventario
+                    </span>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
+
+            <style>
+                #modalDevolucion .modal-body {
+                    background-color: #f8fafc;
+                    padding: 1.5rem;
+                }
+                .section-card-return {
+                    background: #ffffff;
+                    border-radius: 14px;
+                    padding: 1.2rem;
+                    border: 1px solid #f1f5f9;
+                    margin-bottom: 1rem;
+                    box-shadow: 0 2px 10px rgba(0,0,0,0.01);
+                }
+                .section-title-return {
+                    font-size: 0.78rem;
+                    font-weight: 800;
+                    color: #0d325a;
+                    margin-bottom: 1rem;
+                    display: flex;
+                    align-items: center;
+                    text-transform: uppercase;
+                    letter-spacing: 0.8px;
+                }
+                .section-title-return i { margin-right: 8px; font-size: 1.1rem; }
+                
+                #modalDevolucion .form-label {
+                    font-size: 0.75rem;
+                    font-weight: 700;
+                    color: #64748b;
+                    text-transform: uppercase;
+                    margin-bottom: 0.5rem;
+                }
+                #modalDevolucion .form-control, 
+                #modalDevolucion .form-select {
+                    height: 42px;
+                    border-radius: 10px;
+                    border: 1.5px solid #e2e8f0;
+                    font-size: 0.88rem;
+                    font-weight: 500;
+                    color: #1e293b;
+                    transition: all 0.2s ease;
+                }
+                #modalDevolucion .form-control:focus {
+                    border-color: #0d325a;
+                    box-shadow: 0 0 0 3px rgba(13, 50, 90, 0.05);
+                }
+                #modalDevolucion .form-control:disabled {
+                    background-color: #f1f5f9 !important;
+                    color: #475569 !important;
+                    font-weight: 600 !important;
+                    border-style: solid !important;
+                }
+
+                .table-premium-return { border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; background: white; }
+                .table-premium-return thead { background: #f8fafc; border-bottom: 2px solid #e2e8f0; }
+                .table-premium-return thead th { 
+                    font-size: 0.7rem; 
+                    font-weight: 700; 
+                    text-transform: uppercase; 
+                    color: #2c4770 !important; 
+                    padding: 0.8rem 1rem !important;
+                    border: none !important;
+                    letter-spacing: 0.5px;
+                }
+                .table-premium-return tbody td { 
+                    padding: 0.8rem 1rem !important; 
+                    vertical-align: middle; 
+                    font-size: 0.85rem;
+                    color: #334155;
+                    border-bottom: 1px solid #f1f5f9 !important;
+                }
+
+                .total-capsule-return {
+                    background: #ffffff;
+                    border: 1px solid #e2e8f0;
+                    padding: 0.6rem 1.2rem;
+                    border-radius: 10px;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 10px;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+                }
+                .total-label-return { font-size: 0.65rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+                .total-amount-return { font-size: 1.2rem; font-weight: 800; color: #0d325a; }
+
+                .btn-save-premium-return {
+                    background: #10b981 !important;
+                    border: none !important;
+                    border-radius: 10px !important;
+                    padding: 0 1.5rem !important;
+                    height: 42px !important;
+                    min-width: 180px;
+                    font-weight: 700 !important;
+                    font-size: 0.88rem !important;
+                    color: white !important;
+                    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.15) !important;
+                    transition: all 0.2s ease !important;
+                    text-transform: uppercase;
+                }
+                .btn-save-premium-return:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(16, 185, 129, 0.25) !important; }
+                
+                .btn-close-premium-return {
+                    background: #ffffff !important;
+                    border: 1.5px solid #64748b !important;
+                    color: #64748b !important;
+                    border-radius: 10px !important;
+                    padding: 0 1.2rem !important;
+                    height: 42px !important;
+                    min-width: 110px;
+                    font-weight: 700 !important;
+                    font-size: 0.88rem !important;
+                    text-transform: uppercase;
+                    transition: all 0.2s ease !important;
+                }
+                .btn-close-premium-return:hover { background: #f1f5f9 !important; border-color: #475569 !important; color: #1e293b !important; transform: translateY(-1px); }
+            </style>
+
             <form id="formDevolucion">
                 <div class="modal-body">
                     <div class="container-fluid">
-                        <div class="row">
-                            <!-- Código y Proveedor en una sola línea -->
-                            <div class="col-md-6">
-                                <label for="id_adquisicion" class="form-label"><strong>Código:</strong></label>
-                                <input type="text" id="id_adquisicion" name="id_adquisicion" disabled
-                                    class="form-control"
-                                    style="text-align: center; font-size: 22px; font-weight: bold; width: 100px;">
-                            </div>
-
-                            <div class="col-md-6">
-                                <label for="Proveedor" class="form-label"><strong>Proveedor</strong></label>
-                                <input type="text" id="Proveedor" class="form-control" name="Proveedor" disabled>
+                        
+                        <!-- Sección 1: Información de la Adquisición -->
+                        <div class="section-card-return">
+                            <div class="section-title-return"><i class="material-icons">info</i> Información de la Adquisición</div>
+                            <div class="row g-3">
+                                <div class="col-md-2">
+                                    <label class="form-label">Cód. Adquisición</label>
+                                    <input type="text" id="id_adquisicion" name="id_adquisicion" disabled class="form-control text-center fw-bold">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">ID Detalle Requisición</label>
+                                    <input type="text" id="id_detalle_requisicion" name="id_detalle_requisicion" disabled class="form-control text-center fw-bold">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Proveedor</label>
+                                    <input type="text" id="Proveedor" class="form-control" name="Proveedor" disabled>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Suministro</label>
+                                    <input type="hidden" id="id_suministro" name="id_suministro">
+                                    <input type="text" id="suministro" class="form-control" name="suministro" disabled>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="row">
-                            <!-- Columna Izquierda: Suministro, Cantidad Devuelta y Precio Unitario -->
-                            <div class="col-md-6">
-
-                                <div class="md-3">
-                                    <label for="id_detalle_requisicion" class="form-label"><strong>ID Detalle
-                                            Requisición:</strong></label>
-                                    <input type="text" id="id_detalle_requisicion" name="id_detalle_requisicion"
-                                        disabled class="form-control"
-                                        style="text-align: center; font-size: 20px; font-weight: bold;">
-                                </div>
-
-                                <!-- Suministro-->
-                                <div class="mb-3">
-                                    <!-- Campo oculto para almacenar el ID del suministro -->
-                                    <input type="hidden" id="id_suministro" name="id_suministro">
-                                    <label for="suministro" class="form-label"><strong>Suministro</strong></label>
-                                    <input type="text" id="suministro" class="form-control" name="suministro" disabled>
-
-                                </div>
-
-                                <!-- Cantidad Devuelta -->
-                                <div class="mb-3">
-                                    <label for="cantidad_devuelta" class="form-label"><strong>Cantidad
-                                            a Devolver</strong></label>
-                                    <input type="number" id="cantidad_devuelta" class="form-control"
-                                        name="cantidad_devuelta" min="1" oninput="validarCantidad()">
-                                </div>
-
-                                <!-- Precio Unitario -->
-                                <div class="mb-3">
-                                    <label for="precio_unitario" class="form-label"><strong>Precio
-                                            Unitario</strong></label>
-                                    <input type="number" id="precio_unitario" class="form-control"
-                                        name="precio_unitario" disabled>
-                                </div>
-                            </div>
-
-                            <!-- Columna Derecha: Fecha de Devolución y Motivo de Devolución -->
-                            <div class="col-md-6">
-                                <!-- Fecha de Devolución -->
-                                <div class="mb-3">
-                                    <label for="fecha_devolucion" class="form-label"><strong>Fecha de
-                                            Devolución:</strong></label>
+                        <!-- Sección 2: Datos de la Devolución -->
+                        <div class="section-card-return">
+                            <div class="section-title-return"><i class="material-icons">edit</i> Datos de la Devolución</div>
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">Fecha de Devolución</label>
                                     <input type="date" class="form-control" id="fecha_devolucion">
                                 </div>
-
-                                <!-- Motivo de Devolución -->
-                                <div class="mb-3">
-                                    <label for="motivo" class="form-label"><strong>Motivo:</strong></label>
+                                <div class="col-md-4">
+                                    <label class="form-label">Motivo</label>
                                     <select id="motivo" class="form-select" name="motivo">
-                                        <!-- <option value="#">Seleccione el motivo:</option>
-                                        {% for dev in devolucion %}
-                                        <option value="{{ dev.id_motivo_devolucion }}">{{ dev.nombre_motivo }}</option>
-                                        {% endfor %} -->
+                                        <!-- Opciones cargadas por AJAX -->
                                     </select>
                                 </div>
-
-                                <!-- Descripción de la Devolución -->
-                                <div class="mb-3">
-                                    <label for="descripcion" class="form-label"><strong>Descripción de la
-                                            Devolución:</strong></label>
-                                    <textarea class="form-control" id="descripcion" name="descripcion"
-                                        rows="3"></textarea>
+                                <div class="col-md-2">
+                                    <label class="form-label">Cantidad a Devolver</label>
+                                    <input type="number" id="cantidad_devuelta" class="form-control text-center" name="cantidad_devuelta" min="1" oninput="validarCantidad()">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Precio Unitario</label>
+                                    <input type="number" id="precio_unitario" class="form-control text-end" name="precio_unitario" disabled>
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label">Descripción de la Devolución</label>
+                                    <textarea class="form-control" id="descripcion" name="descripcion" rows="2" placeholder="Especifique el motivo o detalle de la devolución..."></textarea>
                                 </div>
                             </div>
-                            <!-- Botón para Calcular 
-                            <div class="d-flex justify-content-end mb-3">
-                                <button type="button" class="btn btn-success" id="calcular-total">Calcular
-                                    Total</button>
-                            </div>-->
                         </div>
-                        <!-- Tabla de artículos -->
-                        <div class="row mb-3">
-                            <div class="col-md-12">
-                                <h5><strong>Detalle:</strong></h5>
-                                <table class="table table-bordered table-hover">
-                                    <thead class="table-dark">
-                                        <tr class="table-success">
-                                            <th>Adquisicion No.</th>
-                                            <th>Detalle Requisición No.</th>
+
+                        <!-- Sección 3: Detalle de Devolución -->
+                        <div class="section-card-return mb-0">
+                            <div class="section-title-return"><i class="material-icons">list</i> Detalle de Devolución</div>
+                            <div class="table-responsive table-premium-return mb-3">
+                                <table class="table table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center">Adquisición No.</th>
+                                            <th class="text-center">Detalle Req. No.</th>
                                             <th>Suministro</th>
-                                            <th>Cantidad Devuelta</th>
-                                            <th>Precio Unitario</th>
-                                            <th>Precio Total</th>
+                                            <th class="text-center">Cantidad</th>
+                                            <th class="text-end">Precio Unit.</th>
+                                            <th class="text-end">Precio Total</th>
                                         </tr>
                                     </thead>
                                     <tbody id="tabla-devolucion">
-
+                                        <!-- Fila dinámica -->
                                     </tbody>
                                 </table>
                             </div>
-                            <div class="d-flex justify-content-end mb-3" style="white-space: nowrap;">
-                                <h5><strong>Total de Devolución:</strong> L&nbsp;<span
-                                        id="total_devolucion"><strong>0.00</strong></span></h5>
+                            <div class="d-flex justify-content-end">
+                                <div class="total-capsule-return">
+                                    <span class="total-label-return">Total de Devolución</span>
+                                    <span class="total-amount-return" id="total_devolucion">L 0.00</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="modal-footer">
-                    <button type="button" id="guardarDevolucion" class="btn btn-outline-success"><strong>Guardar
-                            Devolución</strong></button>
-                    <button type="button" class="btn btn-outline-danger"
-                        data-bs-dismiss="modal"><strong>Cerrar</strong></button>
+                <div class="modal-footer" style="background: #f8fafc; border-top: 1px solid #f1f5f9; padding: 1.1rem 2rem; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;">
+                    <button type="button" class="btn btn-close-premium-return" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" id="guardarDevolucion" class="btn btn-save-premium-return">Guardar Devolución</button>
                 </div>
             </form>
-
         </div>
     </div>
 </div>
@@ -140,7 +234,6 @@
 <script>
     function validarCantidad() {
         const cantidadInput = document.getElementById("cantidad_devuelta");
-        // Elimina cualquier caracter no numérico
         cantidadInput.value = cantidadInput.value.replace(/[^0-9]/g, '');
     }
 
@@ -148,7 +241,6 @@
         const tabla = document.getElementById("tabla-devolucion");
         const costoTotalSpan = document.getElementById("total_devolucion");
 
-        // Formateadores locales para comas
         const dollarUSLocale = Intl.NumberFormat("en-US", {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
@@ -159,12 +251,9 @@
             maximumFractionDigits: 0
         });
 
-        // Evento para actualizar el artículo cuando cambie la cantidad
         const cantidadInput = document.getElementById("cantidad_devuelta");
 
-        // Función para calcular y agregar la fila cuando cambie la cantidad
         function calcularYAgregarFila() {
-            // Obtener los valores de los campos
             const IDAdquisicion = document.getElementById("id_adquisicion").value;
             const IDDetalleRequisicion = document.getElementById("id_detalle_requisicion").value;
             const suministro = document.getElementById("suministro").value;
@@ -172,39 +261,29 @@
             const precioUnitario = Math.abs(parseFloat(document.getElementById("precio_unitario").value)) || 0;
             const total = Math.abs(cantidadDevuelta * precioUnitario);
 
-
-            // Verificar que los datos estén completos
-            if (suministro && cantidadDevuelta > 0 && precioUnitario > 0) {
-                // Si la fila ya existe, actualizamos el total de esa fila
+            if (suministro && cantidadDevuelta >= 0 && precioUnitario > 0) {
                 const filaExistente = tabla.querySelector(`tr[data-id-adquisicion='${IDAdquisicion}']`);
                 if (filaExistente) {
                     const celdas = filaExistente.getElementsByTagName("td");
                     celdas[3].innerText = intergerLocale.format(cantidadDevuelta);  
                     celdas[5].innerText = 'L\u00A0' + dollarUSLocale.format(total);            
-
-                    // Actualizar el total de la devolución
                     actualizarCostoTotal();
                 } else {
                     const row = tabla.insertRow();
                     row.setAttribute('data-id-adquisicion', IDAdquisicion); 
 
-                    // Insertar las celdas en la fila
-                    row.insertCell(0).innerText = IDAdquisicion;
-                    row.insertCell(1).innerText = IDDetalleRequisicion;
-                    row.insertCell(2).innerText = suministro;     // Suministro
-                    row.insertCell(3).innerText = intergerLocale.format(cantidadDevuelta);  
-                    row.insertCell(4).innerText = 'L\u00A0' + dollarUSLocale.format(precioUnitario);    
-                    row.insertCell(5).innerText = 'L\u00A0' + dollarUSLocale.format(total);             
+                    const c0 = row.insertCell(0); c0.innerText = IDAdquisicion; c0.className = "text-center";
+                    const c1 = row.insertCell(1); c1.innerText = IDDetalleRequisicion; c1.className = "text-center";
+                    const c2 = row.insertCell(2); c2.innerText = suministro;
+                    const c3 = row.insertCell(3); c3.innerText = intergerLocale.format(cantidadDevuelta); c3.className = "text-center";
+                    const c4 = row.insertCell(4); c4.innerText = 'L\u00A0' + dollarUSLocale.format(precioUnitario); c4.className = "text-end";
+                    const c5 = row.insertCell(5); c5.innerText = 'L\u00A0' + dollarUSLocale.format(total); c5.className = "text-end";
 
-                    // Actualizar el total de la devolución
                     actualizarCostoTotal();
                 }
-            } else {
-                alert('Por favor, complete todos los campos correctamente.');
             }
         }
 
-        // Función para actualizar el costo total
         function actualizarCostoTotal() {
             let costoTotal = 0;
             const filas = tabla.getElementsByTagName("tr");
@@ -219,12 +298,8 @@
                 }
             }
 
-            costoTotalSpan.innerHTML = `<strong>${dollarUSLocale.format(Math.abs(costoTotal))}</strong>`;
-
+            costoTotalSpan.innerText = `L ${dollarUSLocale.format(Math.abs(costoTotal))}`;
         }
         cantidadInput.addEventListener("input", calcularYAgregarFila);
     });
-
-
-
 </script>

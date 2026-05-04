@@ -2,57 +2,264 @@
 {% load static %}
 
 {% block title %}
-GESTIONAR OTROS
+GESTIÓN DE ALMACENES
 {% endblock %}
 
 
 {% block body %}
 
-<div class="row align-items-center">
-    <div class="col d-flex align-items-center">
-        <h3 class="page-title mb-0">
-            <i class="fas fa-box"></i> <strong>LISTADO DE ALMACENES</strong>
-        </h3>
-    </div>
+<style>
+    /* === GESTIÓN DE ALMACENES — Premium UI parity Suministros === */
+    :root {
+        --corp-blue-dark: #0b2f52;
+        --corp-gradient: linear-gradient(135deg, #0b2f52 0%, #1d3f8f 100%);
+    }
+    .page-header-premium {
+        background: var(--corp-gradient);
+        border-radius: 15px !important;
+        box-shadow: 0 8px 20px rgba(11,47,82,0.15) !important;
+        padding: 1.5rem 2rem !important;
+        margin-bottom: 2rem; border: none;
+    }
+    .header-icon-box-outer {
+        width: 52px; height: 52px;
+        background: rgba(255,255,255,0.12); border-radius: 14px;
+        display: flex; align-items: center; justify-content: center;
+        border: 1px solid rgba(255,255,255,0.15);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+    .header-icon-circle-inner {
+        width: 28px; height: 28px; background: #ffffff; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .header-icon-circle-inner i { color: #0b2f52; font-size: 0.85rem; }
 
-    <div class="col-auto text-end float-end ms-auto download-grp">
-        <button class="btn btn-sm btn-success" style="background-color: #697a8a; text-align: justify;" id="btnNuevo"
-            title="Crear Nuevo"><i class="fas fa-plus me-2"></i>
-            <strong>Nuevo Almacen</strong></button>
+    /* Table header */
+    #Tabla_Almacenes thead th,
+    .dataTables_scrollHead table.dataTable thead th {
+        background-color: #0d325a !important; color: #ffffff !important;
+        font-weight: 600 !important; text-transform: uppercase !important;
+        font-size: 0.68rem !important; letter-spacing: 0.7px !important;
+        padding: 0.8rem 0.5rem !important; border: none !important;
+        text-align: center !important; vertical-align: middle !important;
+    }
+    .dataTables_scrollBody thead { visibility: collapse !important; height: 0 !important; }
+    .dataTables_scrollBody thead th, .dataTables_scrollBody thead tr {
+        height: 0 !important; padding: 0 !important; border: none !important; background: transparent !important;
+    }
+    #Tabla_Almacenes, .dataTables_scrollHead table, .dataTables_scrollBody table {
+        border: none !important; border-collapse: separate !important;
+        border-spacing: 0 !important; margin: 0 !important; width: 100% !important;
+    }
+    #Tabla_Almacenes tbody tr td {
+        border: none !important; border-bottom: 1px solid #f8fafc !important;
+        padding: 10px 5px !important; font-size: 0.78rem !important;
+        color: #1f2937 !important; vertical-align: middle !important;
+        text-align: center !important; background-color: #ffffff !important;
+    }
+    #Tabla_Almacenes tbody tr:nth-child(even) td { background-color: #fafbfd !important; }
+    #Tabla_Almacenes tbody tr:hover td { background-color: rgba(13,50,90,0.04) !important; }
+
+    /* Status coloring — Only applies when a filter is active */
+    #Tabla_Almacenes.filter-active tbody tr.row-activo td:nth-child(-n+5) {
+        background-color: #eaf7ef !important;
+    }
+    #Tabla_Almacenes.filter-disabled tbody tr.row-deshabilitado td:nth-child(-n+5) {
+        background-color: #fdeeee !important;
+    }
+
+    #Tabla_Almacenes tbody tr.row-activo td:nth-child(6),
+    #Tabla_Almacenes tbody tr.row-activo td:nth-child(7),
+    #Tabla_Almacenes tbody tr.row-deshabilitado td:nth-child(6),
+    #Tabla_Almacenes tbody tr.row-deshabilitado td:nth-child(7) {
+        background-color: #ffffff !important;
+    }
+
+    /* === Premium Badges === */
+    .badge-active-premium {
+        background-color: #198754 !important;
+        color: #ffffff !important;
+        font-weight: 600 !important;
+        padding: 4px 14px !important;
+        border-radius: 8px !important;
+        font-size: 11px !important;
+        box-shadow: 0 2px 4px rgba(25,135,84,0.15) !important;
+        display: inline-block;
+        text-transform: uppercase;
+    }
+    .badge-disabled-premium {
+        background-color: #ef4444 !important;
+        color: #ffffff !important;
+        font-weight: 600 !important;
+        padding: 4px 14px !important;
+        border-radius: 8px !important;
+        font-size: 11px !important;
+        box-shadow: 0 2px 4px rgba(239,68,68,0.15) !important;
+        display: inline-block;
+        text-transform: uppercase;
+    }
+
+    /* === Action Buttons Styles === */
+    .btn-action-edit, .btn-action-status, .btn-action-activate, .btn-action-print {
+        width: 38px !important;
+        height: 38px !important;
+        border-radius: 50% !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        transition: all 0.2s ease !important;
+        border: none !important;
+        padding: 0 !important;
+        color: #ffffff !important;
+    }
+    .btn-action-edit:hover, .btn-action-status:hover, .btn-action-activate:hover, .btn-action-print:hover {
+        transform: scale(1.08) !important;
+    }
+
+    .btn-action-edit {
+        background-color: #ffc107 !important;
+        box-shadow: 0 2px 6px rgba(255,193,7,0.25) !important;
+    }
+    .btn-action-edit:hover { background-color: #e0a800 !important; }
+
+    .btn-action-status {
+        background-color: #dc3545 !important;
+        box-shadow: 0 2px 6px rgba(220,53,69,0.25) !important;
+    }
+    .btn-action-status:hover { background-color: #bb2d3b !important; }
+
+    .btn-action-activate {
+        background-color: #198754 !important;
+        box-shadow: 0 2px 6px rgba(25,135,84,0.25) !important;
+    }
+    .btn-action-activate:hover { background-color: #157347 !important; }
+
+    .btn-action-print {
+        background-color: #198754 !important;
+        box-shadow: 0 2px 6px rgba(25,135,84,0.25) !important;
+    }
+    .btn-action-print:hover { background-color: #157347 !important; }
+
+    /* Export buttons */
+    .dt-buttons .btn {
+        background: transparent !important; border-radius: 8px !important;
+        font-weight: 600 !important; font-size: 0.85rem !important;
+        padding: 6px 15px !important; margin-right: 8px !important;
+        transition: all 0.2s ease !important; box-shadow: none !important;
+    }
+    .dt-buttons .btn-success { border: 1px solid #10b981 !important; color: #10b981 !important; }
+    .dt-buttons .btn-success:hover { background: #10b981 !important; color: #fff !important; }
+    .dt-buttons .btn-danger { border: 1px solid #ef4444 !important; color: #ef4444 !important; }
+    .dt-buttons .btn-danger:hover { background: #ef4444 !important; color: #fff !important; }
+    .dt-buttons .btn-secondary { border: 1px solid #3b82f6 !important; color: #3b82f6 !important; }
+    .dt-buttons .btn-secondary:hover { background: #3b82f6 !important; color: #fff !important; }
+
+    /* Search Bar Customization — Suministros Parity */
+    .dataTables_filter input {
+        border-radius: 50px !important;
+        border: 1px solid #cbd5e1 !important;
+        padding: 0.6rem 1.2rem 0.6rem 2.8rem !important;
+        background: #ffffff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3E%3C/svg%3E") no-repeat 15px center !important;
+        width: 250px !important;
+        height: 42px !important;
+        outline: none !important;
+        font-size: 0.9rem !important;
+        color: #334155 !important;
+        transition: all 0.2s ease !important;
+    }
+    .dataTables_filter input:focus {
+        border-color: #3b82f6 !important;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+    }
+    .dataTables_filter label { font-size: 0 !important; color: transparent !important; }
+
+    /* Pagination */
+    .dataTables_wrapper .dataTables_paginate .paginate_button {
+        min-width: 34px !important; height: 34px !important;
+        display: inline-flex !important; align-items: center !important; justify-content: center !important;
+        border-radius: 8px !important; border: 1px solid #e2e8f0 !important;
+        margin: 0 3px !important; background: #ffffff !important;
+        color: #475569 !important; font-weight: 600 !important; font-size: 0.85rem !important;
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+        background: #0d325a !important; color: #ffffff !important;
+        border-color: #0d325a !important; box-shadow: 0 4px 12px rgba(13,50,90,0.3) !important;
+    }
+    .dataTables_wrapper .dt-buttons { float: left !important; margin-bottom: 1.2rem !important; }
+    .dataTables_wrapper .dataTables_filter { float: right !important; margin-bottom: 1.5rem !important; }
+    .dataTables_scrollBody::-webkit-scrollbar { width: 4px; height: 4px; }
+    .dataTables_scrollBody::-webkit-scrollbar-thumb { background: rgba(13,50,90,0.15); border-radius: 10px; }
+
+    /* Filtro select dynamic colors */
+    .group-filter-premium { border: 1px solid #e2e8f0; transition: all 0.2s ease; }
+    .group-filter-premium.select-active { background-color: #dcfce7 !important; border-color: #10b981 !important; }
+    .group-filter-premium.select-disabled { background-color: #fee2e2 !important; border-color: #ef4444 !important; }
+    .group-filter-premium.select-all { background-color: #eef4ff !important; border-color: #3b82f6 !important; }
+</style>
+
+<!-- Header Premium -->
+<div class="card page-header-premium border-0 shadow-lg mb-4">
+    <div class="card-body p-4 d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center">
+            <div class="header-icon-box-outer me-4">
+                <div class="header-icon-circle-inner">
+                    <i class="fas fa-warehouse"></i>
+                </div>
+            </div>
+            <div>
+                <h3 class="text-white fw-bold mb-0" style="letter-spacing: 0.5px; font-size: 1.8rem;">GESTIÓN DE ALMACENES</h3>
+                <p class="mb-0 small" style="color: #cbd5e1; font-weight: 500;">
+                    <i class="fas fa-info-circle me-1" style="font-size: 0.8rem;"></i> Control y administración de bodegas y ubicaciones
+                </p>
+            </div>
+        </div>
+        <button class="btn shadow-sm px-4" id="btnNuevo"
+            style="border-radius: 50px; background: #ffffff; color: #0b2f52 !important; font-weight: 700; height: 46px; border: none; display: flex; align-items: center;">
+            <i class="fas fa-plus-circle me-2" style="font-size: 1.1rem;"></i> Nuevo Almacén
+        </button>
     </div>
 </div>
 
-<div class="row mb-3">
-    <div class="col-auto">
-        <label for="estadoFiltro" class="form-label"><strong>Filtrar por Estado</strong></label>
-        <select id="estadoFiltro" class="form-select" aria-label="Filtrar por Estado">
-            <option value="0">Todo el listado</option>
-            <option value="1">Listado de Almacenes Activos</option>
-            <option value="3">Listado de Almacenes Deshabilitados</option>
-        </select>
-    </div>
-</div>
+<!-- Main Content Card -->
+<div class="card border-0 shadow-sm mb-4" style="border-radius: 18px; background: #ffffff !important; overflow: hidden;">
+    <div class="card-body p-4">
 
-<div class="row">
-    <div class="bg-white shadow rounded-4 p-3">
-        <table id="Tabla_Almacenes"
-            class="table table-hover table-bordered table-striped table-sm align-middle mb-0 rounded-4">
-            <thead class="text-white text-center rounded-4" style="background-color: #697a8a; text-align: justify;">
-                <tr>
-                    <th class="text-center">No.</th>
-                    <th class="text-center">Nombre</th>
-                    <th class="text-center">Ubicación</th>
-                    <th class="text-center">Fecha de Creación</th>
-                    <th class="text-center">Grupo</th>
-                    <th class="text-center">Estado</th>
-                    <th class="text-center">Acciones</th>
-                </tr>
-            </thead>
+        <!-- Filters -->
+        <div class="row align-items-end mb-4 g-3">
+            <div class="col-md-4">
+                <label class="form-label text-muted small fw-bold text-uppercase mb-2 d-flex align-items-center">
+                    <i class="fas fa-filter me-2 text-primary"></i> FILTRAR POR ESTADO
+                </label>
+                <div id="groupFiltro" class="input-group group-filter-premium shadow-sm rounded-3 overflow-hidden">
+                    <span class="input-group-text bg-white border-0 px-3"><i class="fas fa-bars text-muted small"></i></span>
+                    <select id="estadoFiltro" class="form-select border-0 ps-2" style="height: 42px; font-size: 0.9rem; background: transparent; cursor: pointer;">
+                        <option value="0">Todo el listado</option>
+                        <option value="1">Almacenes Activos</option>
+                        <option value="3">Almacenes Deshabilitados</option>
+                    </select>
+                </div>
+            </div>
+        </div>
 
-            <tbody>
+        <!-- Table -->
+        <div class="table-responsive">
+            <table id="Tabla_Almacenes" class="table table-hover align-middle mb-0 w-100">
+                <thead>
+                    <tr>
+                        <th class="text-center">No.</th>
+                        <th class="text-center">Nombre</th>
+                        <th class="text-center">Ubicación</th>
+                        <th class="text-center">Fecha de Creación</th>
+                        <th class="text-center">Grupo/Área</th>
+                        <th class="text-center">Estado</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
 
-            </tbody>
-        </table>
     </div>
 </div>
 
@@ -91,181 +298,228 @@ GESTIONAR OTROS
 
         function fillAlmacenes() {
 
-    $("#Tabla_Almacenes").DataTable().clear().destroy();
-
-    Tabla_Almacenes = $("#Tabla_Almacenes").DataTable({
-        autoWidth: false,
-        scrollX: true,
-        scrollY: '350px',
-        scrollCollapse: true,
-        pageLength: 10,
-        dom: 'Brftip',
-        language: {
-            url: "{% static 'app/th/json/es-ES.json' %}",
-        },
-        ajax: {
-            url: "{% url 'get_almacenes_data' %}",
-            type: "GET",
-            dataSrc: function (json) {
-                console.log("Respuesta almacenes:", json);
-                return json.data || [];
-            },
-            data: function (d) {
-                d.varEstado = select_estado_almacen;
+            if ($.fn.DataTable.isDataTable('#Tabla_Almacenes')) {
+                $('#Tabla_Almacenes').DataTable().clear().destroy();
             }
-        },
-        colReorder: {
-            realtime: false,
-        },               
-        buttons: [
-            {
-                extend: 'excelHtml5',
-                text: '<i class="fas fa-file-excel"></i> Excel',
-                titleAttr: 'Exportar a Excel',
-                className: 'btn btn-success btn-sm',
-                exportOptions: {
-                    columns: [0, 1, 2, 3, 4, 5]
-                }
-            },
-            {
+
+            Tabla_Almacenes = $("#Tabla_Almacenes").DataTable({
+                autoWidth: false,
+                scrollX: true,
+                scrollY: '400px',
+                scrollCollapse: true,
+                pageLength: 30,
+                dom: 'Brftip',
+                language: {
+                    url: "{% static 'app/th/json/es-ES.json' %}",
+                    search: "",
+                    searchPlaceholder: "Buscar..."
+                },
+                ajax: {
+                    url: "{% url 'get_almacenes_data' %}",
+                    type: "GET",
+                    dataSrc: function (json) {
+                        return json.data || [];
+                    },
+                    data: function (d) {
+                        d.varEstado = select_estado_almacen;
+                    }
+                },
+                colReorder: {
+                    realtime: false,
+                },               
+                buttons: [
+                    {
+                        extend: 'excelHtml5',
+                        text: '<i class="fas fa-file-excel"></i> Excel',
+                        titleAttr: 'Exportar a Excel',
+                        className: 'btn btn-success btn-sm',
+                        exportOptions: { columns: [0, 1, 2, 3, 4, 5] }
+                    },
+                    {
                         extend: 'pdfHtml5',
                         text: '<i class="fas fa-file-pdf"></i> PDF',
                         titleAttr: 'Exportar a PDF',
                         className: 'btn btn-danger btn-sm',
                         pageSize: 'A4',
                         orientation: 'portrait',
-                        exportOptions: {
-                            columns: [0, 1, 2, 3, 4, 5]
-                        },
+                        exportOptions: { columns: [0, 1, 2, 4, 5] },
                         customize: function (doc) {
-                            doc.content[1].table.widths = Array(doc.content[1].table.body[0].length).fill('*');
-                            doc.styles.tableHeader.fillColor = '#2c4770';
-                            doc.styles.tableHeader.color = 'white';
-                            doc.styles.tableHeader.alignment = 'center';
-                            doc.styles.tableHeader.fontSize = 9;
-                            doc.defaultStyle.alignment = 'center';
-                            doc.defaultStyle.fontSize = 7;
-                            doc.pageMargins = [15, 20, 15, 20];
-                            doc.content[0].text = "REPORTE DE ALMACENES";
-                            doc.content[0].alignment = 'center';
-                            doc.content[0].margin = [0, 0, 0, 10];
+                            var now = new Date();
+                            var dateStr = now.toLocaleDateString();
+                            var timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                            var userStr = "{{ request.user.username|default:'Sistema' }}";
+
+                            // 1. Title
+                            if (doc.content[0]) {
+                                doc.content[0].text = 'REPORTE DE ALMACENES – CONTROL DE SUMINISTROS';
+                                doc.content[0].fontSize = 14;
+                                doc.content[0].bold = true;
+                                doc.content[0].alignment = 'center';
+                                doc.content[0].margin = [0, 0, 0, 8];
+                                doc.content[0].color = '#0d325a';
+                            }
+
+                            // 2. Metadata
+                            doc.content.splice(1, 0, {
+                                text: `Generado por: ${userStr} | Fecha: ${dateStr} | Hora: ${timeStr}`,
+                                alignment: 'center',
+                                fontSize: 8,
+                                color: '#6b7280',
+                                margin: [0, 0, 0, 12]
+                            });
+
+                            // 3. Table styling
+                            doc.pageMargins = [20, 30, 20, 30];
+                            doc.styles.tableHeader = { fillColor: '#0d325a', color: 'white', alignment: 'center', bold: true, fontSize: 9, margin: [0, 4, 0, 4] };
+                            doc.defaultStyle = { fontSize: 8, alignment: 'center' };
+
+                            var tableIndex = doc.content.findIndex(c => c.table);
+                            if (tableIndex !== -1) {
+                                doc.content[tableIndex].margin = [0, 15, 0, 0];
+                                var tableBody = doc.content[tableIndex].table.body;
+                                for (var i = 1; i < tableBody.length; i++) {
+                                    if (i % 2 === 0) {
+                                        for (var j = 0; j < tableBody[i].length; j++) {
+                                            tableBody[i][j].fillColor = '#f8fafc';
+                                        }
+                                    }
+                                    // Status coloring
+                                    var recordStatus = tableBody[i][4].text; 
+                                    tableBody[i][4].bold = true;
+                                    if (recordStatus === 'ACTIVO') tableBody[i][4].color = '#15803d';
+                                    if (recordStatus === 'DESHABILITADO') tableBody[i][4].color = '#b91c1c';
+
+                                    // Row padding
+                                    for (var j = 0; j < tableBody[i].length; j++) {
+                                        tableBody[i][j].margin = [0, 4, 0, 4];
+                                    }
+                                }
+                                doc.content[tableIndex].table.widths = ['10%', '30%', '30%', '15%', '15%'];
+                                doc.content[tableIndex].layout = {
+                                    paddingTop: function() { return 4; },
+                                    paddingBottom: function() { return 4; },
+                                    hLineWidth: function() { return 0.5; },
+                                    hLineColor: function() { return '#e2e8f0'; },
+                                    vLineWidth: function() { return 0; }
+                                };
+                            }
                         }
                     },
-            {
-                        extend: 'pdfHtml5', 
+                    {
+                        extend: 'print',
                         text: '<i class="fas fa-print"></i> Imprimir',
                         titleAttr: 'Imprimir',
-                        className: 'btn btn-secondary btn-sm',
-                        pageSize: 'A4',
-                        orientation: 'portrait',
-                        exportOptions: {
-                            columns: [0, 1, 2, 3, 4, 5]
-                        },
-                        action: function ( e, dt, button, config ) {
-                            var oldPdfMake = window.pdfMake.createPdf;
-                            try {
-                                window.pdfMake.createPdf = function(doc) {
-                                    var pdf = oldPdfMake(doc);
-                                    return {
-                                        download: function() { pdf.print(); },
-                                        open: function() { pdf.print(); },
-                                        print: function() { pdf.print(); }
-                                    };
-                                };
-                                $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
-                            } finally {
-                                window.pdfMake.createPdf = oldPdfMake;
-                            }
-                        },
-                        customize: function (doc) {
-                            // Mismas reglas exactas del PDF
-                            doc.content[1].table.widths = Array(doc.content[1].table.body[0].length).fill('*');
-                            doc.styles.tableHeader.fillColor = '#2c4770';
-                            doc.styles.tableHeader.color = 'white';
-                            doc.styles.tableHeader.alignment = 'center';
-                            doc.styles.tableHeader.fontSize = 9;
-                            doc.defaultStyle.alignment = 'center';
-                            doc.defaultStyle.fontSize = 7;
-                            doc.pageMargins = [15, 20, 15, 20];
-                            doc.content[0].text = "REPORTE DE ALMACENES";
-                            doc.content[0].alignment = 'center';
-                            doc.content[0].margin = [0, 0, 0, 10];
+                        id: 'btnImprimir',
+                        className: 'btn btn-secondary btn-sm buttons-print',
+                        exportOptions: { columns: ':visible:not(:last-child)' },
+                        customize: function (win) {
+                            var now = new Date();
+                            var dateStr = now.toLocaleDateString();
+                            var timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                            var userStr = "{{ request.user.username|default:'Sistema' }}";
+
+                            $(win.document.body)
+                                .css('font-family', 'Inter, sans-serif')
+                                .css('font-size', '10pt')
+                                .prepend(
+                                    `<div style="text-align:center; margin-bottom:20px;">
+                                        <h2 style="color:#0d325a; margin-bottom:5px; font-weight:700;">REPORTE DE ALMACENES – CONTROL DE SUMINISTROS</h2>
+                                        <p style="color:#6b7280; font-size:9pt;">Generado por: ${userStr} | Fecha: ${dateStr} | Hora: ${timeStr}</p>
+                                    </div>`
+                                );
+
+                            $(win.document.body).find('table')
+                                .addClass('compact')
+                                .css('font-size', 'inherit')
+                                .css('width', '100%');
+
+                            $(win.document.body).find('table thead th')
+                                .css('background-color', '#0d325a')
+                                .css('color', 'white')
+                                .css('text-align', 'center')
+                                .css('padding', '10px');
+
+                            $(win.document.body).find('table tbody td')
+                                .css('text-align', 'center')
+                                .css('padding', '8px');
+
+                            // Zebra striping
+                            $(win.document.body).find('table tbody tr:odd')
+                                .css('background-color', '#f8fafc');
+
+                            // Status colors in the table
+                            $(win.document.body).find('table tbody tr').each(function() {
+                                var $statusCell = $(this).find('td:last');
+                                var statusText = $statusCell.text().trim();
+                                $statusCell.css('font-weight', 'bold');
+                                if (statusText === 'ACTIVO') $statusCell.css('color', '#15803d');
+                                if (statusText === 'DESHABILITADO') $statusCell.css('color', '#b91c1c');
+                            });
                         }
                     }
                 ],
-    
-        columns: [
-            {
-                data: 'id_almacen'
-            },
-            {
-                data: 'nombre_almacen',
-            },
-            {
-                data: 'ubicacion_almacen'
-            },
-            {
-                data: 'fecha_hora_creacion'
-            },
-            {
-                data: 'GrupoNombre'
-            },
-            {
-                data: 'estado',
-                className: 'text-center',
-                render: function (data, type, row) {
-                    var badge = "";
-                    if (data == 3) {
-                        badge += '<span class="badge badge-pill custom-red">DESHABILITADO</span>';
-                    } else {
-                        badge += '<span class="badge badge-pill bg-success">ACTIVO</span>';
-                    }
-                    return badge;
-                },
-            },
-            {
-                data: null,
-                width: '3%',
-                title: "Acciones",
-                render: function (data, type, row) {
-                    if (row.estado == 3) {
-                        return `
-                        <div class="text-center">
-                            <div class="btn-group">
-                                <button class="btn btn-danger btn-sm anularAlmacen rounded-pill shadow-sm" title="Cambiar Estado" data-id="${row.id_almacen}" data-estado="${row.estado}">
+                columns: [
+                    { data: 'id_almacen' },
+                    { data: 'nombre_almacen' },
+                    { data: 'ubicacion_almacen' },
+                    { data: 'fecha_hora_creacion' },
+                    { data: 'GrupoNombre' },
+                    {
+                        data: 'estado',
+                        className: 'text-center',
+                        render: function (data, type, row) {
+                            if (data == 3) {
+                                return '<span class="badge badge-disabled-premium">DESHABILITADO</span>';
+                            } else {
+                                return '<span class="badge badge-active-premium">ACTIVO</span>';
+                            }
+                        },
+                    },
+                    {
+                        data: null,
+                        width: '3%',
+                        render: function (data, type, row) {
+                            if (row.estado == 3) {
+                                return `
+                                <div class="text-center">
+                                    <button class="btn btn-action-activate btn-sm anularAlmacen shadow-sm" title="Activar Almacén" data-id="${row.id_almacen}" data-estado="${row.estado}">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </button>                                
+                                </div>
+                                `;
+                            }
+                            return `
+                            <div class="text-center d-flex justify-content-center gap-2">
+                                <button class="btn btn-action-edit btn-sm editarAlmacen shadow-sm" title="Editar Almacén" data-id="${row.id_almacen}" data-id_grupo="${row.PKgrupo}" data-estado="${row.estado}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-action-print btn-sm shadow-sm" title="Imprimir Detalle" onclick="imprimirAlmacen(${row.id_almacen})">
+                                    <i class="fas fa-print"></i>
+                                </button>
+                                <button class="btn btn-action-status btn-sm anularAlmacen shadow-sm" title="Deshabilitar Almacén" data-id="${row.id_almacen}" data-estado="${row.estado}">
                                     <i class="fas fa-sync-alt"></i>
                                 </button>                                
                             </div>
-                        </div>
-                        `;
+                            `;
+                        }
                     }
-                    return `
-                    <div class="text-center">
-                        <div class="btn-group">
-                            <button class="btn btn-warning btn-sm editarAlmacen rounded-pill shadow-sm" title="Editar Almacen" data-id="${row.id_almacen}" data-id_grupo="${row.PKgrupo}" data-estado="${row.estado}">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn btn-danger btn-sm anularAlmacen rounded-pill shadow-sm" title="Cambiar Estado" data-id="${row.id_almacen}" data-estado="${row.estado}">
-                                <i class="fas fa-sync-alt"></i>
-                            </button>                                
-                        </div>
-                    </div>
-                    `;
+                ],
+                createdRow: function (row, data, dataIndex) {
+                    if (data.estado == 1) {
+                        $(row).addClass('row-activo');
+                    } else if (data.estado == 3) {
+                        $(row).addClass('row-deshabilitado');
+                    }
                 }
-            }
-        ],
-    });
-}
+            });
+        }
 
-        // Agregar nuevo proveedores-categorias 
+        // Agregar nuevo
         $('#btnNuevo').click(function (e) {
             e.preventDefault();
-
             $('#formAlmacenes').trigger('reset');
-            $('#modalAlmacenLabel').html('<strong>Crear Nuevo Almacen</strong>');
+            $('#modalAlmacenLabel').html('<strong>Crear Nuevo Almacén</strong>');
             $('#modalAlmacen').modal('show');
-
-            // Establecer valores por defecto para el nuevo suministro
             opcion = 1;
             id_almacen = null;
         });
@@ -273,8 +527,6 @@ GESTIONAR OTROS
         // EDITAR EL ALMACÉN 
         $(document).on('click', '.editarAlmacen', function () {
             $('#formAlmacenes').trigger('reset'); 
-
-            // Establecer la opción de editar y obtener la fila seleccionada
             opcion = 2;
             filaAlmacen = $(this).closest('tr');
             id_almacen = $(this).data('id');
@@ -283,33 +535,20 @@ GESTIONAR OTROS
             fkgrupo = $(this).data('id_grupo');
 
             var fecha = filaAlmacen.find("td:eq(3)").text();  
-
-            // Verificar que la fecha no esté vacía
             if (fecha) {
                 var fechaConvertida = new Date(fecha);
-
-                // Comprobar si la fecha se ha convertido correctamente
                 if (!isNaN(fechaConvertida)) {
                     var fechaFormateada = fechaConvertida.toISOString().split('T')[0]; 
-
-                    // Asignar la fecha al campo de fecha
                     $('#fecha').val(fechaFormateada);
-                } else {
-                    console.error("La fecha no es válida: " + fecha);
                 }
-            } else {
-                console.error("No se ha encontrado una fecha válida.");
             }
 
-            // Asignar los valores a los campos del formulario
             $('#id_almacen').val(id_almacen); 
             $('#nombre_almacen').val(nombre_almacen); 
             $('#ubicacion').val(ubicacion_almacen); 
             $('#area').val(fkgrupo).change();
 
-            // Actualizar el estado del almacén a "Editado" 
             cambiar_estado_actual = 2;
-
             $.ajax({
                 url: "{% url 'actualizar_estado_almacenes' %}",  
                 type: "POST",
@@ -318,32 +557,23 @@ GESTIONAR OTROS
                     estado: cambiar_estado_actual,  
                     csrfmiddlewaretoken: csrfToken
                 },
-                success: function (response) {
-                    console.log("Estado actualizado correctamente");
-                },
-                error: function (xhr, status, error) {
-                    console.error("Hubo un problema al actualizar el estado:", error);
-                }
+                success: function (response) { console.log("Estado actualizado"); }
             });
 
-            $('#modalAlmacenLabel').html('<strong>Editar Almacen #' + id_almacen +'</strong>'); 
+            $('#modalAlmacenLabel').html('<strong>Editar Almacén #' + id_almacen +'</strong>'); 
             $('#modalAlmacen').modal('show'); 
         });
 
-        // AGREGAR NUEVO ALMACÉN
+        // AGREGAR/ACTUALIZAR
         $('#formAlmacenes').submit(function (e) {
             e.preventDefault();
-
-            // Recoger valores de los campos del formulario
             var nombre_almacen = $('#nombre_almacen').val();
             var ubicacion_almacen = $('#ubicacion').val();
             var fkgrupo = $('#area').val();
 
-            // Validación básica de campos
             if (nombre_almacen == '' || ubicacion_almacen == '' || fkgrupo == '#') {
                 Swal.fire("", "Debes llenar todos los campos!", "warning");
             } else {
-                // Enviar datos al servidor
                 $.ajax({
                     url: "{% url 'insertar_actualizar_almacen_data' %}",
                     type: "POST",
@@ -352,35 +582,15 @@ GESTIONAR OTROS
                         nombre_almacen: nombre_almacen,
                         ubicacion_almacen: ubicacion_almacen,
                         fkgrupo: fkgrupo,
-
                         csrfmiddlewaretoken: csrfToken
                     },
                     success: function (data) {
                         if (data.save == 1) {
-                            if (opcion == 1) {  
-                                if (data.existe == 0) {
-                                    $('#modalAlmacen').modal('hide');
-
-                                    toastMixin.fire({
-                                        animation: true,
-                                        title: 'Almacén Creado!'
-                                    });
-                                } else {
-                                    Swal.fire("", "warning");
-                                }
-                            } else {  // Si es una edición
-                                $('#modalAlmacen').modal('hide');
-
-                                toastMixin.fire({
-                                    animation: true,
-                                    title: 'Almacén Editado!'
-                                });
-                            }
-
-                            // Recargar la tabla
+                            $('#modalAlmacen').modal('hide');
+                            toastMixin.fire({ animation: true, title: '¡Guardado correctamente!' });
                             Tabla_Almacenes.ajax.reload(null, false);
                         } else {
-                            Swal.fire("", "Error D: " + data.error, "error");
+                            Swal.fire("", "Error: " + data.error, "error");
                         }
                     },
                     error: function () {
@@ -390,22 +600,16 @@ GESTIONAR OTROS
             }
         });
 
+        // ANULAR/ACTIVAR
         $(document).on('click', '.anularAlmacen', function () {
             var id_almacen = $(this).data('id');
             var estado_actual = $(this).data('estado');  
-
-            var mensaje = estado_actual == 3
-                ? '¿Estás seguro de que quieres activar esta requisición?'
-                : '¿Estás seguro de que quieres deshabilitar esta requisición?';
-            var confirmButtonText = estado_actual == 3
-                ? 'Sí, activar'
-                : 'Sí, deshabilitar';
-            var action = estado_actual == 3
-                ? 1 
-                : 3; 
+            var mensaje = estado_actual == 3 ? '¿Activar este almacén?' : '¿Deshabilitar este almacén?';
+            var confirmButtonText = estado_actual == 3 ? 'Sí, activar' : 'Sí, deshabilitar';
+            var action = estado_actual == 3 ? 1 : 3; 
 
             Swal.fire({
-                title: estado_actual == 3 ? 'Activar Requisición' : 'Deshabilitar Requisición',
+                title: estado_actual == 3 ? 'Activar Almacén' : 'Deshabilitar Almacén',
                 text: mensaje,
                 icon: 'warning',
                 showCancelButton: true,
@@ -423,77 +627,180 @@ GESTIONAR OTROS
                         },
                         success: function (data) {
                             if (data.success) {
-                                var mensajeExito = estado_actual == 3
-                                    ? 'La requisición ha sido activada.'
-                                    : 'La requisición ha sido deshabilitada.';
-                                Swal.fire(estado_actual == 3 ? 'Activada!' : 'Deshabilitada!', mensajeExito, 'success');
-
-                                // Actualizar el estado de la requisición en la interfaz
-                                var row = $('tr[data-id="' + id_almacen + '"]');
-                                row.find('.estado').html(
-                                    estado_actual == 3
-                                        ? '<span class="badge badge-pill bg-success">ACTIVO</span>'
-                                        : '<span class="badge badge-pill bg-danger">DESHABILITADO</span>'
-                                );
-
+                                Swal.fire('¡Éxito!', 'Estado actualizado.', 'success');
                                 Tabla_Almacenes.ajax.reload(null, false);
                             } else {
-                                Swal.fire('Error!', data.error || 'No se pudo actualizar el estado de la requisición.', 'error');
+                                Swal.fire('Error!', data.error || 'No se pudo actualizar.', 'error');
                             }
-                        },
-                        error: function () {
-                            Swal.fire('Error!', 'Ocurrió un error al intentar cambiar el estado de la requisición.', 'error');
                         }
                     });
                 }
             });
         });
 
-        // ------------------------------------------------------------------------------------------------------------------------------- //
-
+        // FILTRO ESTADO
         $('#estadoFiltro').change(function (e) {
             e.preventDefault();
+            select_estado_almacen = $(this).val();
 
+            const $group = $('#groupFiltro');
+            const $table = $('#Tabla_Almacenes');
+            
+            $group.removeClass('select-active select-disabled select-all');
+            $table.removeClass('filter-active filter-disabled');
 
-            select_estado_almacen = $("#estadoFiltro").val();
+            if (select_estado_almacen == "1") {
+                $group.addClass('select-active');
+                $table.addClass('filter-active');
+            } else if (select_estado_almacen == "3") {
+                $group.addClass('select-disabled');
+                $table.addClass('filter-disabled');
+            } else {
+                $group.addClass('select-all');
+            }
+
             fillAlmacenes();
         });
 
-        // ------------------------------------------------------------------------------------------------------------------------------- //
+        // Cargar Áreas
+        $.ajax({
+            url: '{% url "get_grupos_data" %}',
+            type: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                $('#area').empty().append('<option value="#">Seleccione el área:</option>');
+                if (response.data) {
+                    $.each(response.data, function(index, grupo) {
+                        $('#area').append('<option value="' + grupo.id + '">' + grupo.nombre + '</option>');
+                    });
+                }
+            }
+        });
+        // EVENTO PARA BOTÓN IMPRIMIR EXTERNO
+        $(document).on('click', '#btnImprimir', function (e) {
+            e.preventDefault();
+            Tabla_Almacenes.button('.buttons-print').trigger();
+        });
+    });
 
-        
-    $.ajax({
-    url: '{% url "get_grupos_data" %}',
-    type: 'GET',
-    dataType: 'json',
-    success: function(response) {
+    function imprimirAlmacen(id) {
+        const rowData = Tabla_Almacenes.rows().data().toArray().find(r => r.id_almacen == id);
+        if (!rowData) {
+            Swal.fire("Error", "No se encontraron los datos del almacén.", "error");
+            return;
+        }
 
-        $('#area').empty();
-        $('#area').append('<option value="#">Seleccione el área:</option>');
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ unit: "mm", format: "a4" });
+        const pageWidth = doc.internal.pageSize.width;
+        const pageHeight = doc.internal.pageSize.height;
+        const azulCorporativo = [13, 50, 90]; // #0d325a
+        const logoUrl = "/static/app/controlsum/images/carbajal.png";
 
-        if (response.data && response.data.length > 0) {
+        const generateContent = (imgData = null) => {
+            // 1. HEADER MODERNO (REDUCIDO)
+            doc.setFillColor(azulCorporativo[0], azulCorporativo[1], azulCorporativo[2]);
+            doc.rect(0, 0, pageWidth, 30, 'F');
+            
+            if (imgData) {
+                const logoH = 18; // Altura elegante (aprox 68px)
+                const ratio = imgData.width / imgData.height;
+                const logoW = logoH * ratio;
+                const yCenter = (30 - logoH) / 2; // Centrado vertical en la banda de 30mm
+                doc.addImage(imgData, 'PNG', 15, yCenter, logoW, logoH);
+            }
 
-            $.each(response.data, function(index, grupo) {
+            doc.setTextColor(255, 255, 255);
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(16);
+            doc.text("DETALLE DE ALMACÉN", pageWidth / 2 + 10, 15, { align: "center" });
+            
+            doc.setFontSize(8);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(200, 210, 230);
+            doc.text("CONTROL DE SUMINISTROS – REPORTE INDIVIDUAL", pageWidth / 2 + 10, 22, { align: "center" });
 
-                $('#area').append(
-                    '<option value="' + grupo.id + '">' + grupo.nombre + '</option>'
-                );
+            // 2. METADATA (SUB-HEADER)
+            var now = new Date();
+            var dateStr = now.toLocaleDateString();
+            var timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            var userStr = "{{ request.user.username|default:'Sistema' }}";
 
+            doc.setTextColor(100, 116, 139);
+            doc.setFontSize(7);
+            doc.text(`Generado por: ${userStr} | ${dateStr} ${timeStr}`, pageWidth - 15, 38, { align: "right" });
+
+            // 3. CARD CONTENEDORA
+            const cardX = 15;
+            const cardY = 45;
+            const cardW = pageWidth - 30;
+            const cardH = 80;
+
+            doc.setDrawColor(226, 232, 240);
+            doc.setFillColor(252, 254, 255);
+            doc.roundedRect(cardX, cardY, cardW, cardH, 3, 3, 'FD');
+
+            // 4. TABLA DE DATOS (DENTRO DE LA CARD)
+            const estadoTexto = rowData.estado == 1 ? "ACTIVO" : "DESHABILITADO";
+            const estadoColor = rowData.estado == 1 ? [22, 163, 74] : [220, 38, 38]; // Green vs Red
+
+            doc.autoTable({
+                startY: cardY + 5,
+                margin: { left: cardX + 5 },
+                tableWidth: cardW - 10,
+                body: [
+                    ["ID ALMACÉN", rowData.id_almacen],
+                    ["NOMBRE DEL ALMACÉN", rowData.nombre_almacen.toUpperCase()],
+                    ["UBICACIÓN FÍSICA", rowData.ubicacion_almacen],
+                    ["ÁREA / GRUPO", rowData.GrupoNombre],
+                    ["FECHA DE REGISTRO", rowData.fecha_hora_creacion],
+                    ["ESTADO ACTUAL", ""] 
+                ],
+                theme: 'plain',
+                styles: {
+                    fontSize: 9,
+                    cellPadding: 4,
+                    textColor: [30, 41, 59],
+                    font: 'helvetica'
+                },
+                columnStyles: {
+                    0: { fontStyle: 'bold', textColor: [71, 85, 105], width: 50 }
+                },
+                didDrawCell: function (data) {
+                    if (data.row.index === 5 && data.column.index === 1) {
+                        const cell = data.cell;
+                        const badgeW = 30;
+                        const badgeH = 6;
+                        const badgeX = cell.x + 2;
+                        const badgeY = cell.y + (cell.height / 2) - (badgeH / 2);
+
+                        doc.setFillColor(estadoColor[0], estadoColor[1], estadoColor[2]);
+                        doc.roundedRect(badgeX, badgeY, badgeW, badgeH, 1, 1, 'F');
+                        
+                        doc.setTextColor(255, 255, 255);
+                        doc.setFontSize(7);
+                        doc.setFont("helvetica", "bold");
+                        doc.text(estadoTexto, badgeX + (badgeW / 2), badgeY + 4, { align: "center" });
+                    }
+                }
             });
 
-        } else {
+            // 5. FOOTER ESTANDARIZADO
+            doc.setDrawColor(226, 232, 240);
+            doc.line(15, pageHeight - 15, pageWidth - 15, pageHeight - 15);
+            
+            doc.setFontSize(7);
+            doc.setTextColor(148, 163, 184);
+            doc.text("Control de Suministros | Reporte de Almacenes", 15, pageHeight - 10);
+            doc.text("Página 1 de 1", pageWidth - 15, pageHeight - 10, { align: "right" });
 
-            $('#area').append('<option value="#">No hay grupos disponibles</option>');
+            window.open(doc.output('bloburl'), '_blank');
+        };
 
-        }
-    },
-    error: function() {
-
-        $('#area').empty();
-        $('#area').append('<option value="#">Error al cargar los grupos</option>');
-
+        const img = new Image();
+        img.onload = () => generateContent(img);
+        img.onerror = () => generateContent(null);
+        img.src = logoUrl;
     }
-});
-    });
 </script>
 {% endblock %}

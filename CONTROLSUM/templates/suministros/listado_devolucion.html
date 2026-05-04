@@ -2,61 +2,285 @@
 {% load static %}
 
 {% block title %}
-GESTION DE DEVOLUCIONES
+GESTIÓN DE DEVOLUCIONES
 {% endblock %}
 
 
 {% block body %}
 
-<div class="row align-items-center">
-    <div class="col d-flex align-items-center">
-        <button id="toggle-sidebar" class="hamburger btnMenu me-3" title="Mostrar/Ocultar Menu">
-            <i class="fas fa-bars"></i>
-        </button>
-        <h3 class="page-title mb-0">
-            <i class="fas fa-undo"></i> <strong>LISTADO DE DEVOLUCIONES</strong>
-        </h3>
+<style>
+    /* Premium UI Refinements */
+    :root {
+        --corp-blue-dark: #0b2f52;
+        --corp-blue-light: #1d3f8f;
+        --corp-gradient: linear-gradient(135deg, #0b2f52 0%, #1d3f8f 100%);
+        --premium-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    }
+
+    .page-header-premium {
+        background: var(--corp-gradient);
+        border-radius: 15px !important;
+        box-shadow: 0 8px 20px rgba(11, 47, 82, 0.15) !important;
+        padding: 1.5rem 2rem !important;
+        margin-bottom: 2rem;
+        border: none;
+    }
+
+    .header-icon-box-outer {
+        width: 52px;
+        height: 52px;
+        background: rgba(255, 255, 255, 0.12);
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+
+    .header-icon-circle-inner {
+        width: 28px;
+        height: 28px;
+        background: #ffffff;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .header-icon-circle-inner i {
+        color: #0b2f52;
+        font-size: 0.85rem;
+    }
+
+    /* Table Styles */
+    #Tabla_Devoluciones,
+    .dataTables_scrollHead table,
+    .dataTables_scrollBody table {
+        border: none !important;
+        border-collapse: separate !important;
+        border-spacing: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+    }
+
+    table.dataTable thead th,
+    #Tabla_Devoluciones thead th,
+    .dataTables_scrollHead table.dataTable thead th {
+        background-color: #0d325a !important;
+        color: #ffffff !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
+        font-size: 0.7rem !important;
+        letter-spacing: 0.8px !important;
+        padding: 12px 8px !important;
+        border: none !important;
+        text-align: center !important;
+        vertical-align: middle !important;
+    }
+
+    /* Fix for double blue header: Force-hide duplicate thead in scroll body */
+    .dataTables_scrollBody thead {
+        visibility: collapse !important;
+        height: 0 !important;
+        line-height: 0 !important;
+    }
+    .dataTables_scrollBody thead th,
+    .dataTables_scrollBody thead tr {
+        height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border: none !important;
+        background: transparent !important;
+        line-height: 0 !important;
+    }
+
+    #Tabla_Devoluciones tbody tr td {
+        border: none !important;
+        border-bottom: 1px solid #f8fafc !important;
+        padding: 12px 8px !important;
+        font-size: 0.8rem !important;
+        color: #1f2937 !important;
+        vertical-align: middle !important;
+        text-align: center !important;
+        background-color: #ffffff !important;
+    }
+
+    #Tabla_Devoluciones tbody tr:nth-child(even) td {
+        background-color: #fafbfd !important;
+    }
+
+    #Tabla_Devoluciones tbody tr:hover td {
+        background-color: rgba(13, 50, 90, 0.04) !important;
+    }
+
+    /* Modern Badges */
+    .badge-pill {
+        padding: 0.4rem 0.8rem !important;
+        font-weight: 600 !important;
+        font-size: 0.75rem !important;
+        border-radius: 50px !important;
+        text-transform: uppercase !important;
+    }
+    .bg-success { background-color: #dcfce7 !important; color: #15803d !important; }
+    .bg-danger { background-color: #fee2e2 !important; color: #b91c1c !important; }
+    .custom-red { background-color: #fee2e2 !important; color: #b91c1c !important; }
+
+    /* Outlined Export Buttons */
+    .dt-buttons .btn {
+        background: transparent !important;
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+        font-size: 0.85rem !important;
+        padding: 6px 15px !important;
+        margin-right: 10px !important;
+        transition: all 0.2s ease !important;
+        box-shadow: none !important;
+    }
+
+    .dt-buttons .btn-success { border: 1px solid #10b981 !important; color: #10b981 !important; }
+    .dt-buttons .btn-success:hover { background: #10b981 !important; color: #ffffff !important; }
+    .dt-buttons .btn-danger { border: 1px solid #ef4444 !important; color: #ef4444 !important; }
+    .dt-buttons .btn-danger:hover { background: #ef4444 !important; color: #ffffff !important; }
+    .dt-buttons .btn-secondary { border: 1px solid #3b82f6 !important; color: #3b82f6 !important; }
+    .dt-buttons .btn-secondary:hover { background: #3b82f6 !important; color: #ffffff !important; }
+
+    /* Search Bar Customization */
+    .dataTables_filter input {
+        border-radius: 50px !important;
+        border: 1px solid #e2e8f0 !important;
+        padding: 0.5rem 1rem 0.5rem 2.5rem !important;
+        background: #ffffff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2394a3b8' class='bi bi-search' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3E%3C/svg%3E") no-repeat 12px center !important;
+        width: 250px !important;
+        height: 38px !important;
+        font-size: 0.9rem !important;
+        outline: none !important;
+        transition: all 0.2s ease !important;
+    }
+
+    .dataTables_filter label { font-size: 0 !important; color: transparent !important; margin-bottom: 0 !important; position: relative !important; }
+
+    /* Pagination Styling */
+    .dataTables_wrapper .dataTables_paginate .paginate_button {
+        min-width: 34px !important;
+        height: 34px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        border-radius: 8px !important;
+        border: 1px solid #e2e8f0 !important;
+        margin: 0 3px !important;
+        background: #ffffff !important;
+        color: #475569 !important;
+        font-weight: 600 !important;
+        font-size: 0.85rem !important;
+    }
+
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+        background: #0d325a !important;
+        color: #ffffff !important;
+        border-color: #0d325a !important;
+        box-shadow: 0 4px 12px rgba(13, 50, 90, 0.3) !important;
+    }
+
+    .dataTables_wrapper .dataTables_info {
+        padding-top: 1.5rem !important;
+        font-size: 0.85rem !important;
+        color: #64748b !important;
+        font-weight: 500 !important;
+    }
+
+    /* Per-row state coloring — color solo hasta columna TOTAL (col 1–11) */
+    #Tabla_Devoluciones tbody tr.row-activo td:not(:nth-child(12)):not(:nth-child(13)) {
+        background-color: rgba(220, 252, 231, 0.5) !important;
+    }
+    #Tabla_Devoluciones tbody tr.row-deshabilitado td:not(:nth-child(12)):not(:nth-child(13)) {
+        background-color: rgba(254, 226, 226, 0.5) !important;
+    }
+    /* Hover — también solo hasta TOTAL */
+    #Tabla_Devoluciones tbody tr.row-activo:hover td:not(:nth-child(12)):not(:nth-child(13)) {
+        background-color: rgba(187, 247, 208, 0.6) !important;
+    }
+    #Tabla_Devoluciones tbody tr.row-deshabilitado:hover td:not(:nth-child(12)):not(:nth-child(13)) {
+        background-color: rgba(254, 202, 202, 0.6) !important;
+    }
+    /* Columnas ESTADO y ACCIONES siempre fondo blanco limpio */
+    #Tabla_Devoluciones tbody tr.row-activo td:nth-child(12),
+    #Tabla_Devoluciones tbody tr.row-activo td:nth-child(13),
+    #Tabla_Devoluciones tbody tr.row-deshabilitado td:nth-child(12),
+    #Tabla_Devoluciones tbody tr.row-deshabilitado td:nth-child(13),
+    #Tabla_Devoluciones tbody tr.row-activo:hover td:nth-child(12),
+    #Tabla_Devoluciones tbody tr.row-activo:hover td:nth-child(13),
+    #Tabla_Devoluciones tbody tr.row-deshabilitado:hover td:nth-child(12),
+    #Tabla_Devoluciones tbody tr.row-deshabilitado:hover td:nth-child(13) {
+        background-color: #ffffff !important;
+    }
+</style>
+
+<!-- Header Premium -->
+<div class="card page-header-premium border-0 shadow-lg mb-4">
+    <div class="card-body p-4 d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center">
+            <div class="header-icon-box-outer me-4">
+                <div class="header-icon-circle-inner">
+                    <i class="fas fa-undo"></i>
+                </div>
+            </div>
+            <div>
+                <h3 class="text-white fw-bold mb-0" style="letter-spacing: 0.5px; font-size: 1.8rem;">GESTIÓN DE DEVOLUCIONES</h3>
+                <p class="mb-0 small" style="color: #cbd5e1; font-weight: 500;">
+                    <i class="fas fa-info-circle me-1" style="font-size: 0.8rem;"></i> Control administrativo y seguimiento de devoluciones
+                </p>
+            </div>
+        </div>
     </div>
 </div>
 
-<div class="row mb-3">
-    <div class="col-auto">
-        <label for="Filtro" class="form-label"><strong>Filtrar por Estado</strong></label>
-        <select id="Filtro" class="form-select" aria-label="Filtrar por Estado">
-            <option value="0">Todo el listado</option>
-            <option value="1">Listado de Devoluciones Activas</option>
-            <option value="3">Listado de Devoluciones Deshabilitadas</option>
-        </select>
-    </div>
-</div>
+<!-- Main Content Card -->
+<div class="card border-0 shadow-sm mb-4" style="border-radius: 18px; background: #ffffff !important; overflow: hidden;">
+    <div class="card-body p-4">
+        
+        <!-- Filter Row -->
+        <div class="row align-items-center mb-4 g-3">
+            <div class="col-md-5">
+                <label class="form-label text-muted small fw-bold text-uppercase mb-2 d-flex align-items-center">
+                    <i class="fas fa-filter me-2 text-primary"></i> FILTRAR POR ESTADO
+                </label>
+                <div class="input-group shadow-sm rounded-3 overflow-hidden" style="border: 1px solid #e2e8f0; width: 100%;">
+                    <span class="input-group-text bg-white border-0 px-3"><i class="fas fa-bars text-muted small"></i></span>
+                    <select id="Filtro" class="form-select border-0 ps-2" style="height: 42px; font-size: 0.9rem; background: transparent; cursor: pointer;">
+                        <option value="0">Todo el listado</option>
+                        <option value="1">Listado de Devoluciones Activas</option>
+                        <option value="3">Listado de Devoluciones Deshabilitadas</option>
+                    </select>
+                </div>
+            </div>
+        </div>
 
-<div class="row">
-    <div class="table-responsive bg-white shadow rounded-4 p-3">
-        <table id="Tabla_Devoluciones"
-            class="table table-hover table-bordered table-striped table-sm align-middle mb-0 rounded-4"
-            style="width: 100%; border-collapse: collapse; border-radius: 10px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
-            <thead class="text-white text-center rounded-4" style="background-color: #697a8a; text-align: justify;">
-                <tr>
-                    <th style="border-radius: 10px 0 0 0;">No.</th>
-                    <th class="text-center">Adquisición No.</th>
-                    <th class="text-center">Detalle No.</th>
-                    <th class="text-center">Suministro</th>
-                    <th class="text-center">Cantidad Devuelta</th>
-                    <th class="text-center">Precio Unitario</th>
-                    <th class="text-center">Fecha de Devolución</th>
-                    <th class="text-center">Motivo</th>
-                    <th class="text-center">Descripción</th>
-                    <th class="text-center">Acreedor</th>
-                    <th class="text-center">Total en Devolución</th>
-                    <th class="text-center">Estado</th>
-                    <th style="border-radius: 10px 0 0 0;">Acciones</th>
-                </tr>
-            </thead>
-
-            <tbody>
-
-            </tbody>
-        </table>
+        <!-- Table -->
+        <div class="table-responsive">
+            <table id="Tabla_Devoluciones" class="table table-hover align-middle mb-0 w-100">
+                <thead>
+                    <tr>
+                        <th>No.</th>
+                        <th>Adquisición No.</th>
+                        <th>Detalle No.</th>
+                        <th>Suministro</th>
+                        <th>Cant. Devuelta</th>
+                        <th>Precio Unitario</th>
+                        <th>Fecha</th>
+                        <th>Motivo</th>
+                        <th>Descripción</th>
+                        <th>Acreedor</th>
+                        <th>Total</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
     </div>
 </div>
 
@@ -110,6 +334,8 @@ GESTION DE DEVOLUCIONES
                 dom: 'Brftip',
                 language: {
                     url: "{% static 'app/th/json/es-ES.json' %}",
+                    search: "",
+                    searchPlaceholder: "Buscar..."
                 },
                 ajax: {
                     url: `{% url 'get_devoluciones_data' %}`,
@@ -120,161 +346,173 @@ GESTION DE DEVOLUCIONES
                         csrfmiddlewaretoken: csrfToken
                     },
                 },
-                colReorder: {
-                    realtime: false,
+                initComplete: function () {
+                    $('#Tabla_Devoluciones_filter input').attr('placeholder', 'Buscar...');
                 },
-               buttons: [
-    {
-        extend: 'excelHtml5',
-        text: '<i class="fas fa-file-excel"></i> Excel',
-        titleAttr: 'Exportar a Excel',
-        className: 'btn btn-success btn-sm',
-        exportOptions: {
-            columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-        }
-    },
-    {
-        extend: 'pdfHtml5',
-        text: '<i class="fas fa-file-pdf"></i> PDF',
-        titleAttr: 'Exportar a PDF',
-        className: 'btn btn-danger btn-sm',
-        pageSize: 'A4',
-        orientation: 'portrait',
-        exportOptions: {
-            columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-        },
-        customize: function (doc) {
+                drawCallback: function (settings) {
+                    var api = this.api();
+                    api.columns.adjust();
+                    // Colorear cada fila según su propio valor de estado
+                    api.rows().every(function () {
+                        var rowData = this.data();
+                        var $row = $(this.node());
+                        $row.removeClass('row-activo row-deshabilitado');
+                        if (rowData.estado == 3) {
+                            $row.addClass('row-deshabilitado');
+                        } else {
+                            $row.addClass('row-activo');
+                        }
+                    });
+                },
+                buttons: [
+                    {
+                        extend: 'excelHtml5',
+                        text: '<i class="fas fa-file-excel"></i> Excel',
+                        titleAttr: 'Exportar a Excel',
+                        className: 'btn btn-success btn-sm',
+                        exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] }
+                    },
+                    {
+                        extend: 'pdfHtml5',
+                        text: '<i class="fas fa-file-pdf"></i> PDF',
+                        titleAttr: 'Exportar a PDF',
+                        className: 'btn btn-danger btn-sm',
+                        pageSize: 'A4',
+                        orientation: 'portrait',
+                        exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] },
+                        customize: function (doc) {
+                            var now = new Date();
+                            var dateStr = now.toLocaleDateString();
+                            var timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                            var userStr = "{{ request.user.first_name }} {{ request.user.last_name }}".trim() || "{{ request.user.username }}";
 
-            // Título
-            doc.content[0].text = 'REPORTE DEVOLUCIONES';
-            doc.content[0].alignment = 'center';
-            doc.content[0].fontSize = 16;
-            doc.content[0].bold = true;
-            doc.content[0].margin = [0, 0, 0, 12];
+                            doc.content[0] = {
+                                stack: [
+                                    { text: 'REPORTE DE DEVOLUCIONES – CONTROL DE SUMINISTROS', fontSize: 14, bold: true, alignment: 'center', margin: [0, 0, 0, 5], color: '#0d325a' },
+                                    { text: `Generado por: ${userStr} | Fecha: ${dateStr} | Hora: ${timeStr}`, fontSize: 8, alignment: 'center', color: '#64748b', margin: [0, 0, 0, 10] }
+                                ],
+                                margin: [0, 0, 0, 10]
+                            };
 
-            // Márgenes de hoja
-            doc.pageMargins = [20, 20, 20, 20];
+                            doc.pageMargins = [15, 30, 15, 30];
 
-            // Fuente general
-            doc.defaultStyle.fontSize = 7;
-            doc.defaultStyle.alignment = 'center';
+                            if (doc.content[1] && doc.content[1].table) {
+                                var table = doc.content[1];
+                                var tableBody = table.table.body;
+                                table.layout = {
+                                    hLineWidth: function(i) { return .5; },
+                                    vLineWidth: function(i) { return .5; },
+                                    hLineColor: function(i) { return '#e2e8f0'; },
+                                    vLineColor: function(i) { return '#e2e8f0'; },
+                                    paddingLeft: function(i) { return 4; },
+                                    paddingRight: function(i) { return 4; }
+                                };
+                                table.table.widths = ['4%', '7%', '7%', '11%', '6%', '9%', '9%', '10%', '11%', '11%', '8%', '7%'];
+                                doc.styles.tableHeader = { fillColor: '#0d325a', color: 'white', alignment: 'center', bold: true, fontSize: 7, margin: [0, 3, 0, 3] };
+                                
+                                for (var i = 1; i < tableBody.length; i++) {
+                                    for (var j = 0; j < tableBody[i].length; j++) {
+                                        if (typeof tableBody[i][j] === 'string') { tableBody[i][j] = { text: tableBody[i][j] }; }
+                                        tableBody[i][j].alignment = 'center';
+                                        tableBody[i][j].fontSize = 6.5;
+                                        if (i % 2 === 0) tableBody[i][j].fillColor = '#f8fafc';
+                                    }
+                                    
+                                    var cellState = tableBody[i][11];
+                                    if (cellState) {
+                                        var txt = (cellState.text || cellState || "").toString();
+                                        cellState.bold = true;
+                                        if (txt.includes('ACTIVO')) cellState.color = '#15803d';
+                                        else if (txt.includes('DESHABILITADO')) cellState.color = '#b91c1c';
+                                    }
+                                }
+                            }
+                            doc['footer'] = (function(page, pages) {
+                                return {
+                                    columns: [
+                                        { text: 'Control de Suministros ©', alignment: 'left', fontSize: 7, margin: [15, 0], color: '#64748b' },
+                                        { text: 'Página ' + page.toString() + ' de ' + pages.toString(), alignment: 'right', fontSize: 7, margin: [0, 0, 15, 0], color: '#64748b' }
+                                    ],
+                                    margin: [0, 10]
+                                }
+                            });
+                        }
+                    },
+                    {
+                        extend: 'pdfHtml5',
+                        text: '<i class="fas fa-print"></i> Imprimir',
+                        titleAttr: 'Imprimir',
+                        className: 'btn btn-secondary btn-sm',
+                        pageSize: 'A4',
+                        orientation: 'portrait',
+                        exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] },
+                        action: function (e, dt, button, config) {
+                            var data = dt.buttons.exportData(config.exportOptions);
+                            var now = new Date();
+                            var dateStr = now.toLocaleDateString();
+                            var timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                            var userStr = "{{ request.user.first_name }} {{ request.user.last_name }}".trim() || "{{ request.user.username }}";
 
-            // Encabezado
-            doc.styles.tableHeader.fillColor = '#1f497d';
-            doc.styles.tableHeader.color = 'white';
-            doc.styles.tableHeader.bold = true;
-            doc.styles.tableHeader.fontSize = 8;
-            doc.styles.tableHeader.alignment = 'center';
+                            var doc = {
+                                pageSize: 'A4',
+                                pageOrientation: 'portrait',
+                                pageMargins: [15, 30, 15, 30],
+                                content: [
+                                    {
+                                        stack: [
+                                            { text: 'REPORTE DE DEVOLUCIONES – CONTROL DE SUMINISTROS', fontSize: 13, bold: true, alignment: 'center', margin: [0, 0, 0, 4], color: '#0d325a' },
+                                            { text: `Generado por: ${userStr} | Fecha: ${dateStr} | Hora: ${timeStr}`, fontSize: 8, alignment: 'center', color: '#64748b', margin: [0, 0, 0, 10] }
+                                        ],
+                                        margin: [0, 0, 0, 10]
+                                    },
+                                    {
+                                        table: {
+                                            headerRows: 1,
+                                            widths: ['4%', '7%', '7%', '11%', '6%', '9%', '9%', '10%', '11%', '11%', '8%', '7%'],
+                                            body: [
+                                                data.header.map(function(h) { return { text: h, fillColor: '#0d325a', color: 'white', alignment: 'center', bold: true, fontSize: 7, margin: [0, 3, 0, 3] }; })
+                                            ]
+                                        },
+                                        layout: {
+                                            hLineWidth: function(i) { return .5; },
+                                            vLineWidth: function(i) { return .5; },
+                                            hLineColor: function(i) { return '#e2e8f0'; },
+                                            vLineColor: function(i) { return '#e2e8f0'; },
+                                            paddingLeft: function(i) { return 3; },
+                                            paddingRight: function(i) { return 3; }
+                                        }
+                                    }
+                                ],
+                                footer: function(page, pages) {
+                                    return {
+                                        columns: [
+                                            { text: 'Control de Suministros ©', alignment: 'left', fontSize: 7, margin: [15, 0], color: '#64748b' },
+                                            { text: 'Página ' + page.toString() + ' de ' + pages.toString(), alignment: 'right', fontSize: 7, margin: [0, 0, 15, 0], color: '#64748b' }
+                                        ],
+                                        margin: [0, 10]
+                                    }
+                                }
+                            };
 
-            // Tabla más limpia como adquisición
-            var objLayout = {};
-            objLayout.hLineWidth = function(i) { return 0; };
-            objLayout.vLineWidth = function(i) { return 0; };
-            objLayout.paddingLeft = function(i) { return 4; };
-            objLayout.paddingRight = function(i) { return 4; };
-            objLayout.paddingTop = function(i) { return 3; };
-            objLayout.paddingBottom = function(i) { return 3; };
+                            data.body.forEach(function(row, i) {
+                                var bodyRow = row.map(function(cell, j) {
+                                    var cellObj = { text: cell, alignment: 'center', fontSize: 6.5 };
+                                    if (i % 2 !== 0) cellObj.fillColor = '#f8fafc';
+                                    if (j === 11) {
+                                        cellObj.bold = true;
+                                        var txt = cell.toString();
+                                        if (txt.includes('ACTIVO')) cellObj.color = '#15803d';
+                                        else if (txt.includes('DESHABILITADO')) cellObj.color = '#b91c1c';
+                                    }
+                                    return cellObj;
+                                });
+                                doc.content[1].table.body.push(bodyRow);
+                            });
 
-            doc.content[1].layout = objLayout;
-
-            // Ajuste de anchos
-            doc.content[1].table.widths = [
-                'auto', // Adquisición No.
-                'auto', // Detalle No.
-                '*',    // Suministro
-                'auto', // Cantidad devuelta
-                'auto', // Precio unitario
-                'auto', // Fecha devolución
-                '*',    // Motivo
-                '*',    // Descripción
-                '*',    // Acreedor
-                'auto', // Total devolución
-                'auto'  // Estado
-            ];
-
-            // Centrar toda la tabla
-            doc.content[1].alignment = 'center';
-        }
-    },
-    {
-        extend: 'pdfHtml5',
-        text: '<i class="fas fa-print"></i> Imprimir',
-        titleAttr: 'Imprimir',
-        className: 'btn btn-secondary btn-sm',
-        pageSize: 'A4',
-        orientation: 'portrait',
-        exportOptions: {
-            columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-        },
-        action: function (e, dt, button, config) {
-            var oldPdfMake = window.pdfMake.createPdf;
-            try {
-                window.pdfMake.createPdf = function(doc) {
-                    var pdf = oldPdfMake(doc);
-                    return {
-                        download: function() { pdf.print(); },
-                        open: function() { pdf.print(); },
-                        print: function() { pdf.print(); }
-                    };
-                };
-                $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
-            } finally {
-                window.pdfMake.createPdf = oldPdfMake;
-            }
-        },
-        customize: function (doc) {
-
-            // Título
-            doc.content[0].text = 'REPORTE DEVOLUCIONES';
-            doc.content[0].alignment = 'center';
-            doc.content[0].fontSize = 16;
-            doc.content[0].bold = true;
-            doc.content[0].margin = [0, 0, 0, 12];
-
-            // Márgenes de hoja
-            doc.pageMargins = [20, 20, 20, 20];
-
-            // Fuente general
-            doc.defaultStyle.fontSize = 7;
-            doc.defaultStyle.alignment = 'center';
-
-            // Encabezado
-            doc.styles.tableHeader.fillColor = '#1f497d';
-            doc.styles.tableHeader.color = 'white';
-            doc.styles.tableHeader.bold = true;
-            doc.styles.tableHeader.fontSize = 8;
-            doc.styles.tableHeader.alignment = 'center';
-
-            // Tabla limpia
-            var objLayout = {};
-            objLayout.hLineWidth = function(i) { return 0; };
-            objLayout.vLineWidth = function(i) { return 0; };
-            objLayout.paddingLeft = function(i) { return 4; };
-            objLayout.paddingRight = function(i) { return 4; };
-            objLayout.paddingTop = function(i) { return 3; };
-            objLayout.paddingBottom = function(i) { return 3; };
-
-            doc.content[1].layout = objLayout;
-
-            // Ajuste de anchos
-            doc.content[1].table.widths = [
-                'auto',
-                'auto',
-                '*',
-                'auto',
-                'auto',
-                'auto',
-                '*',
-                '*',
-                '*',
-                'auto',
-                'auto'
-            ];
-
-            doc.content[1].alignment = 'center';
-        }
-    }
-],
+                            pdfMake.createPdf(doc).print();
+                        }
+                    }
+                ],
                 columns: [
                     {
                         data: 'id_devolucion'
@@ -319,16 +557,11 @@ GESTION DE DEVOLUCIONES
                         data: 'estado',
                         className: 'text-center',
                         render: function (data, type, row) {
-                            var badge = "";
                             if (data == 3) {
-                                badge +=
-                                    '<span class="badge badge-pill custom-red">DESHABILITADO</span>';
+                                return '<span class="badge badge-pill" style="font-size: 0.65rem; background-color: #fee2e2 !important; color: #991b1b !important;">DESHABILITADO</span>';
                             } else {
-                                badge +=
-                                    '<span class="badge badge-pill bg-success">ACTIVO</span>';
+                                return '<span class="badge badge-pill" style="font-size: 0.65rem; background-color: #dcfce7 !important; color: #166534 !important;">ACTIVO</span>';
                             }
-
-                            return badge;
                         },
                     },
                     {
@@ -336,29 +569,34 @@ GESTION DE DEVOLUCIONES
                         width: '3%',
                         title: "Acciones",
                         render: function (data, type, row) {
-                            if (row.estado == 3) {
-                                return `
-                            <div class="text-center">
-                                <div class="btn-group">
-                                    <button class="btn btn-danger btn-sm anularDevolucion rounded-pill shadow-sm" title="Cambiar estado Devolucion" data-id="${row.id_devolucion}" data-estado="${row.estado}">
-                                        <i class="fas fa-sync-alt"></i>
-                                    </button>                                 
-                                </div>
-                            </div>
-                            `;
-                            }
-                            return `
-                            <div class="text-center">
-                                <div class="btn-group">
-                                    <button class="btn btn-warning btn-sm editarDevolucion rounded-pill shadow-sm" title="Editar Devolucion" data-id="${row.id_devolucion}" data-id_adquisicion="${row.id_adquisicion}" data-id_detalle_requisicion="${row.id_detalle_requisicion}" data-suministros="${row.id_suministros}" data-proveedor="${row.id_proveedor}" data-motivo="${row.id_motivo_devolucion}" data-estado="${row.estado}">
+                            var btnStatusClass = (row.estado == 3) ? 'btn-success' : 'btn-danger';
+                            var btnStatusTitle = (row.estado == 3) ? 'Activar Devolución' : 'Deshabilitar Devolución';
+                            
+                            var buttons = `<div class="text-center"><div class="btn-group">`;
+                            
+                            if (row.estado != 3) {
+                                buttons += `
+                                    <button class="btn btn-warning btn-sm editarDevolucion rounded-pill shadow-sm me-1" title="Editar Devolucion" 
+                                        data-id="${row.id_devolucion}" 
+                                        data-id_adquisicion="${row.id_adquisicion}" 
+                                        data-id_detalle_requisicion="${row.id_detalle_requisicion}" 
+                                        data-suministros="${row.id_suministros}" 
+                                        data-proveedor="${row.id_proveedor}" 
+                                        data-motivo="${row.id_motivo_devolucion}" 
+                                        data-estado="${row.estado}">
                                         <i class="fas fa-edit"></i>
-                                    </button>  
-                                    <button class="btn btn-danger btn-sm anularDevolucion rounded-pill shadow-sm" title="Cambiar estado Devolucion" data-id="${row.id_devolucion}" data-estado="${row.estado}">
-                                        <i class="fas fa-sync-alt"></i>
-                                    </button>   
-                                </div>
-                            </div>
-                            `;
+                                    </button>`;
+                            }
+                            
+                            buttons += `
+                                <button class="btn ${btnStatusClass} btn-sm anularDevolucion rounded-pill shadow-sm" title="${btnStatusTitle}" 
+                                    data-id="${row.id_devolucion}" 
+                                    data-estado="${row.estado}">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div></div>`;
+                            
+                            return buttons;
                         }
                     }
                 ],
@@ -644,9 +882,25 @@ GESTION DE DEVOLUCIONES
 
         $('#Filtro').change(function (e) {
             e.preventDefault();
-
-
             select_estado_devolucion = $("#Filtro").val();
+
+            // Visual Update — mismo comportamiento que Requisiciones
+            var val = $(this).val();
+            var $group = $(this).closest('.input-group');
+            $group.css('background-color', '#ffffff');
+            $(this).css('color', '#64748b');
+            $group.find('.input-group-text').css('background-color', '#ffffff');
+
+            if (val == "1") {
+                $group.css('background-color', '#dcfce7');
+                $(this).css('color', '#166534');
+                $group.find('.input-group-text').css('background-color', '#dcfce7');
+            } else if (val == "3") {
+                $group.css('background-color', '#fee2e2');
+                $(this).css('color', '#991b1b');
+                $group.find('.input-group-text').css('background-color', '#fee2e2');
+            }
+
             fillDevoluciones();
         });
 

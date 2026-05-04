@@ -1,91 +1,286 @@
 <div class="modal fade" id="modalAdquisicion" tabindex="-1" aria-labelledby="modalAdquisicionLabel" aria-hidden="true"
     data-bs-keyboard="false" data-bs-backdrop="static">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-            <div class="modal-header" style="background-color: #697a8a; color: white;">
-                <h5 class="modal-title" id="modalAdquisicionLabel">
-                    <i class="material-icons me-2">add_shopping_cart</i><strong>Agregar Adquisición</strong>
-                </h5>
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 15px 50px rgba(0,0,0,0.15);">
+            <div class="modal-header" style="background-color: #0d325a; border-top-left-radius: 20px; border-top-right-radius: 20px; padding: 1.8rem 2.5rem;">
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                    <span style="font-size: 0.65rem; letter-spacing: 3.5px; text-transform: uppercase; color: rgba(255,255,255,0.70); font-weight: 600;">
+                        Sistemas ERP | Control de Suministros
+                    </span>
+                    <h4 class="modal-title mb-0" id="modalAdquisicionLabel" style="color: #ffffff !important; font-weight: 800; font-size: 1.8rem; letter-spacing: 0.5px; line-height: 1.2; padding-top: 5px;">
+                        <i class="material-icons align-middle me-3" style="font-size: 2rem; color: #ffffff; vertical-align: middle;">add_shopping_cart</i>Crear Nueva Adquisición
+                    </h4>
+                    <span style="font-size: 0.85rem; color: rgba(255,255,255,0.85); font-weight: 400; margin-top: 5px;">
+                        Control administrativo de compras
+                    </span>
+                </div>
             </div>
+            <style>
+                #modalAdquisicion .form-label { font-size: 0.78rem; font-weight: 700; color: #64748b; margin-bottom: 0.5rem; letter-spacing: 0.5px; text-transform: uppercase; }
+                #modalAdquisicion .form-control,
+                #modalAdquisicion .form-select {
+                    height: 48px;
+                    border-radius: 14px !important;
+                    border: 1.5px solid #e2e8f0 !important;
+                    padding: 0.65rem 1.1rem !important;
+                    font-size: 0.9rem !important;
+                    font-weight: 500;
+                    color: #1e293b !important;
+                    background-color: #ffffff !important;
+                    box-shadow: 0 2px 6px rgba(0,0,0,0.04) !important;
+                    transition: all 0.25s ease !important;
+                }
+                #modalAdquisicion .form-control:focus,
+                #modalAdquisicion .form-select:focus {
+                    border-color: #0d325a !important;
+                    box-shadow: 0 0 0 4px rgba(13, 50, 90, 0.08), 0 2px 8px rgba(13,50,90,0.12) !important;
+                    outline: none !important;
+                }
+                #modalAdquisicion .form-control:hover,
+                #modalAdquisicion .form-select:hover {
+                    border-color: #94a3b8 !important;
+                }
+                #modalAdquisicion .form-control.bg-light {
+                    background-color: #f8fafc !important;
+                    color: #475569 !important;
+                    border-style: solid !important;
+                    font-weight: 600 !important;
+                }
+                
+                /* Select2 Parity */
+                #modalAdquisicion .select2-container {
+                    width: 100% !important;
+                    display: block !important;
+                }
+                #modalAdquisicion .select2-container .select2-selection--single {
+                    height: 48px !important;
+                    width: 100% !important;
+                    border-radius: 14px !important;
+                    border: 1.5px solid #e2e8f0 !important;
+                    background-color: #ffffff !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    box-shadow: 0 2px 6px rgba(0,0,0,0.04) !important;
+                    outline: none !important;
+                }
+                #modalAdquisicion .select2-container .select2-selection--single .select2-selection__rendered {
+                    line-height: 48px !important;
+                    padding-left: 1.2rem !important;
+                    padding-right: 2.5rem !important;
+                    font-size: 0.9rem !important;
+                    font-weight: 500 !important;
+                    color: #1e293b !important;
+                    width: 100% !important;
+                }
+                #modalAdquisicion .select2-container .select2-selection--single .select2-selection__arrow {
+                    height: 48px !important;
+                    right: 12px !important;
+                    display: flex !important;
+                    align-items: center !important;
+                }
+
+                .section-card {
+                    background: #ffffff;
+                    border-radius: 14px;
+                    padding: 1.2rem;
+                    border: 1px solid #f1f5f9;
+                    margin-bottom: 1.2rem;
+                    box-shadow: 0 2px 10px rgba(0,0,0,0.01);
+                }
+                .section-title {
+                    font-size: 0.78rem;
+                    font-weight: 800;
+                    color: #0d325a;
+                    margin-bottom: 1rem;
+                    display: flex;
+                    align-items: center;
+                    text-transform: uppercase;
+                    letter-spacing: 0.8px;
+                }
+                .section-title i { margin-right: 8px; font-size: 1.1rem; }
+
+                .table-premium { border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+                .table-premium thead { background: #f8fafc; border-bottom: 2px solid #e2e8f0; }
+                .table-premium thead th { 
+                    font-size: 0.72rem; 
+                    font-weight: 700; 
+                    text-transform: uppercase; 
+                    color: #2c4770 !important; 
+                    padding: 0.9rem 1rem !important;
+                    border: none !important;
+                    letter-spacing: 0.5px;
+                }
+                .table-premium tbody tr:hover { background-color: #f8fafc !important; }
+                .table-premium tbody td { 
+                    padding: 0.8rem 1rem !important; 
+                    vertical-align: middle; 
+                    font-size: 0.85rem;
+                    color: #334155;
+                    border-bottom: 1px solid #f1f5f9 !important;
+                }
+
+                .total-capsule {
+                    background: #ffffff;
+                    border: 1px solid #e2e8f0;
+                    padding: 0.6rem 1.2rem;
+                    border-radius: 10px;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 10px;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+                }
+                .total-label { font-size: 0.65rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+                .total-amount { font-size: 1.2rem; font-weight: 800; color: #0d325a; }
+
+                .modal-footer {
+                    background: #f8fafc;
+                    border-top: 1px solid #f1f5f9;
+                    padding: 1.1rem 2rem;
+                    border-bottom-left-radius: 20px;
+                    border-bottom-right-radius: 20px;
+                    display: flex;
+                    justify-content: flex-end;
+                    gap: 10px;
+                }
+                .btn-save-premium {
+                    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+                    border: none !important;
+                    border-radius: 50px !important;
+                    padding: 0.8rem 2.5rem !important;
+                    font-weight: 700 !important;
+                    font-size: 0.9rem !important;
+                    color: white !important;
+                    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.25) !important;
+                    transition: all 0.3s ease !important;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    height: 48px;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                }
+                .btn-save-premium:hover { 
+                    transform: translateY(-2px); 
+                    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35) !important;
+                }
+                .btn-close-premium {
+                    background: transparent !important;
+                    border: 1.5px solid #ef4444 !important;
+                    color: #ef4444 !important;
+                    border-radius: 50px !important;
+                    padding: 0.8rem 2rem !important;
+                    font-weight: 700 !important;
+                    font-size: 0.9rem !important;
+                    transition: all 0.3s ease !important;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    height: 48px;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                }
+                .btn-close-premium:hover { 
+                    background: rgba(239, 68, 68, 0.05) !important; 
+                }
+            </style>
             <form id="formAdquisicion">
-                <div class="modal-body">
+                <div class="modal-body p-3">
                     <div class="container-fluid">
-                        <div class="row">
-                            <!-- Código a la izquierda -->
-                            <label for="id_requisicion" class="form-label"
-                                style="text-align: left;"><strong>Código:</strong></label>
-                            <input type="text" id="id_requisicion" name="id_requisicion" disabled
-                                style="text-align: center; width: 100px; font-size: 22px; font-weight: bold;">
+                        
+                        <!-- Sección 1: Información General -->
+                        <div class="section-card">
+                            <div class="section-title">
+                                <i class="fas fa-info-circle text-primary"></i> Información General de la Adquisición
+                            </div>
+                            <div class="row g-4">
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label for="id_requisicion" class="form-label">Código:</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light border-0"><i class="fas fa-hashtag text-muted small"></i></span>
+                                            <input type="text" id="id_requisicion" name="id_requisicion" class="form-control bg-light text-center fw-bold" disabled style="font-size: 1.1rem;">
+                                        </div>
+                                    </div>
+                                </div>
 
-                            <!-- Requisición del Solicitante -->
-                            <div class="col-md-4">
-                                <div class="form-group mb-3">
-                                    <label for="solicitante" class="form-label"><strong>Requisición del
-                                            Solicitante:</strong></label>
-                                    <select id="solicitante" class="form-select" name="solicitante"
-                                        onchange="ObtenerDetallesRequisicion()">
-                                    </select>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="solicitante" class="form-label">Requisición del Solicitante:</label>
+                                        <select id="solicitante" class="form-select" name="solicitante" onchange="ObtenerDetallesRequisicion()">
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label for="grupos" class="form-label">Área / Departamento:</label>
+                                        <input type="text" id="grupos" class="form-control bg-light" name="grupos" disabled>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label for="proveedor" class="form-label">Proveedor Solicitado:</label>
+                                        <input type="text" id="proveedor" class="form-control bg-light" name="proveedor" disabled>
+                                    </div>
                                 </div>
                             </div>
 
-                            <!-- Área/Departamento -->
-                            <div class="col-md-2">
-                                <div class="form-group mb-3">
-                                    <label for="grupos" class="form-label"><strong>Área/Departamento:</strong></label>
-                                    <input type="text" id="grupos" class="form-control" name="grupos" disabled>
+                            <div class="row g-4 mt-1">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="fecha_adquisicion" class="form-label">Fecha de Adquisición:</label>
+                                        <input type="date" class="form-control" id="fecha_adquisicion">
+                                    </div>
                                 </div>
-                            </div>
-
-                            <!-- Proveedor Solicitado -->
-                            <div class="col-md-4">
-                                <div class="form-group mb-3">
-                                    <label for="proveedor" class="form-label"><strong>Proveedor
-                                            Solicitado:</strong></label>
-                                    <input type="text" id="proveedor" class="form-control" name="proveedor" disabled>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="metodo_pago" class="form-label">Método de Pago:</label>
+                                        <select id="metodo_pago" class="form-select" name="metodo_pago">
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group mb-3">
-                                    <label for="fecha_adquisicion" class="form-label"><strong>Fecha de
-                                            Adquisición:</strong></label>
-                                    <input type="date" class="form-control" id="fecha_adquisicion">
-                                </div>
+                        <!-- Sección 2: Detalle de Suministros -->
+                        <div class="section-card">
+                            <div class="section-title">
+                                <i class="fas fa-box-open text-primary"></i> Detalle de Suministros a Adquirir
                             </div>
-                            <div class="col-md-6">
-                                <div class="form-group mb-3">
-                                    <label for="metodo_pago" class="form-label"><strong>Método de Pago:</strong></label>
-                                    <select id="metodo_pago" class="form-select" name="metodo_pago">
-                                    </select>
+                            <div class="table-responsive table-premium">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center">ID</th>
+                                            <th>Suministro</th>
+                                            <th class="text-center">Cantidad</th>
+                                            <th class="text-end">Precio Unitario</th>
+                                            <th class="text-end">Precio Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tabla-articulos"></tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- Resumen / Total -->
+                            <div class="d-flex justify-content-end mt-4">
+                                <div class="total-capsule">
+                                    <span class="total-label">Total de la Adquisición</span>
+                                    <span class="total-amount">L <span id="costo-total">0.00</span></span>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="col-md-12">
-                            <table class="table table-bordered table-hover">
-                                <thead class="table-dark">
-                                    <tr class="table-success">
-                                        <th>ID</th>
-                                        <th>Suministro</th>
-                                        <th>Cantidad</th>
-                                        <th>Precio Unitario</th>
-                                        <th>Precio Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tabla-articulos"></tbody>
-                            </table>
-                            <div class="d-flex justify-content-end mb-3" style="white-space: nowrap;">
-                                <h5><strong>Total de la Adquisición:</strong> L&nbsp;<span id="costo-total">0.00</span></h5>
-                            </div>
-                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-success"><strong>Guardar Adquisición</strong></button>
-                    <button type="button" class="btn btn-danger"
-                        data-bs-dismiss="modal"><strong>Cerrar</strong></button>
+                    <button type="button" class="btn btn-close-premium" data-bs-dismiss="modal">
+                        <i class="material-icons" style="font-size: 1.3rem;">close</i>CANCELAR
+                    </button>
+                    <button type="submit" class="btn btn-save-premium">
+                        <i class="material-icons" style="font-size: 1.3rem;">save</i>GUARDAR ADQUISICIÓN
+                    </button>
                 </div>
             </form>
         </div>
@@ -152,12 +347,12 @@
 
                                 tablaArticulos += `
                                     <tr data-id-dr="${id_dr}" data-id-sum="${id_sum}">
-                                        <td>${articulo.id_detalle_requisicion || ''}</td>
+                                        <td class="text-center">${articulo.id_detalle_requisicion || ''}</td>
                                         <td style="display: none">${id_sum}</td>
                                         <td>${articulo.nombre_suministro || ''}</td>
-                                        <td>${cantidad}</td>
-                                        <td>L\u00A0${dollarUSLocale.format(precioUnitario)}</td>
-                                        <td>L\u00A0${dollarUSLocale.format(precioTotal)}</td>
+                                        <td class="text-center">${cantidad}</td>
+                                        <td class="text-end">L\u00A0${dollarUSLocale.format(precioUnitario)}</td>
+                                        <td class="text-end">L\u00A0${dollarUSLocale.format(precioTotal)}</td>
                                     </tr>
                                 `;
                                 costoTotal += precioTotal;
@@ -165,7 +360,7 @@
 
                             // Actualizar el contenido de la tabla y el costo total
                             $('#tabla-articulos').html(tablaArticulos);
-                            $('#costo-total').html('<strong>' + dollarUSLocale.format(costoTotal) + '</strong>');
+                            $('#costo-total').html(dollarUSLocale.format(costoTotal));
                         } else {
                             Swal.fire("", "No se encontraron artículos para esta requisición.", "warning");
                         }
@@ -205,19 +400,19 @@
 
                 tablaArticulos += `
                     <tr data-id-da="${id_da}" data-id-dr="${id_dr}" data-id-sum="${id_sum}">
-                        <td>${id_da || id_dr || ''}</td>
+                        <td class="text-center">${id_da || id_dr || ''}</td>
                         <td style="display: none">${id_sum}</td>
                         <td>${detalle.nombre_suministro || detalle.NombreSuministro || ''}</td>
-                        <td data-original-cantidad="${cantidadVal}">${Math.abs(cantidadVal)}</td>
-                        <td data-original-precio="${precioUnitarioVal}">L\u00A0${dollarUSLocale.format(Math.abs(precioUnitarioVal))}</td>
-                        <td>L\u00A0${dollarUSLocale.format(Math.abs(precioTotalVal))}</td>
+                        <td class="text-center" data-original-cantidad="${cantidadVal}">${Math.abs(cantidadVal)}</td>
+                        <td class="text-end" data-original-precio="${precioUnitarioVal}">L\u00A0${dollarUSLocale.format(Math.abs(precioUnitarioVal))}</td>
+                        <td class="text-end">L\u00A0${dollarUSLocale.format(Math.abs(precioTotalVal))}</td>
                     </tr>
                 `;
                 costoTotal += precioTotalVal;
             });
 
             $('#tabla-articulos').html(tablaArticulos);
-            $('#costo-total').html('<strong>' + dollarUSLocale.format(Math.abs(costoTotal)) + '</strong>');
+            $('#costo-total').html(dollarUSLocale.format(Math.abs(costoTotal)));
         }
     }
 
@@ -228,8 +423,8 @@
 
         $('#solicitante').select2({
             placeholder: "Seleccione al solicitante",
-            with: "100%",
-            allowClear: true,
+            width: "100%",
+            allowClear: false,
             dropdownParent: $('#modalAdquisicion')
         });
     });

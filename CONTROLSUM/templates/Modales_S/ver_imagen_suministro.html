@@ -1,0 +1,50 @@
+<div class="modal fade" id="modalVerImagen" tabindex="-1" aria-labelledby="modalVerImagenLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+            <!-- Premium Header -->
+            <div class="modal-header border-0 p-3 px-4" style="background: linear-gradient(135deg, #0b2f52 0%, #1d3f8f 100%);">
+                <div class="d-flex align-items-center">
+                    <div class="bg-white rounded-3 p-2 me-3 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                        <i class="fas fa-image fs-4" style="color: #1e40af;"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title text-white fw-bold mb-0" id="modalVerImagenLabel" style="letter-spacing: 0.5px; font-size: 1.1rem;">Imagen del Suministro</h5>
+                        <p class="text-white text-opacity-75 mb-0 small" style="font-size: 0.75rem;">Vista previa del producto registrado</p>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body p-4 text-center" style="background-color: #f8fafc;">
+                <!-- Product Name Badge -->
+                <div class="mb-4">
+                    <span id="nombreProductoModal" class="badge rounded-pill shadow-sm px-4 py-2" 
+                          style="background-color: #e2e8f0; color: #334155; font-size: 0.9rem; font-weight: 700; border: 1px solid #cbd5e1;">
+                        Nombre del Producto
+                    </span>
+                </div>
+
+                <!-- Image Card -->
+                <div id="contenedorImagen" class="card border-0 shadow-sm mx-auto" style="border-radius: 15px; max-width: 500px; background: white; padding: 15px;">
+                    <img id="imagenSuministroVista" src="" alt="Imagen del suministro" 
+                         class="img-fluid rounded shadow-sm"
+                         style="max-height: 420px; width: 100%; object-fit: contain;">
+                </div>
+
+                <!-- Empty State -->
+                <div id="sinImagenMsg" class="py-5" style="display: none;">
+                    <div class="mb-3">
+                        <i class="fas fa-image-slash text-muted opacity-25" style="font-size: 5rem;"></i>
+                    </div>
+                    <h6 class="text-muted fw-bold">Este suministro no tiene imagen registrada.</h6>
+                </div>
+            </div>
+
+            <div class="modal-footer border-0 p-3 px-4 bg-white justify-content-center">
+                <button type="button" class="btn btn-outline-danger px-5 fw-bold" data-bs-dismiss="modal" style="border-radius: 50px; height: 42px; min-width: 140px;">
+                    <i class="fas fa-times me-2"></i>Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
